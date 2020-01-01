@@ -1,19 +1,59 @@
+.carouselContainer {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    position: relative;
+    height: 500px;
+    overflow: hidden;
+  }
+
+  .column,
+.columnReverse {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: scrollY 20s linear infinite;
+}
+.columnReverse {
+    animation: scrollYReverse 20s linear infinite;
+  }
+
+
 .containerGeral {
     width: 100%;
     height: auto;
     min-height: 80vh;
     padding-top: 100px;
+    display: flex;
     
 }
 
 .containerTitle {
-    font-size: 25px;
-    width: 45%;
-    color: #fff;
+   
     display: flex;
+    flex-direction: column;
     justify-content: flex-start;
     padding-left: 400px;
-    padding-bottom: 50px;
+    
+}
+
+.containerTitle span { 
+    background: linear-gradient(266deg, rgba(138, 5, 190, 1) 0%, rgba(148, 29, 193, 1) 15%, rgba(171, 63, 229, 1) 44%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.containerTitle h1 {
+    font-size: 50px;
+    width: 65%;
+    color: #fff;
+    padding-bottom: 30px;
+}
+
+.containerTitle p {
+    font-size: 20px;
+    color: #fff;
+    width: 85%;
 }
 
 .container {
@@ -23,33 +63,101 @@
     padding: 50px 400px;
 }
 
+
+
+.row,
+.rowReverse {
+  display: flex;
+  width: max-content;
+  animation: scroll 40s linear infinite;
+}
+
+.rowReverse {
+  animation: scrollReverse 40s linear infinite;
+}
+
+
 .box {
+    width: 260px;
+    height: 180px;
+    
+    border-radius: 16px;
+    box-shadow: 0px 14px 18px 3px rgba(0,0,0,0.52);
+-webkit-box-shadow: 0px 14px 18px 3px rgba(0,0,0,0.52);
+-moz-box-shadow: 0px 14px 18px 3px rgba(0,0,0,0.52);
+    padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
-}
-
-.box p {
-    color: #959595;
-    font-size: 14px;
-}
-
-.boxImage {
+    justify-content: center;
+    transition: transform 0.3s;
+  }
+  
+  .box:hover {
+    transform: scale(1.05);
+  }
+  
+  .boxImage {
     display: flex;
     align-items: center;
     gap: 10px;
-}
-
-.boxImage img {
-    width: 20px;
-    height: 20px;
-}
-
-.boxImage h2 {
-    color: #fff;
+  }
+  
+  .boxImage img {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .boxImage h2 {
     font-size: 16px;
-}
+    color: #fff;
+    margin: 0;
+  }
+  
+  .box p {
+    font-size: 14px;
+    color: #666;
+    margin-top: 10px;
+  }
 
+/* Animações verticais */
+@keyframes scrollY {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(-50%);
+    }
+  }
+  
+  @keyframes scrollYReverse {
+    0% {
+      transform: translateY(-50%);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+  
+  /* Fade Top e Bottom */
+  .fadeTop,
+  .fadeBottom {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 80px;
+    z-index: 1;
+    pointer-events: none;
+  }
+  
+  .fadeTop {
+    top: 0;
+    background: linear-gradient(to bottom, rgba(255,255,255,1), rgba(255,255,255,0));
+  }
+  
+  .fadeBottom {
+    bottom: 0;
+    background: linear-gradient(to top, rgba(255,255,255,1), rgba(255,255,255,0));
+  }
 /* Media Query para 1280px */
 @media (max-width: 1280px) {
     .containerTitle {

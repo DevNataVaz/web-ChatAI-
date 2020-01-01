@@ -3,7 +3,7 @@ import styles from './Sidebar.module.css';
 export default function Sidebar() {
   return (
     <aside className={styles.sidebar}>
-      <div className={styles.logo}>📘 zaia</div>
+      <div className={styles.logo}>AnimusIA</div>
       <select className={styles.select}>
         <option>Conta agência</option>
       </select>
