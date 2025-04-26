@@ -1,0 +1,67 @@
+import { useEffect } from 'react';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
+
+import './App.css';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, Slide as ToastSlide } from 'react-toastify';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+import NavBar from './components/navBar';
+import Header from './components/header';
+import SectionDashboard from './components/SectionDashboard';
+import SectionSEO from './components/SectionSEO';
+import Planos from './components/planos';
+import Experimente from './components/experimente';
+import Footer from './components/footer';
+import Banner from './components/banner';
+import DownloadPage from './pages/download';
+// import AuthModal from './components/AuthModal';
+
+function LandingPage() {
+  useEffect(() => {
+    AOS.init({
+      duration: 1000,         
+      easing: 'ease-out-cubic', 
+      delay: 100,     
+    });
+  }, []);
+
+  return (
+    <>
+      <NavBar />  
+      <Header />
+      <Banner />
+      <SectionDashboard />
+      <SectionSEO />
+      <Planos />
+      <Experimente />
+      <Footer />
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/download" element={<DownloadPage />} />
+      </Routes>
+
+      <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="colored"
+        transition={ToastSlide}
+      />
+    </Router>
+  );
+}
+
+export default App;

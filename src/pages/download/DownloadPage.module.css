@@ -1,0 +1,61 @@
+.container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+
+
+}
+
+.container h1 {
+  color: #fff;
+  font-size: 50px;
+  padding-bottom: 30px;
+}
+
+.container p {
+  color: #fff;
+  font-size: 20px;
+  
+  padding-bottom: 30px;
+  text-align: center;
+}
+
+.container a {
+  text-decoration: none;
+}
+
+.card {
+  border: 1px solid #ccc;
+  margin: 1rem auto;
+  padding: 1rem;
+  width: 300px;
+  border-radius: 10px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 0 5px var(--primaryLight);
+  
+}
+
+
+.containerImage img {
+  width: 60px;
+}
+
+.containerDownload h3 {
+  color: #111111;
+  font-size: 25px;
+  padding-bottom: 5px;
+}
+
+.containerDownload h4 {
+  color: #444444;
+}
+
+
+.logo {
+  padding-top: 50px;
+}

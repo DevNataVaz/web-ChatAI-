@@ -1,0 +1,211 @@
+.containerDashboard {
+  height: 100%;
+  width: 100%;
+  padding-bottom: 100px;
+}
+
+.containerTitle {
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  padding-top: 80px;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 500;
+  max-width: 600px;
+  color: #fff;
+}
+
+.containerImages {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 80px;
+  gap: 10px;
+}
+
+.containerDescription {
+  width: 310px;
+  height: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #242424;
+  border-radius: 15px;
+}
+
+.containerDescription h2 {
+  padding-top: 40px;
+  color: #fff;
+  font-size: 16px;
+}
+
+.containerDescription p {
+  padding-top: 10px;
+  color: #929292;
+  font-size: 14px;
+  width: 250px;
+  text-align: center;
+}
+
+.imageDashboard {
+  width: 750px;
+  max-height: 380px;
+  position: absolute;
+  z-index: 1;
+  border-radius: 15px;
+}
+
+.imageDashboard2 {
+  z-index: 0;
+  width: 750px;
+  max-height: 380px;
+  border-radius: 15px;
+}
+
+.containerDescriptionBack {
+  width: 750px;
+  height: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* Media Query para 1280px */
+@media (max-width: 1280px) {
+  .containerImages {
+      gap: 20px;
+      padding: 60px 20px 0 20px;
+  }
+  
+  .containerDescription {
+      width: 280px;
+      height: 350px;
+  }
+  
+  .containerDescriptionBack {
+      width: 650px;
+      height: 350px;
+  }
+  
+  .imageDashboard, 
+  .imageDashboard2 {
+      width: 650px;
+      max-height: 350px;
+  }
+  
+  .title {
+      font-size: 28px;
+      max-width: 550px;
+      padding: 0 15px;
+  }
+}
+
+/* Media Query para 768px */
+@media (max-width: 768px) {
+  .containerTitle {
+      padding-top: 40px;
+  }
+  
+  .title {
+      font-size: 24px;
+      max-width: 90%;
+      padding: 0 15px;
+  }
+  
+  .containerImages {
+      flex-direction: column;
+      padding-top: 40px;
+      gap: 40px;
+  }
+  
+  .containerDescription {
+      width: 90%;
+      max-width: 450px;
+      height: auto;
+      padding: 30px 0;
+  }
+  
+  .containerDescription h2 {
+      padding-top: 25px;
+  }
+  
+  .containerDescription p {
+      width: 80%;
+  }
+  
+  .containerDescriptionBack {
+      width: 90%;
+      max-width: 600px;
+      height: 300px;
+      order: 1;
+  }
+  
+  /* Inverter a ordem para o segundo container */
+  .containerImages:nth-child(3) .containerDescriptionBack {
+      order: 0;
+  }
+  
+  .containerImages:nth-child(3) .containerDescription {
+      order: 1;
+  }
+  
+  .imageDashboard, 
+  .imageDashboard2 {
+      width: 100%;
+      max-height: 300px;
+      position: relative;
+  }
+  
+  .imageDashboard2 {
+      display: none; /* Esconder o segundo gráfico em telas menores */
+  }
+}
+
+/* Media Query para 450px */
+@media (max-width: 450px) {
+  .containerDashboard {
+      padding-bottom: 60px;
+  }
+  
+  .containerTitle {
+      padding-top: 30px;
+  }
+  
+  .title {
+      font-size: 20px;
+  }
+  
+  .containerImages {
+      padding-top: 30px;
+      gap: 30px;
+  }
+  
+  .containerDescription {
+      padding: 25px 0;
+  }
+  
+  .containerDescription h2 {
+      font-size: 15px;
+      padding-top: 20px;
+  }
+  
+  .containerDescription p {
+      font-size: 13px;
+      padding-top: 8px;
+  }
+  
+  .containerDescriptionBack {
+      height: 200px;
+  }
+  
+  .imageDashboard {
+      max-height: 200px;
+  }
+}

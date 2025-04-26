@@ -1,0 +1,31 @@
+/* index.css */
+
+:root {
+  --primary: #8A05BE;
+  --primaryLight: #9928C3;
+  --primaryDark: #6D0499;
+  --primaryGradient: linear-gradient(#8A05BE, #9928C3, #AB3FE5);
+  --secondary: #FFFFFF;
+  --background: #F5F5FA;
+  --card: #FFFFFF;
+  --text: #333333;
+  --textSecondary: #777777;
+  --shadow: #000000;
+  --error: #FF3B30;
+}
+
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Inter", sans-serif;
+
+}
+
+html, body {
+ 
+  background-color: #242424;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
