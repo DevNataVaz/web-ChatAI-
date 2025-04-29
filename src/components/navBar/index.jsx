@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Logo from "../../assets/Logo.svg"
+import Logo from "../../assets/logo-Aa.png"
 import styles from './navBar.module.css'
 import AuthModal from '../../components/modal';
 

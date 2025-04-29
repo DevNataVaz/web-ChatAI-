@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './AuthModal.module.css';
 import { io } from 'socket.io-client';
 import CryptoJS from 'crypto-js';
 import base64 from 'base-64';
 import MD5 from 'react-native-md5';
 import { toast } from 'react-toastify';
-import Variaveis from '../../../Variaveis.json'
+import Variaveis from '../../../Variaveis.json';
+
+import gsap from 'gsap';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -69,6 +71,45 @@ export default function AuthModal({ onClose }) {
   const [cadastro, setCadastro] = useState(true);
   const [form, setForm] = useState({ login: '', senha: '', nome: '', email: '', empresa: '' });
   const navigate = useNavigate();
+
+  const modalRef = useRef(null);
+  const overlayRef = useRef(null);
+
+  useEffect(() => {
+    if (modalRef.current && overlayRef.current) {
+      gsap.fromTo(overlayRef.current, 
+        { opacity: 0 }, 
+        { opacity: 1, duration: 0.4, ease: 'power2.out' }
+      );
+      gsap.fromTo(modalRef.current,
+        { y: 100, opacity: 0 }, 
+        { y: 0, opacity: 1, duration: 0.6, ease: 'power4.out' }
+      );
+    }
+  }, []);
+
+  const handleClose = () => {
+    if (modalRef.current && overlayRef.current) {
+      gsap.to(modalRef.current, {
+        y: 100,
+        opacity: 0,
+        duration: 0.4,
+        ease: 'power2.in',
+      });
+      gsap.to(overlayRef.current, {
+        opacity: 0,
+        duration: 0.4,
+        ease: 'power2.in',
+        onComplete: () => {
+          onClose();
+        }
+      });
+    } else {
+      onClose();
+    }
+  };
+
+
 
   const handleInput = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -219,9 +260,9 @@ export default function AuthModal({ onClose }) {
 
 
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContainer}>
-        <button className={styles.closeBtn} onClick={onClose}>×</button>
+    <div className={styles.modalOverlay} ref={overlayRef}>
+      <div className={styles.modalContainer} ref={modalRef}>
+        <button className={styles.closeBtn} onClick={handleClose}>×</button>
         <h2>{cadastro ? 'Cadastrar conta' : 'Vamos Fazer o seu Login.'}</h2>
         <p>Cadastre-se agora e ganhe 30 dias grátis!</p>
 

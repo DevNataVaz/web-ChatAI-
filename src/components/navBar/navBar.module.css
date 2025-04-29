@@ -14,6 +14,11 @@
   transition: background-color 0.3s ease;
 }
 
+.containerLogo img { 
+  width: 150px;
+ 
+}
+
 .menuContainer {
   padding: 8px 16px;
   border-radius: 20px;
@@ -58,17 +63,20 @@
 .containerButton {
   display: flex;
   align-items: center;
+  background: linear-gradient(266deg, rgba(138, 5, 190, 1) 0%, rgba(148, 29, 193, 1) 15%, rgba(171, 63, 229, 1) 44%);
+  border-radius: 10px;
 }
 
 .button {
-  background-color: var(--primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   border-radius: 10px;
   padding: 12px 24px;
   border: none;
   color: white;
   cursor: pointer;
   animation: pulseEffect 1.5s infinite;
-  font-size: 1rem;
+  font-size: 1.1rem;
 }
 
 .hamburger {
@@ -121,6 +129,7 @@
   position: fixed;
   left: -1%;
   }
+  
 
   .navList {
     position: absolute;

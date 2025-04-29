@@ -15,7 +15,7 @@ function Planos() {
                     {/* Plano 1 */}
                     <div className={styles.planos} data-aos="zoom-in" data-aos-delay="300">
                         <h2>Standard</h2>
-                        <p className={styles.preco}>R$97,90/mês</p>
+                        <p className={styles.preco}>R$179,90/mês</p>
                         <div className={styles.divisor}></div>
                         <div className={styles.beneficios}>
                             <p><img src={Certo} alt="" /> Atendentes Simultâneos: 2</p>
@@ -30,7 +30,7 @@ function Planos() {
                     <div className={`${styles.planos} ${styles.destaque}` } data-aos="zoom-in" data-aos-delay="400">
 
                         <h2>Pro</h2>
-                        <p className={styles.preco}>R$147,90/mês</p>
+                        <p className={styles.preco}>R$269,99/mês</p>
                         <div className={styles.divisor}></div>
                         <div className={styles.beneficios}>
                             <p><img src={Certo} alt="" /> Atendentes Simultâneos: 5</p>
@@ -46,7 +46,7 @@ function Planos() {
                     {/* Plano 3 */}
                     <div className={styles.planos} data-aos="zoom-in" data-aos-delay="500">
                         <h2>Plus</h2>
-                        <p className={styles.preco}>$297,90/mês</p>
+                        <p className={styles.preco}>$547,99/mês</p>
                         <div className={styles.divisor}></div>
                         <div className={styles.beneficios}>
                             <p><img src={Certo} alt="" /> Atendentes Simultâneos: 10</p>
@@ -63,7 +63,7 @@ function Planos() {
                     {/* Plano 4 */}
                     <div className={styles.planos} data-aos="zoom-in" data-aos-delay="600">
                         <h2>Advanced</h2>
-                        <p className={styles.preco}>$597,90/mês</p>
+                        <p className={styles.preco}>$1099,99/mês</p>
                         <div className={styles.divisor}></div>
                         <div className={styles.beneficios}>
                             <p><img src={Certo} alt="" /> Atendentes Simultâneos: 20</p>

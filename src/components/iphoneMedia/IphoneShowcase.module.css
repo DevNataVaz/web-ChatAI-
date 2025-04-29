@@ -1,0 +1,214 @@
+/* IphoneShowcase.module.css */
+.showcase {
+  position: relative;
+  width: 100%;
+  min-height: 140vh;
+  
+  background-image: radial-gradient(#111 2px, transparent 0);
+  background-size: 30px 30px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 60px 20px;
+  position: relative;
+}
+
+.headerText {
+    position: relative;
+    text-align: center;
+    color: white;
+ 
+    z-index: 5;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 20px;
+  }
+  
+  .headerText h1 {
+    font-size: 3.0rem;
+    font-weight: 700;
+    max-width: 1000px;
+    margin-bottom: 20px;
+    background: linear-gradient(90deg, #fff, #a6c0fe);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 15px rgba(166, 192, 254, 0.3);
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+  }
+  
+  .headerText p {
+    font-size: 1.6rem;
+    line-height: 1.6;
+    opacity: 0.9;
+    max-width: 750px;
+    margin: 0 auto;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .spanGradient {
+    background: linear-gradient(266deg, rgb(210, 222, 246) 0%, rgb(143, 167, 253) 15%, rgb(143, 167, 255) 44%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+.phonesContainer {
+  position: relative;
+  height: 100vh;
+  max-height: 800px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.phoneBack {
+  position: absolute;
+  bottom: 130px;
+  z-index: 2;
+  max-height: 80%;
+}
+
+.phoneBack img {
+  height: auto;
+  max-height: 70vh;
+  display: block;
+}
+
+.phoneLeft {
+  position: absolute;
+  z-index: 1;
+  left: 45%;
+  top: 20%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.phoneLeft img {
+  width: 25vw;
+  height: auto;
+  max-height: 65vh;
+  display: block;
+}
+
+.phoneRight {
+  position: absolute;
+  z-index: 3;
+  right: 35%;
+  top: 40%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.phoneRight img {
+  width: 27vw;
+  height: auto;
+  max-height: 70vh;
+  display: block;
+}
+
+.textBox {
+  padding: 12px 20px;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 12px;
+  color: white;
+  margin-top: 20px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: 'San Francisco', 'Helvetica Neue', Arial, sans-serif;
+  text-align: center;
+}
+
+.textBox p {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.centerText {
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 500px;
+  text-align: center;
+  color: white;
+  z-index: 5;
+
+}
+
+.centerText h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.centerText p {
+  font-size: 1rem;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+/* Design responsivo */
+@media (max-width: 1200px) {
+  .phoneLeft {
+    left: 5%;
+  }
+  
+  .phoneRight {
+    right: 5%;
+  }
+}
+
+@media (max-width: 992px) {
+  .phonesContainer {
+    height: 60vh;
+  }
+  
+  .phoneLeft, .phoneRight {
+    transform: scale(0.8);
+  }
+}
+
+@media (max-width: 768px) {
+  .phonesContainer {
+    height: auto;
+    margin-bottom: 40px;
+  }
+  
+  .phoneBack {
+    position: relative;
+    transform: scale(0.8);
+  }
+  
+  .phoneLeft, .phoneRight {
+    display: none;
+  }
+  
+  .centerText {
+    display: block;
+    position: relative;
+    bottom: auto;
+    transform: none;
+    left: auto;
+    margin-top: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .phoneBack {
+    transform: scale(0.7);
+  }
+  
+  .centerText h2 {
+    font-size: 1.5rem;
+  }
+}

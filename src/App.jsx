@@ -16,6 +16,7 @@ import Experimente from './components/experimente';
 import Footer from './components/footer';
 import Banner from './components/banner';
 import DownloadPage from './pages/download';
+import Iphone from './components/iphoneMedia'
 // import AuthModal from './components/AuthModal';
 
 function LandingPage() {
@@ -33,6 +34,7 @@ function LandingPage() {
       <Header />
       <Banner />
       <SectionDashboard />
+      <Iphone />
       <SectionSEO />
       <Planos />
       <Experimente />

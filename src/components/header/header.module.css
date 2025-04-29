@@ -2,6 +2,7 @@
   height: 100%;
   padding-top: 70px;
   grid-area: b;
+  
   background: radial-gradient(circle at 0% 0%, rgb(73, 5, 119) 1%, rgba(6, 0, 77, 1) 30%, rgba(3, 1, 41, 1) 50%);
 }
 
@@ -11,30 +12,49 @@
   align-items: center;
   padding-top: 100px;
   color: #fff;
-  gap: 40px;
+  gap: 30px;
   text-align: center;
 }
 
-.title h1 {
-  font-size: 80px;
-  font-weight: 600;
+.mainTitle {
+  font-size: 72px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
-.title p {
-  font-size: 20px;
+.description {
+  font-size: 50px;
   font-weight: 400;
-  max-width: 540px;
-  color: rgb(177, 177, 176);
+  max-width: 1200px;
+  color: rgb(252, 252, 252);
+  line-height: 1.5;
 }
+
+.firstLine {
+  display: block;
+}
+
+.secondLine {
+  display: inline-block;
+  
+}
+.spanGradient {
+  background: linear-gradient(266deg, rgba(138, 5, 190, 1) 0%, rgba(148, 29, 193, 1) 15%, rgba(171, 63, 229, 1) 44%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 
 .headerContainer {
   position: relative;
-  height: 100vh;
+  height: 70vh;
   display: flex;
   justify-content: space-around;
   align-items: center;
   padding: 0 5%;
-  gap: 40px;
+  
   flex-wrap: wrap;
 }
 
