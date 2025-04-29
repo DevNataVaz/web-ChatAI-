@@ -1,0 +1,22 @@
+.content {
+    background-color: #2c2c31;
+    padding: 20px;
+    border-radius: 12px;
+  }
+  
+  .content h2 {
+    margin-top: 0;
+  }
+  
+  .content textarea {
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px;
+    background: #1f1f24;
+    border: 1px solid #444;
+    color: white;
+    border-radius: 8px;
+    resize: none;
+    min-height: 150px;
+  }
+  

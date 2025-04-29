@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer, Slide as ToastSlide } from 'react-toastify';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
+//components
 import NavBar from './components/navBar';
 import Header from './components/header';
 import SectionDashboard from './components/SectionDashboard';
@@ -15,9 +16,12 @@ import Planos from './components/planos';
 import Experimente from './components/experimente';
 import Footer from './components/footer';
 import Banner from './components/banner';
-import DownloadPage from './pages/download';
 import Iphone from './components/iphoneMedia'
 // import AuthModal from './components/AuthModal';
+
+//pages
+import DownloadPage from './pages/Download';
+import Dashboard from './pages/Dashboard';
 
 function LandingPage() {
   useEffect(() => {
@@ -49,6 +53,8 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/download" element={<DownloadPage />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+
       </Routes>
 
       <ToastContainer 
