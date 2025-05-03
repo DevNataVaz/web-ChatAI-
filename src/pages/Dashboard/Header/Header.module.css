@@ -1,14 +1,163 @@
 .header {
-    display: flex;
-    align-items: center;
-    background-color: #2c2c31;
-    padding: 10px 15px;
-    border-radius: 10px;
-    margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: rgba(16, 20, 50, 0.4);
+  padding: 16px 20px;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  margin-bottom: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(138, 99, 255, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
+  z-index: -1;
+}
+
+.agentInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatarContainer {
+  position: relative;
+}
+
+.avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  border: 2px solid rgba(138, 99, 255, 0.6);
+  object-fit: cover;
+}
+
+.statusIndicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background-color: #4CAF50;
+  border-radius: 50%;
+  border: 2px solid #0f1124;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
   }
-  
-  .header img {
-    border-radius: 50%;
-    margin-right: 10px;
+  70% {
+    box-shadow: 0 0 0 6px rgba(76, 175, 80, 0);
   }
-  
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
+}
+
+.agentDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.agentName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.agentBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #8A63FF;
+  background: rgba(138, 99, 255, 0.15);
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+.agentMeta {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: #8A8D9F;
+}
+
+.divider {
+  width: 4px;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  margin: 0 8px;
+}
+
+.agentId {
+  font-family: 'Roboto Mono', monospace;
+  letter-spacing: 0.5px;
+}
+
+.messageCount {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #8A8D9F;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.actionButton:hover {
+  background: rgba(138, 99, 255, 0.15);
+  color: #8A63FF;
+}
+
+.notificationBadge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 18px;
+  height: 18px;
+  background: #FF5757;
+  color: white;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #0f1124;
+}

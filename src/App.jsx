@@ -18,6 +18,8 @@ import Footer from './components/footer';
 import Banner from './components/banner';
 import Iphone from './components/iphoneMedia'
 // import AuthModal from './components/AuthModal';
+import Pix from './pages/Pagamentos/Pix/index';
+import Pagamento from './pages/Pagamentos/Pagamento'
 
 //pages
 import DownloadPage from './pages/Download';
@@ -54,6 +56,8 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/download" element={<DownloadPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/pix" element={<Pix />} />
+        <Route path="/pagamento" element={<Pagamento />} />
 
       </Routes>
 

@@ -1,22 +1,460 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
 .content {
-    background-color: #2c2c31;
-    padding: 20px;
-    border-radius: 12px;
+  background-color: rgba(16, 20, 50, 0.4);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(138, 99, 255, 0.05) 0%, rgba(0, 0, 0, 0) 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.contentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.contentHeader h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  background: linear-gradient(90deg, #fff 0%, #d9d9e3 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.contentActions {
+  display: flex;
+  gap: 12px;
+}
+
+.saveButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #8A63FF;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.saveButton:hover {
+  background: #9D7CFF;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(138, 99, 255, 0.3);
+}
+
+.saveButton.saving {
+  background: #6B4FCC;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.saveButton.saved {
+  background: #4CAF50;
+}
+
+.spinnerIcon {
+  animation: spin 1s linear infinite;
+  width: 16px;
+  height: 16px;
+  stroke-linecap: round;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.configSection {
+  margin-bottom: 32px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sectionHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.sectionBadge {
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #8A63FF;
+  background: rgba(138, 99, 255, 0.15);
+  border-radius: 4px;
+}
+
+.sectionDescription {
+  font-size: 14px;
+  color: #8A8D9F;
+  margin-bottom: 16px;
+}
+
+.formGroup {
+  margin-bottom: 24px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.textareaWrapper {
+  position: relative;
+}
+
+.formGroup textarea {
+  width: 100%;
+  padding: 14px;
+  background: rgba(15, 17, 36, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 150px;
+  resize: vertical;
+  transition: all 0.2s;
+}
+
+.formGroup textarea:focus {
+  border-color: #8A63FF;
+  box-shadow: 0 0 0 2px rgba(138, 99, 255, 0.2);
+  outline: none;
+}
+
+.textareaActions {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.clearButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(15, 17, 36, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: #8A8D9F;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clearButton:hover {
+  background: rgba(255, 87, 87, 0.15);
+  color: #FF5757;
+}
+
+.helpText {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #8A8D9F;
+}
+
+.toggleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.toggle {
+  position: relative;
+}
+
+.toggleInput {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggleLabel {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 12px;
+}
+
+.toggleTrack {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  background-color: rgba(15, 17, 36, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 34px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.toggleIndicator {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 2px;
+  background-color: #8A8D9F;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.toggleInput:checked + .toggleLabel .toggleTrack {
+  background-color: rgba(138, 99, 255, 0.2);
+  border-color: rgba(138, 99, 255, 0.4);
+}
+
+.toggleInput:checked + .toggleLabel .toggleIndicator {
+  background-color: #8A63FF;
+  transform: translateX(20px);
+  box-shadow: 0 0 8px rgba(138, 99, 255, 0.5);
+}
+
+.toggleInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toggleDescription {
+  font-size: 12px;
+  color: #8A8D9F;
+}
+
+.metricsWidget {
+  background: rgba(15, 17, 36, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.metricsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.metricsHeader h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.periodSelector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  font-size: 13px;
+  color: #8A8D9F;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.periodSelector:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.periodActive {
+  color: white;
+  font-weight: 500;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.metricCard {
+  background: rgba(15, 17, 36, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.metricCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  border-color: rgba(138, 99, 255, 0.3);
+}
+
+.metricCard::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0) 70%);
+  z-index: 0;
+}
+
+.metricIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  margin-right: 14px;
+}
+
+.metricInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.metricValue {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.metricLabel {
+  font-size: 13px;
+  color: #8A8D9F;
+}
+
+.metricTrend {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.metricTrend.positive {
+  color: #4CAF50;
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.metricTrend.negative {
+  color: #FF5757;
+  background: rgba(255, 87, 87, 0.1);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(16, 20, 50, 0.4);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 80px 24px;
+  text-align: center;
+}
+
+.emptyStateIcon {
+  margin-bottom: 16px;
+  opacity: 0.6;
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.emptyState h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.emptyState p {
+  color: #8A8D9F;
+  max-width: 400px;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 1024px) {
+  .metricsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .metricsGrid {
+    grid-template-columns: 1fr;
   }
   
-  .content h2 {
-    margin-top: 0;
+  .contentHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
   
-  .content textarea {
+  .contentActions {
     width: 100%;
-    margin-top: 8px;
-    padding: 10px;
-    background: #1f1f24;
-    border: 1px solid #444;
-    color: white;
-    border-radius: 8px;
-    resize: none;
-    min-height: 150px;
   }
   
+  .saveButton {
+    flex: 1;
+    justify-content: center;
+  }
+}

@@ -1,0 +1,267 @@
+/* Dashboard.module.css */
+
+:root {
+    --primary: #8A05BE;           /* Main purple */
+    --primary-light: #9928C3;     /* Lighter purple */
+    --primary-dark: #6D0499;      /* Darker purple */
+    --secondary: #FFFFFF;         /* White */
+    --background: #F5F5F7;        /* Light background */
+    --card: #FFFFFF;              /* Card background */
+    --text: #333333;              /* Primary text */
+    --text-secondary: #777777;    /* Secondary text */
+    --accent: #00A1FC;            /* Accent blue */
+    --success: #00C853;           /* Success green */
+    --border: #E0E0E0;            /* Border color */
+  }
+  
+  /* Dashboard Layout */
+  .dashboardContainer {
+    min-height: 100vh;
+    background-color: var(--background);
+    display: flex;
+    flex-direction: column;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  /* Header Styles */
+  .header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: var(--secondary);
+    padding: 16px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .headerContent {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+  }
+  
+  .logo {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+  }
+  
+  .profileSection {
+    display: flex;
+    align-items: center;
+  }
+  
+  .profileIcon {
+    width: 36px;
+    height: 36px;
+    background-color: var(--secondary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    color: var(--primary);
+    font-weight: 600;
+  }
+  
+  .username {
+    font-weight: 500;
+  }
+  
+  /* Main Content Styles */
+  .mainContent {
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    width: 100%;
+  }
+  
+  .welcomeSection {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  
+  .welcomeSection h2 {
+    color: var(--primary);
+    margin-bottom: 8px;
+    font-size: 28px;
+  }
+  
+  .welcomeSection p {
+    color: var(--text-secondary);
+    font-size: 16px;
+  }
+  
+  .sectionTitle {
+    font-size: 20px;
+    color: var(--text);
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+  
+  /* Plans Section */
+  .plansSection {
+    margin-bottom: 40px;
+  }
+  
+  .planCards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  
+  .planCard {
+    background-color: var(--card);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .planCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  }
+  
+  .planHeader {
+    padding: 20px;
+    background: linear-gradient(135deg, var(--primary-light), var(--primary));
+    color: var(--secondary);
+    text-align: center;
+  }
+  
+  .planName {
+    font-size: 18px;
+    margin: 0 0 10px 0;
+    font-weight: 600;
+  }
+  
+  .planPrice {
+    font-size: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+  }
+  
+  .currency {
+    font-size: 16px;
+    margin-right: 2px;
+  }
+  
+  .amount {
+    font-size: 24px;
+    font-weight: 700;
+  }
+  
+  .period {
+    margin-left: 4px;
+    font-size: 14px;
+    opacity: 0.8;
+  }
+  
+  .planFeatures {
+    padding: 20px;
+  }
+  
+  .featureItem {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  
+  .featureItem i {
+    color: var(--success);
+    font-size: 18px;
+    margin-right: 10px;
+  }
+  
+  .paymentButton {
+    background-color: var(--primary);
+    color: var(--secondary);
+    border: none;
+    padding: 12px 0;
+    width: 100%;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .paymentButton:hover {
+    background-color: var(--primary-light);
+  }
+  
+  /* Stats Section */
+  .statsSection {
+    margin-bottom: 40px;
+  }
+  
+  .statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+  }
+  
+  .statCard {
+    background-color: var(--card);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+  }
+  
+  .statCard i {
+    font-size: 32px;
+    color: var(--primary);
+    margin-right: 16px;
+  }
+  
+  .statInfo {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .statValue {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  
+  .statLabel {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+  
+  /* Footer Styles */
+  .footer {
+    background-color: var(--card);
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 16px 20px;
+    font-size: 14px;
+    border-top: 1px solid var(--border);
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .planCards {
+      grid-template-columns: 1fr;
+    }
+    
+    .statsGrid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .headerContent {
+      flex-direction: column;
+      text-align: center;
+    }
+    
+    .profileSection {
+      margin-top: 12px;
+    }
+  }
