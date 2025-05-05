@@ -1,0 +1,273 @@
+/* styles.module.css */
+.container {
+    min-height: 100vh;
+    background-color: #F5F5F7;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .header {
+    height: 20vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding-top: 20px;
+    position: relative;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  .backButton {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .backButton:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+  
+  .pixIconContainer {
+    width: 85px;
+    height: 85px;
+    background-color: #FFFFFF;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 42.5px;
+    margin: 0 auto;
+    margin-top: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+  
+  .pixIconInner {
+    width: 80px;
+    height: 80px;
+    background-color: #916bfb;
+    border-radius: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    animation: fadeIn 1s ease-in;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .paymentInfo {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .paymentText {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333333;
+    margin-bottom: 8px;
+  }
+  
+  .paymentAmount {
+    font-size: 22px;
+    font-weight: 700;
+    color: #8A05BE;
+    margin: 0;
+  }
+  
+  .paymentSubtext {
+    font-size: 13px;
+    font-weight: 400;
+    color: #777777;
+    margin-top: 8px;
+    max-width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .pixCodeCard, .infoCard {
+    width: 100%;
+    background-color: #FFFFFF;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    animation: fadeInUp 0.3s ease-out;
+  }
+  
+  @keyframes fadeInUp {
+    from { 
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .pixCodeContent, .infoCardContent {
+    padding: 20px;
+  }
+  
+  .pixCodeHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  
+  .pixIconSmall {
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    background-color: rgba(145, 107, 251, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+  }
+  
+  .pixImage {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .pixCodeLabel {
+    font-size: 12px;
+    color: #777777;
+    margin: 0;
+  }
+  
+  .pixCodeValue {
+    font-size: 13px;
+    color: #333333;
+    font-weight: 500;
+    margin: 0;
+  }
+  
+  .copyButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #916bfb;
+    width: 100%;
+    padding: 15px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .copyButton:hover {
+    background-color: #8260e9;
+  }
+  
+  .copyButtonText {
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 600;
+    margin-left: 10px;
+  }
+  
+  .infoCard {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .infoIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    background-color: rgba(145, 107, 251, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+  }
+  
+  .infoCardText {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .infoCardTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333333;
+    margin: 0 0 4px 0;
+  }
+  
+  .infoCardLabel {
+    font-size: 12px;
+    color: #777777;
+    margin: 0;
+  }
+  
+  .buttonContainer {
+    width: 100%;
+    margin-top: 10px;
+  }
+  
+  .confirmButton {
+    width: 100%;
+    background-color: #8A05BE;
+    padding: 15px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    color: #FFFFFF;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background-color 0.2s;
+  }
+  
+  .confirmButton:hover {
+    background-color: #6D0499;
+  }
+  
+  /* Responsive design */
+  @media (max-width: 480px) {
+    .paymentText {
+      font-size: 14px;
+    }
+    
+    .paymentAmount {
+      font-size: 20px;
+    }
+    
+    .pixCodeLabel, .infoCardLabel {
+      font-size: 11px;
+    }
+    
+    .pixCodeValue, .infoCardTitle {
+      font-size: 12px;
+    }
+  }

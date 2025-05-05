@@ -1,0 +1,497 @@
+/* Base do Planos */
+.container {
+    padding: 80px 0;
+    color: white;
+    background-size: cover;
+    min-height: 100vh;
+    background-color: #0a0a0f;
+  }
+  
+  .loading, .error {
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+  }
+  
+  .error {
+    color: #ff4444;
+  }
+  
+  /* Tela Principal de Pagamento */
+  .paymentContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  .planoInfo {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+  
+  .planoInfo h1 {
+    font-size: 32px;
+    margin-bottom: 20px;
+  }
+  
+  .planoDetails {
+    background-color: #1c1c2b;
+    border: 1px solid #3a3a50;
+    border-radius: 16px;
+    padding: 30px;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+  .planoDetails h2 {
+    font-size: 36px;
+    margin-bottom: 10px;
+    color: var(--primary);
+  }
+  
+  .planoDetails p {
+    color: #aaa;
+    font-size: 16px;
+  }
+  
+  .paymentMethods {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .paymentMethods h2 {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 40px;
+  }
+  
+  .methodsContainer {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+  }
+  
+  .paymentButton {
+    background-color: #1c1c2b;
+    border: 1px solid #3a3a50;
+    border-radius: 16px;
+    padding: 30px;
+    width: 300px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: white;
+  }
+  
+  .paymentButton:hover {
+    border-color: var(--primary);
+    transform: translateY(-5px);
+  }
+  
+  .buttonContent {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  
+  .pixIcon, .cardIcon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+  }
+  
+  .buttonText h3 {
+    font-size: 18px;
+    margin-bottom: 5px;
+  }
+  
+  .buttonText p {
+    color: #aaa;
+    font-size: 14px;
+  }
+  
+  /* Tela PIX */
+  .pixContainer {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 0 20px;
+  }
+  
+  .qrCodeContainer {
+    background-color: #1c1c2b;
+    border: 1px solid #3a3a50;
+    border-radius: 16px;
+    padding: 30px;
+    margin: 40px 0;
+  }
+  
+  .copyButton:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+  }
+  
+  .instructions {
+    text-align: left;
+    margin-top: 30px;
+  }
+  
+  .instructions h3 {
+    margin-bottom: 15px;
+  }
+  
+  .instructions ol {
+    padding-left: 20px;
+  }
+  
+  .instructions li {
+    margin-bottom: 8px;
+    color: #ccc;
+  }
+  
+  .waiting {
+    margin-top: 30px;
+  }
+  
+  .spinner {
+    margin: 20px auto;
+    width: 40px;
+    height: 40px;
+    border: 4px solid #3a3a50;
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* Tela de Cartão */
+  .cardContainer {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  .cardForm {
+    background-color: #1c1c2b;
+    border: 1px solid #3a3a50;
+    border-radius: 16px;
+    padding: 30px;
+    margin-top: 40px;
+  }
+  
+  .formGroup {
+    margin-bottom: 20px;
+  }
+  
+  .formGroup label {
+    display: block;
+    margin-bottom: 8px;
+    color: #aaa;
+    font-size: 14px;
+  }
+  
+  .formGroup input {
+    width: 100%;
+    padding: 12px;
+    background-color: #141420;
+    border: 1px solid #3a3a50;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+  }
+  
+  .formGroup input:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+  
+  .formRow {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .formRow .formGroup {
+    flex: 1;
+  }
+  
+  .expiryRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .expiryRow input {
+    width: 50px;
+    text-align: center;
+  }
+  
+  .errorMessage {
+    color: #ff4444;
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: rgba(255, 68, 68, 0.1);
+    border-radius: 8px;
+    border: 1px solid #ff4444;
+  }
+  
+  .submitButton {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(to right, var(--primaryLight), var(--primaryDark));
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .submitButton:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+  }
+  
+  .submitButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  /* Sucesso */
+  .successContainer {
+    text-align: center;
+    padding: 40px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .successIcon {
+    width: 80px;
+    height: 80px;
+    background-color: #4CAF50;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: white;
+  }
+  
+  .successContainer h2 {
+    font-size: 28px;
+    margin-bottom: 15px;
+  }
+  
+  .successContainer p {
+    color: #aaa;
+    margin-bottom: 10px;
+  }
+  
+  /* Responsividade */
+  @media (max-width: 768px) {
+    .methodsContainer {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .paymentButton {
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .formRow {
+      flex-direction: column;
+    }
+    
+    .planoDetails {
+      padding: 20px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .container {
+      padding: 40px 0;
+    }
+    
+    .planoInfo h1 {
+      font-size: 24px;
+    }
+    
+    .planoDetails h2 {
+      font-size: 28px;
+    }
+    
+    .qrCodeContainer {
+      padding: 20px;
+    }
+    
+    .cardForm {
+      padding: 20px;
+    }
+  } 
+  .copyButton{
+    margin-top: 20px;
+    padding: 10px 20px;
+    background: var(--primary);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+
+  /* Estilos para Assinatura (adicionar ao pagamento.module.css) */
+
+.assinaturaContainer {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  .assinaturaContainer h1 {
+    text-align: center;
+    font-size: 32px;
+    margin-bottom: 40px;
+  }
+  
+  .assinaturaCard {
+    background-color: #1c1c2b;
+    border: 1px solid #3a3a50;
+    border-radius: 16px;
+    padding: 40px;
+    margin-bottom: 50px;
+  }
+  
+  .assinaturaHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+  }
+  
+  .assinaturaHeader h2 {
+    font-size: 24px;
+  }
+  
+  .status {
+    font-size: 14px;
+    font-weight: bold;
+    padding: 5px 15px;
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .assinaturaInfo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-bottom: 30px;
+  }
+  
+  .infoItem {
+    background-color: #141420;
+    border: 1px solid #3a3a50;
+    border-radius: 8px;
+    padding: 20px;
+  }
+  
+  .infoItem label {
+    display: block;
+    color: #aaa;
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  
+  .infoItem p {
+    font-size: 18px;
+    font-weight: bold;
+  }
+  
+  .progressBar {
+    width: 100%;
+    height: 20px;
+    background-color: #3a3a50;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 10px 0;
+  }
+  
+  .progressFill {
+    height: 100%;
+    background: linear-gradient(to right, var(--primaryLight), var(--primaryDark));
+    transition: width 0.5s ease;
+  }
+  
+  .acoes {
+    display: flex;
+    gap: 20px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+  }
+  
+  .pagarButton {
+    flex: 1;
+    min-width: 200px;
+    padding: 15px;
+    background: linear-gradient(to right, #ff4444, #ff6666);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .atualizarButton {
+    flex: 1;
+    min-width: 200px;
+    padding: 15px;
+    background: linear-gradient(to right, var(--primaryLight), var(--primaryDark));
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .pagarButton:hover,
+  .atualizarButton:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+  }
+  
+  .historicoSection {
+    margin-top: 60px;
+  }
+  
+  .historicoSection h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  @media (max-width: 768px) {
+    .assinaturaHeader {
+      flex-direction: column;
+      gap: 10px;
+      text-align: center;
+    }
+    
+    .acoes {
+      flex-direction: column;
+    }
+    
+    .assinaturaCard {
+      padding: 20px;
+    }
+  }

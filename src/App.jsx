@@ -12,18 +12,30 @@ import NavBar from './components/navBar';
 import Header from './components/header';
 import SectionDashboard from './components/SectionDashboard';
 import SectionSEO from './components/SectionSEO';
-import Planos from './components/planos';
+import PlanosComponent from './components/planos';
 import Experimente from './components/experimente';
 import Footer from './components/footer';
 import Banner from './components/banner';
-import Iphone from './components/iphoneMedia'
-// import AuthModal from './components/AuthModal';
-import Pix from './pages/Pagamentos/Pix/index';
-import Pagamento from './pages/Pagamentos/Pagamento'
+import Iphone from './components/iphoneMedia';
+import ProtectedRoute from './components/ProtectedRoute';
+import ConnectionStatus from './pages/Dashboard/MainDashboard/ConnectionStatus';
 
 //pages
 import DownloadPage from './pages/Download';
 import Dashboard from './pages/Dashboard';
+import MainDashboard from './pages/Dashboard/MainDashboard/index';
+import LoginPage from './pages/Login';
+import RegisterPage from './pages/Registro';
+import Pix from './pages/Pagamentos/Pix/index';
+import Planos from './pages/Dashboard/Planos';
+
+// Novas páginas de pagamento
+import Pagamento from './pages/Dashboard/Planos/Pagamentos/pagamento';
+import PagamentoPix from './pages/Dashboard/Planos/Pagamentos/pagamentoPix';
+import PagamentoCartao from './pages/Dashboard/Planos/Pagamentos/pagamentoCartao';
+import Assinatura from './pages/Dashboard/Assinaturas';
+
+import { AppProvider } from './context/AppContext';
 
 function LandingPage() {
   useEffect(() => {
@@ -42,7 +54,7 @@ function LandingPage() {
       <SectionDashboard />
       <Iphone />
       <SectionSEO />
-      <Planos />
+      <PlanosComponent />
       <Experimente />
       <Footer />
     </>
@@ -52,26 +64,98 @@ function LandingPage() {
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/download" element={<DownloadPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/pix" element={<Pix />} />
-        <Route path="/pagamento" element={<Pagamento />} />
+      <AppProvider>
+       
+        <Routes>
+          {/* rotas publicas */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/registro" element={<RegisterPage />} />
+          <Route path="/download" element={<DownloadPage />} />
+          
+          {/* rotas protegidas */}
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <ConnectionStatus />
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/planos" 
+            element={
+              <ProtectedRoute>
+                <Planos />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/mainDashboard" 
+            element={
+              <ProtectedRoute>
+                <MainDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/pix" 
+            element={
+              <ProtectedRoute>
+                <Pix />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Novas rotas de pagamento */}
+          <Route 
+            path="/pagamento/:planoId" 
+            element={
+              <ProtectedRoute>
+                <Pagamento />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/pagamento/pix/:planoId" 
+            element={
+              <ProtectedRoute>
+                <PagamentoPix />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/pagamento/cartao/:planoId" 
+            element={
+              <ProtectedRoute>
+                <PagamentoCartao />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/assinatura" 
+            element={
+              <ProtectedRoute>
+                <Assinatura />
+              </ProtectedRoute>
+            } 
+          />
+         
+        </Routes>
 
-      </Routes>
-
-      <ToastContainer 
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        pauseOnHover
-        draggable
-        theme="colored"
-        transition={ToastSlide}
-      />
+        <ToastContainer 
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          pauseOnHover
+          draggable
+          theme="colored"
+          transition={ToastSlide}
+        />
+      </AppProvider>
     </Router>
   );
 }

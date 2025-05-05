@@ -1,23 +1,85 @@
-import React, { useState } from 'react';
+// Content/Content.js
+import React, { useState, useEffect } from 'react';
 import styles from './Content.module.css';
+import { useApp } from '../../../context/AppContext';
+import { useAgentMetrics } from '../../../hooks/useAgentMetrics';
 
-export default function Content({ activeTab }) {
+export default function Content({ activeTab, contentView }) {
   const [saveStatus, setSaveStatus] = useState(null);
-  const [behaviorText, setBehaviorText] = useState(
-    `Seu(a) funcionário(a) é responsável pelo atendimento e vendas da loja Saúde e Beleza.
+  const [behaviorText, setBehaviorText] = useState('');
+  const [isLoadingContent, setIsLoadingContent] = useState(true);
+  const { currentAgent, updateAgentBehavior, isLoading: appIsLoading } = useApp();
+  const { metrics, isLoading: metricsLoading } = useAgentMetrics();
 
-Sua linguagem deve ser amigável, atenciosa e gentil. Responda de forma direta e eficiente, sem verbosidade.`
-  );
+  useEffect(() => {
+    if (currentAgent && currentAgent.DADOS) {
+      // Find behavior response from agent data
+      const behaviorQuestion = currentAgent.DADOS.find(d => d.PERGUNTA === 'Comportamento');
+      if (behaviorQuestion) {
+        setBehaviorText(behaviorQuestion.RESPOSTA);
+      }
+    }
+    setIsLoadingContent(false);
+  }, [currentAgent]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!currentAgent) return;
+    
     setSaveStatus('saving');
-    setTimeout(() => {
-      setSaveStatus('saved');
-      setTimeout(() => {
-        setSaveStatus(null);
-      }, 3000);
-    }, 1000);
+    
+    try {
+      const success = await updateAgentBehavior(behaviorText, {
+        gatilho: 'automatico' // This would come from the toggle settings
+      });
+      
+      if (success) {
+        setSaveStatus('saved');
+        setTimeout(() => {
+          setSaveStatus(null);
+        }, 3000);
+      } else {
+        setSaveStatus('error');
+      }
+    } catch (error) {
+      console.error('Error saving:', error);
+      setSaveStatus('error');
+    }
   };
+
+  // Se um contentView específico estiver ativo, renderizar uma tela de transição
+  if (contentView) {
+    return (
+      <div className={styles.emptyState}>
+        <div className={styles.emptyStateIcon}>
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" stroke="#8A8D9F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 6V12L16 14" stroke="#8A8D9F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+        <h3>Carregando...</h3>
+        <p>Por favor, aguarde enquanto o sistema carrega.</p>
+      </div>
+    );
+  }
+
+  // Renderizar o conteúdo baseado na aba ativa
+  if (['instrucoes', 'perfil'].includes(activeTab)) {
+    return (
+      <div className={styles.emptyState}>
+        <div className={styles.emptyStateIcon}>
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="#8A8D9F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M14 2V8H20" stroke="#8A8D9F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M16 13H8" stroke="#8A8D9F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M16 17H8" stroke="#8A8D9F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M10 9H9H8" stroke="#8A8D9F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+        <h3>Conteúdo em desenvolvimento</h3>
+        <p>Esta seção está sendo construída. Em breve você terá acesso a mais funcionalidades.</p>
+      </div>
+    );
+  }
 
   if (activeTab !== 'configuracoes') {
     return (
@@ -35,6 +97,19 @@ Sua linguagem deve ser amigável, atenciosa e gentil. Responda de forma direta e
     );
   }
 
+  if (isLoadingContent || appIsLoading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.content}>
+          <div className={styles.loadingState}>
+            <div className={styles.loadingSpinner}></div>
+            <p>Carregando...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.content}>
@@ -44,7 +119,7 @@ Sua linguagem deve ser amigável, atenciosa e gentil. Responda de forma direta e
             <button 
               className={`${styles.saveButton} ${saveStatus ? styles[saveStatus] : ''}`}
               onClick={handleSave}
-              disabled={saveStatus === 'saving'}
+              disabled={saveStatus === 'saving' || !currentAgent}
             >
               {saveStatus === 'saving' && (
                 <svg className={styles.spinnerIcon} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -163,7 +238,7 @@ Sua linguagem deve ser amigável, atenciosa e gentil. Responda de forma direta e
               </svg>
             </div>
             <div className={styles.metricInfo}>
-              <span className={styles.metricValue}>570</span>
+              <span className={styles.metricValue}>{metrics.messages}</span>
               <span className={styles.metricLabel}>Mensagens</span>
             </div>
             <div className={`${styles.metricTrend} ${styles.positive}`}>
@@ -182,7 +257,7 @@ Sua linguagem deve ser amigável, atenciosa e gentil. Responda de forma direta e
               </svg>
             </div>
             <div className={styles.metricInfo}>
-              <span className={styles.metricValue}>93%</span>
+              <span className={styles.metricValue}>{metrics.satisfaction}%</span>
               <span className={styles.metricLabel}>Satisfação</span>
             </div>
             <div className={`${styles.metricTrend} ${styles.positive}`}>
@@ -202,7 +277,7 @@ Sua linguagem deve ser amigável, atenciosa e gentil. Responda de forma direta e
               </svg>
             </div>
             <div className={styles.metricInfo}>
-              <span className={styles.metricValue}>2.3%</span>
+              <span className={styles.metricValue}>{metrics.errorRate}%</span>
               <span className={styles.metricLabel}>Taxa de Erro</span>
             </div>
             <div className={`${styles.metricTrend} ${styles.negative}`}>

@@ -1,0 +1,58 @@
+/* components/LoadingScreen.module.css */
+.loadingContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #0f1124;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+  
+  .loadingContent {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+  
+  .loadingLogo {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .loadingSpinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid rgba(138, 99, 255, 0.3);
+    border-top-color: #8A63FF;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  .loadingText {
+    color: #8A8D9F;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  @keyframes float {
+    0% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+    100% {
+      transform: translateY(0px);
+    }
+  }

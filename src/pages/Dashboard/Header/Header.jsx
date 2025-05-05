@@ -1,30 +1,108 @@
+// Header/Header.js
 import React from 'react';
 import styles from './Header.module.css';
+import { useApp } from '../../../context/AppContext';
+import { useNotifications } from '../../../hooks/useNotifications';
 
-export default function Header() {
+export default function Header({ contentView }) {
+  const { currentAgent, user, agents } = useApp();
+  const { unreadCount } = useNotifications();
+
+  // Determinar qual conteúdo mostrar com base na view ativa
+  const renderHeaderContent = () => {
+    switch (contentView) {
+      case 'agents':
+        return {
+          title: 'Seus Agentes AI',
+          subtitle: `${agents.length} agente${agents.length !== 1 ? 's' : ''} ativo${agents.length !== 1 ? 's' : ''}`,
+          badge: 'AI'
+        };
+      case 'conversations':
+        return {
+          title: 'Conversas',
+          subtitle: 'Gerencie todas as conversas dos seus agentes',
+          badge: 'CRM'
+        };
+      case 'metrics':
+        return {
+          title: 'Métricas e Análises',
+          subtitle: 'Acompanhe o desempenho da sua operação',
+          badge: 'Analytics'
+        };
+      case 'products':
+        return {
+          title: 'Gerenciamento de Produtos',
+          subtitle: 'Catálogo de produtos e configurações',
+          badge: 'Store'
+        };
+      case 'balance':
+        return {
+          title: 'Saldo e Transações',
+          subtitle: 'Gerencie seu saldo e histórico de pagamentos',
+          badge: 'Financial'
+        };
+      case 'payment':
+        return {
+          title: 'Pagamentos',
+          subtitle: 'Planos, faturas e configurações de pagamento',
+          badge: 'Billing'
+        };
+      default:
+        if (currentAgent) {
+          const agentData = currentAgent.DADOS?.[0] || {};
+          return {
+            title: agentData.ATENDENTE || 'Agente AI',
+            subtitle: agentData.OBJETIVO || 'Objetivo não definido',
+            badge: 'AI',
+            id: currentAgent.PROTOCOLO,
+            messageCount: 570
+          };
+        }
+        return {
+          title: 'Dashboard',
+          subtitle: 'Visão geral do sistema',
+          badge: ''
+        };
+    }
+  };
+
+  const headerContent = renderHeaderContent();
+  
   return (
     <div className={styles.header}>
       <div className={styles.agentInfo}>
         <div className={styles.avatarContainer}>
-          <img src="https://via.placeholder.com/40" alt="avatar" className={styles.avatar} />
+          {contentView === 'agents' || !contentView ? (
+            <img 
+              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(headerContent.title)}&background=8A63FF&color=fff`} 
+              alt="avatar" 
+              className={styles.avatar} 
+            />
+          ) : (
+            <div className={styles.contentIcon}>
+              {getContentIcon(contentView)}
+            </div>
+          )}
           <span className={styles.statusIndicator}></span>
         </div>
         <div className={styles.agentDetails}>
           <div className={styles.agentName}>
-            <strong>Flora</strong>
-            <span className={styles.agentBadge}>AI</span>
+            <strong>{headerContent.title}</strong>
+            {headerContent.badge && <span className={styles.agentBadge}>{headerContent.badge}</span>}
           </div>
           <div className={styles.agentMeta}>
-            <span>Saúde e Beleza</span>
-            <span className={styles.divider}></span>
-            <span className={styles.agentId}>ID: 00000</span>
-            <span className={styles.divider}></span>
-            <div className={styles.messageCount}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span>570 mensagens</span>
-            </div>
+            <span>{headerContent.subtitle}</span>
+            {headerContent.id && <span className={styles.divider}></span>}
+            {headerContent.id && <span className={styles.agentId}>ID: {headerContent.id}</span>}
+            {headerContent.messageCount && <span className={styles.divider}></span>}
+            {headerContent.messageCount && (
+              <div className={styles.messageCount}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span>{headerContent.messageCount} mensagens</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -40,9 +118,61 @@ export default function Header() {
             <path d="M18 8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             <path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span className={styles.notificationBadge}>3</span>
+          {unreadCount > 0 && (
+            <span className={styles.notificationBadge}>{unreadCount}</span>
+          )}
         </button>
       </div>
     </div>
   );
+}
+
+// Função auxiliar para obter ícones baseados no tipo de conteúdo
+function getContentIcon(contentView) {
+  switch (contentView) {
+    case 'conversations':
+      return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 11.5C21.0034 12.8199 20.6951 14.1219 20.1 15.3C19.3944 16.7118 18.3098 17.8992 16.9674 18.7293C15.6251 19.5594 14.0782 19.9994 12.5 20C11.1801 20.0034 9.87812 19.6951 8.7 19.1L3 21L4.9 15.3C4.30493 14.1219 3.99656 12.8199 4 11.5C4.00061 9.92176 4.44061 8.37485 5.27072 7.03255C6.10083 5.69025 7.28825 4.6056 8.7 3.9C9.87812 3.30493 11.1801 2.99656 12.5 3H13C15.0843 3.11499 17.053 3.99476 18.5291 5.47086C20.0052 6.94696 20.885 8.91565 21 11V11.5Z" stroke="#8A63FF" strokeWidth="2" fill="none"/>
+        </svg>
+      );
+    case 'metrics':
+      return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 20V10" stroke="#8A63FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M12 20V4" stroke="#8A63FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M6 20V14" stroke="#8A63FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      );
+    case 'products':
+      return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="4" width="20" height="14" rx="1" stroke="#8A63FF" strokeWidth="2"/>
+          <line x1="2" y1="9" x2="22" y2="9" stroke="#8A63FF" strokeWidth="2"/>
+          <path d="M8 14H16" stroke="#8A63FF" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      );
+    case 'balance':
+      return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" stroke="#8A63FF" strokeWidth="2"/>
+          <path d="M12 6V18M6 12H18" stroke="#8A63FF" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      );
+    case 'payment':
+      return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="4" width="22" height="16" rx="2" stroke="#8A63FF" strokeWidth="2"/>
+          <line x1="1" y1="10" x2="23" y2="10" stroke="#8A63FF" strokeWidth="2"/>
+        </svg>
+      );
+    default:
+      return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="3" width="18" height="18" rx="2" stroke="#8A63FF" strokeWidth="2"/>
+          <line x1="9" y1="9" x2="15" y2="9" stroke="#8A63FF" strokeWidth="2" strokeLinecap="round"/>
+          <line x1="9" y1="15" x2="15" y2="15" stroke="#8A63FF" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      );
+  }
 }

@@ -12,3 +12,6 @@
 }
 
 
+.loading-overlay {
+  display: none !important;
+}

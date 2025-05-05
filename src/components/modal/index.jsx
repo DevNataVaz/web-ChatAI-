@@ -14,7 +14,7 @@ import { useNavigate } from 'react-router-dom';
 
 
 
-const socket = io(`${Variaveis.ENDERECO}`, {
+const socket = io(`${Variaveis.TESTE}`, {
   transports: ['websocket'],
   withCredentials: true,
   extraHeaders: {

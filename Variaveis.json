@@ -1,6 +1,6 @@
 {
     "ENDERECO":"https://animuschatpro.up.railway.app/",
-    "TESTE":"localhost:3000",
+    "TESTE":"http://localhost:3000",
     "IMAGEM": "https://animuschatpro.up.railway.app/images?image="
 }
 
