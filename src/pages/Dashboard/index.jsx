@@ -8,7 +8,7 @@ import styles from './Dashboard.module.css';
 import { AppProvider, useApp } from '../../context/AppContext';
 import LoadingScreen from '../../components/loading/LoadingScreen';
 import ErrorBoundary from './ErrorBoundary/index';
-import { ContextGuard } from './MainDashboard/ContextGuard';
+
 
 // Importar os componentes da estrutura
 import {
@@ -65,9 +65,7 @@ function DashboardContent() {
           return <BalancePanel />;
           case 'conversations':
             return (
-              <ContextGuard requiredFunctions={['Criptografar', 'Descriptografar', 'socket']}>
-                <ConversationsPanel />
-              </ContextGuard>
+              <ConversationsPanel />
             );
         case 'metrics':
           return <MetricsPanel />;

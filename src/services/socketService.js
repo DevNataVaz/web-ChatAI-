@@ -3,24 +3,6 @@ import { Criptografar, Descriptografar } from '../Cripto/index';
 import Variaveis from '../../Variaveis.json'
 
 
-// const socket = io(`${Variaveis.TESTE}`, {
-//     transports: ['websocket'],
-//     withCredentials: true,
-//     extraHeaders: {
-//       "my-custom-header": "value"
-//     }
-//   });
-
-
-//   socket.on('connect', () => {
-//     console.log('coneectou', socket.id);
-//   });
-
-//   socket.on('connect_error', (err) => {
-//     console.error('Erro na conexão com o WebSocket:', err);
-//   });
-
-
 class SocketService {
   constructor() {
     this.socket = null;
@@ -91,6 +73,8 @@ class SocketService {
       this.socket.off(event, callback);
     }
   }
+
+  
 
   setupListeners() {
     if (this.socket) {
@@ -245,17 +229,24 @@ class SocketService {
     return this.requestData('ReceberConversa', 'ResponseConversa', data);
   }
 
-  async getMessages(protocolo, contador) {
+  async getMessages(protocolo, contador = 0) {
     const data = {
-      code: '90343263779',
-      protocolo: protocolo,
-      contador: contador
+      code: Criptografar('90343263779'),
+      protocolo: Criptografar(protocolo),
+      contador: Criptografar(contador.toString())
     };
-    return this.requestData('RequestMensagens', 'ResponseMensagens', data);
+    
+    // Use exatamente o mesmo nome de evento que o backend
+    return this.requestData('requestMensagens', 'ResponseMensagens', data);
   }
 
-  async updateMessageStatus(data) {
-    return this.requestData('RequestUpdateMensagensLida', 'ResponseUpdateMensagensLida', data);
+  async updateMessageRead(messageId) {
+    const data = {
+      Code: Criptografar('56345436545434'),
+      ID: Criptografar(messageId)
+    };
+    
+    return this.requestData('updateMensagensLida', 'ResponseUpdateMensagensLida', data);
   }
 
   async deleteConversation(protocolo) {
