@@ -103,12 +103,12 @@ class SocketService {
   }
 
   // Helper methods for common operations
-  async requestData(emitEvent, responseEvent, data) {
+  async requestData(emitEvent, responseEvent, data, timeoutDuration = 15000) {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.off(responseEvent, handleResponse);
-        reject(new Error('Request timeout after 15 seconds'));
-      }, 15000); // Increased from 5000 to 15000
+        reject(new Error(`Request timeout after ${timeoutDuration/1000} seconds`));
+      }, timeoutDuration);
   
       const handleResponse = (response) => {
         clearTimeout(timeout);
@@ -373,7 +373,7 @@ class SocketService {
 
   async getFaturas(login) {
     const data = { Dados: login };
-    return this.requestData('getFaturas', 'ResponsegetFaturas', data);
+    return this.requestData('getFaturas', 'ResponsegetFaturas', data, 30000);
   }
 
   async updateMensagens(data) {

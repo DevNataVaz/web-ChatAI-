@@ -76,9 +76,9 @@ function App() {
           {/* rotas protegidas */}
           <Route element={<ProtectedRoute />}>
           <Route path="/planos" element={<Planos />} />
-        
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/assinatura" element={<Assinatura />} />
-        
+          <Route path="/pagamento" element={<Pagamento />} />
           <Route path="/pagamento/:planoId" element={<Pagamento />} />
           <Route path="/pagamento/pix/:planoId" element={<PagamentoPix />} />
           <Route path="/pagamento/cartao/:planoId" element={<PagamentoCartao />} />

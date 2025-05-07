@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import styles from './planos.module.css';
 import Certo from '../../../assets/icons/certo.svg';
 import { useApp } from "../../../context/AppContext";
+import { Descriptografar } from "../../../Cripto"; // Ensure this path is correct
 
 function Planos() {
     const navigate = useNavigate();
@@ -10,14 +11,34 @@ function Planos() {
     const [loading, setLoading] = useState(false);
     const [planoAtual, setPlanoAtual] = useState(null);
     const [assinaturaId, setAssinaturaId] = useState(null);
+    const [error, setError] = useState(null);
+    
+    // Função para obter usuário do localStorage
+    const getUserFromLocalStorage = () => {
+        try {
+            const savedUser = localStorage.getItem('animusia_user');
+            if (!savedUser) return null;
+            
+            const decryptedUser = Descriptografar(savedUser);
+            return JSON.parse(decryptedUser);
+        } catch (err) {
+            console.error("Erro ao recuperar usuário do localStorage:", err);
+            return null;
+        }
+    };
 
     useEffect(() => {
         if (initializing) return;
         
-        // Carregar planos apenas se usuário estiver logado
-        if (user?.LOGIN) {
+        // Tenta obter usuário do localStorage se não estiver no contexto
+        const localUser = user?.LOGIN ? user : getUserFromLocalStorage();
+        
+        // Carregar planos se tiver usuário (do contexto ou localStorage)
+        if (localUser?.LOGIN) {
             setLoading(true);
-            loadPlans(user.LOGIN)
+            setError(null);
+            
+            loadPlans(localUser.LOGIN)
                 .then(response => {
                     if (response?.Id_Assinatura) {
                         setAssinaturaId(response.Id_Assinatura);
@@ -28,14 +49,17 @@ function Planos() {
                 })
                 .catch(error => {
                     console.error("Erro ao carregar planos:", error);
+                    setError("Não foi possível carregar os planos. Por favor, tente novamente mais tarde.");
                 })
                 .finally(() => setLoading(false));
         }
     }, [user, loadPlans, initializing]);
 
     const handleEscolherPlano = (planoId) => {
-        // Verificar se usuário está logado
-        if (!user) {
+        // Verificar se usuário está autenticado (contexto ou localStorage)
+        const localUser = user || getUserFromLocalStorage();
+        
+        if (!localUser) {
             // Redirecionar para login se não houver usuário
             navigate('/login');
             return;
@@ -150,13 +174,18 @@ function Planos() {
 
     return (
         <div className={styles.container} id="planos">
-            <div className={styles.containerTitle} data-aos="fade-up">
+            <div className={styles.containerTitle} >
                 <h1>Escolha nosso plano de assinatura</h1>
                 <p>Escolha o plano certo para atender às suas necessidades de SEO e comece a otimizar hoje mesmo.</p>
             </div>
 
             {loading ? (
                 <div className={styles.loading}>Carregando planos...</div>
+            ) : error ? (
+                <div className={styles.error}>
+                    <p>{error}</p>
+                    <button onClick={() => window.location.reload()}>Tentar novamente</button>
+                </div>
             ) : (
                 <div className={styles.containerPlanos}> 
                     {planosParaExibir.map((plano, index) => {
@@ -169,8 +198,7 @@ function Planos() {
                             <div 
                                 key={plano.ID}
                                 className={`${styles.planos} ${plano.destaque ? styles.destaque : ''} ${ehPlanoAtual ? styles.planoAtual : ''}`} 
-                                data-aos="zoom-in" 
-                                data-aos-delay={300 + index * 100}
+                                
                             >
                                 {ehPlanoAtual && <div className={styles.planoAtualLabel}>Seu plano atual</div>}
                                 <h2>{plano.PLANO}</h2>

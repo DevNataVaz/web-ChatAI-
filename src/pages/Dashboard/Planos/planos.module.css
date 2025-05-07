@@ -1,265 +1,265 @@
 .container {
-    padding: 80px 0;
-    color: white;
-   
-    background-size: cover;
-  
+  padding: 80px 0;
+  color: white;
+ 
+  background-size: cover;
+
+}
+
+.containerTitle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.containerTitle h1 {
+  font-size: 36px;
+  margin-bottom: 20px;
+}
+
+.containerTitle p {
+  font-size: 16px;
+  color: #a9a8a8;
+  width: 30%;
+  margin-bottom: 50px;
+}
+
+.containerPlanos {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.planos {
+  background-color: #1c1c2b;
+  border: 1px solid #3a3a50;
+  border-radius: 16px;
+  width: 330px;
+  height: 600px;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.planos.destaque {
+  background-color: #191919;
+  border: 2px solid var(--primary);
+  transform: scale(1.09);
+  box-shadow: 0 0 35px var(--primaryLight);
+  z-index: 1;
+}
+
+.planos h2 {
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.planos .preco {
+  font-size: 18px;
+  color: #aaa;
+  margin-bottom: 20px;
+}
+
+.divisor {
+  height: 1px;
+  background-color: #3a3a50;
+  margin: 20px 0;
+}
+
+.beneficios {
+  flex-grow: 1;
+}
+
+.beneficios p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0;
+  color: #ccc;
+  font-size: 14px;
+  padding-bottom: 10px;
+}
+
+.comprar {
+  margin-top: 20px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(to right, var(--primaryLight), var(--primaryDark));
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.planos.destaque .comprar {
+  background: var(--primary);
+  animation: pulseEffect 1.5s infinite;
+}
+
+.comprar:hover {
+  opacity: 0.85;
+}
+
+.pulse {
+  animation: pulseEffect 1.5s infinite;
+}
+
+@keyframes pulseEffect {
+  0% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(140, 69, 255, 0.7);
   }
-  
-  .containerTitle {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    margin-bottom: 40px;
+  70% {
+      transform: scale(1.05);
+      box-shadow: 0 0 0 10px rgba(140, 69, 255, 0);
   }
-  
+  100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(140, 69, 255, 0);
+  }
+}
+
+/* Media Query para 1280px */
+@media (max-width: 1280px) {
   .containerTitle h1 {
-    font-size: 36px;
-    margin-bottom: 20px;
+      font-size: 32px;
   }
   
   .containerTitle p {
-    font-size: 16px;
-    color: #a9a8a8;
-    width: 30%;
-    margin-bottom: 50px;
+      width: 50%;
+      margin-bottom: 40px;
   }
   
   .containerPlanos {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    flex-wrap: wrap;
+      padding: 0 20px;
+      gap: 20px;
   }
   
   .planos {
-    background-color: #1c1c2b;
-    border: 1px solid #3a3a50;
-    border-radius: 16px;
-    width: 330px;
-    height: 600px;
-    padding: 30px 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    text-align: center;
-    transition: all 0.3s ease;
+      width: 280px;
+      height: 580px;
+      padding: 25px 15px;
   }
   
   .planos.destaque {
-    background-color: #191919;
-    border: 2px solid var(--primary);
-    transform: scale(1.09);
-    box-shadow: 0 0 35px var(--primaryLight);
-    z-index: 1;
+      transform: scale(1.05);
   }
   
   .planos h2 {
-    font-size: 24px;
-    margin-bottom: 5px;
+      font-size: 22px;
   }
   
   .planos .preco {
-    font-size: 18px;
-    color: #aaa;
-    margin-bottom: 20px;
-  }
-  
-  .divisor {
-    height: 1px;
-    background-color: #3a3a50;
-    margin: 20px 0;
-  }
-  
-  .beneficios {
-    flex-grow: 1;
+      font-size: 16px;
   }
   
   .beneficios p {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 8px 0;
-    color: #ccc;
-    font-size: 14px;
-    padding-bottom: 10px;
+      font-size: 13px;
+  }
+}
+
+/* Media Query para 768px */
+@media (max-width: 768px) {
+  .container {
+      padding: 60px 0;
+  }
+  
+  .containerTitle h1 {
+      font-size: 28px;
+      padding: 0 15px;
+  }
+  
+  .containerTitle p {
+      width: 80%;
+      font-size: 15px;
+      margin-bottom: 30px;
+  }
+  
+  .containerPlanos {
+      flex-direction: column;
+      align-items: center;
+      gap: 40px;
+  }
+  
+  .planos {
+      width: 90%;
+      max-width: 400px;
+      height: auto;
+      min-height: 500px;
+  }
+  
+  .planos.destaque {
+      transform: none;
+      order: -1; /* Coloca o plano de destaque primeiro */
+      border-width: 3px;
+  }
+  
+  .beneficios p {
+      justify-content: center;
   }
   
   .comprar {
-    margin-top: 20px;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 12px;
-    background: linear-gradient(to right, var(--primaryLight), var(--primaryDark));
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s ease;
+      padding: 15px 20px;
+      font-size: 15px;
+  }
+}
+
+/* Media Query para 450px */
+@media (max-width: 450px) {
+  .container {
+      padding: 40px 0;
   }
   
-  .planos.destaque .comprar {
-    background: var(--primary);
-    animation: pulseEffect 1.5s infinite;
+  .containerTitle h1 {
+      font-size: 24px;
   }
   
-  .comprar:hover {
-    opacity: 0.85;
+  .containerTitle p {
+      width: 90%;
+      font-size: 14px;
+      margin-bottom: 25px;
   }
   
-  .pulse {
-    animation: pulseEffect 1.5s infinite;
+  .planos {
+      width: 90%;
+      padding: 20px 10px;
+      min-height: 450px;
   }
   
-  @keyframes pulseEffect {
-    0% {
-        transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(140, 69, 255, 0.7);
-    }
-    70% {
-        transform: scale(1.05);
-        box-shadow: 0 0 0 10px rgba(140, 69, 255, 0);
-    }
-    100% {
-        transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(140, 69, 255, 0);
-    }
+  .planos h2 {
+      font-size: 20px;
   }
   
-  /* Media Query para 1280px */
-  @media (max-width: 1280px) {
-    .containerTitle h1 {
-        font-size: 32px;
-    }
-    
-    .containerTitle p {
-        width: 50%;
-        margin-bottom: 40px;
-    }
-    
-    .containerPlanos {
-        padding: 0 20px;
-        gap: 20px;
-    }
-    
-    .planos {
-        width: 280px;
-        height: 580px;
-        padding: 25px 15px;
-    }
-    
-    .planos.destaque {
-        transform: scale(1.05);
-    }
-    
-    .planos h2 {
-        font-size: 22px;
-    }
-    
-    .planos .preco {
-        font-size: 16px;
-    }
-    
-    .beneficios p {
-        font-size: 13px;
-    }
+  .planos .preco {
+      font-size: 15px;
   }
   
-  /* Media Query para 768px */
-  @media (max-width: 768px) {
-    .container {
-        padding: 60px 0;
-    }
-    
-    .containerTitle h1 {
-        font-size: 28px;
-        padding: 0 15px;
-    }
-    
-    .containerTitle p {
-        width: 80%;
-        font-size: 15px;
-        margin-bottom: 30px;
-    }
-    
-    .containerPlanos {
-        flex-direction: column;
-        align-items: center;
-        gap: 40px;
-    }
-    
-    .planos {
-        width: 90%;
-        max-width: 400px;
-        height: auto;
-        min-height: 500px;
-    }
-    
-    .planos.destaque {
-        transform: none;
-        order: -1; /* Coloca o plano de destaque primeiro */
-        border-width: 3px;
-    }
-    
-    .beneficios p {
-        justify-content: center;
-    }
-    
-    .comprar {
-        padding: 15px 20px;
-        font-size: 15px;
-    }
+  .divisor {
+      margin: 15px 0;
   }
   
-  /* Media Query para 450px */
-  @media (max-width: 450px) {
-    .container {
-        padding: 40px 0;
-    }
-    
-    .containerTitle h1 {
-        font-size: 24px;
-    }
-    
-    .containerTitle p {
-        width: 90%;
-        font-size: 14px;
-        margin-bottom: 25px;
-    }
-    
-    .planos {
-        width: 90%;
-        padding: 20px 10px;
-        min-height: 450px;
-    }
-    
-    .planos h2 {
-        font-size: 20px;
-    }
-    
-    .planos .preco {
-        font-size: 15px;
-    }
-    
-    .divisor {
-        margin: 15px 0;
-    }
-    
-    .beneficios p {
-        font-size: 13px;
-        padding-bottom: 8px;
-        margin: 6px 0;
-        gap: 8px;
-    }
-    
-    .beneficios p img {
-        width: 16px;
-        height: 16px;
-    }
-    
-    .comprar {
-        padding: 12px 16px;
-        font-size: 14px;
-        margin-top: 15px;
-    }
+  .beneficios p {
+      font-size: 13px;
+      padding-bottom: 8px;
+      margin: 6px 0;
+      gap: 8px;
   }
+  
+  .beneficios p img {
+      width: 16px;
+      height: 16px;
+  }
+  
+  .comprar {
+      padding: 12px 16px;
+      font-size: 14px;
+      margin-top: 15px;
+  }
+}

@@ -248,32 +248,35 @@ export const AppProvider = ({ children }) => {
       setIsLoading(false);
     }
   }, [socketConnected]);
-  
+
   const loadSubscription = useCallback(async (login) => {
-    if (!socketConnected) return;
+    if (!socketConnected) return null;
     
     try {
       const faturaData = await socketService.getFaturas(login);
       setAssinatura(faturaData);
     } catch (err) {
       console.error('Erro ao carregar assinatura:', err);
+      return null
     }
   }, [socketConnected]);
 
 
 const refreshSubscriptionInfo = useCallback(() => {
-  if (!user || !socketConnected) return;
+  if (!user || !socketConnected) return Promise.resolve(null);
   
   try {
     setIsLoading(true);
     if (user.LOGIN) {
-      return loadSubscription(user.LOGIN);
+      return loadSubscription(user.LOGIN)
+      .finally(() => setIsLoading(false));
     }
+    return Promise.resolve(null);
   } catch (err) {
     console.error('Erro ao atualizar informações da assinatura:', err);
     setError('Falha ao atualizar informações da assinatura');
-  } finally {
     setIsLoading(false);
+    return Promise.resolve(null);
   }
 }, [user, socketConnected, loadSubscription]);
 

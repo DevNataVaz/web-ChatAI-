@@ -88,7 +88,7 @@ export default function LoginPage() {
         }
         
         toast.success('Login realizado com sucesso!');
-        navigate('/plano');
+        navigate('/dashboard');
       } else {
         toast.error('Credenciais inválidas. Verifique seus dados.');
       }
