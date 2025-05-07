@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 
 
 export const useCredits = () => {
-    const [credits, setCredits] = useState({ current: 0, total: 0 });
+    const [credits, setCredits] = useState({ current: 0, total: 0});
     const { user } = useApp();
   
     useEffect(() => {
@@ -13,15 +13,15 @@ export const useCredits = () => {
         
         try {
           // Fetch current credits from database
-          const faturas = await socketService.requestData(
+          const assinatura = await socketService.requestData(
             'getFaturas',
             'ResponsegetFaturas',
-            { Dados: user.LOGIN }
+            { Dados: user.ID }
           );
           
           setCredits({
-            current: faturas.ATUAL_MENSAGENS,
-            total: faturas.LIMITE_MENSAGEM
+            current: assinatura.MENSAGENS,
+            total: assinatura.MENSAGENS
           });
         } catch (error) {
           console.error('Error fetching credits:', error);

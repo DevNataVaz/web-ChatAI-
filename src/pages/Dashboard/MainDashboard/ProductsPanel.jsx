@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useApp } from '../auth';
+import { useApp } from '../../../context/AppContext';
 
 export default function ProductsPanel({ user, socket }) {
   const { Criptografar, Descriptografar } = useApp();

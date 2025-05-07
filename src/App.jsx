@@ -26,7 +26,7 @@ import Dashboard from './pages/Dashboard';
 import MainDashboard from './pages/Dashboard/MainDashboard/index';
 import LoginPage from './pages/Login';
 import RegisterPage from './pages/Registro';
-import Pix from './pages/Pagamentos/Pix/index';
+
 import Planos from './pages/Dashboard/Planos';
 
 // Novas páginas de pagamento
@@ -74,75 +74,18 @@ function App() {
           <Route path="/download" element={<DownloadPage />} />
           
           {/* rotas protegidas */}
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <ConnectionStatus />
-                <Dashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/planos" 
-            element={
-              <ProtectedRoute>
-                <Planos />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/mainDashboard" 
-            element={
-              <ProtectedRoute>
-                <MainDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/pix" 
-            element={
-              <ProtectedRoute>
-                <Pix />
-              </ProtectedRoute>
-            } 
-          />
+          <Route element={<ProtectedRoute />}>
+          <Route path="/planos" element={<Planos />} />
+        
+          <Route path="/assinatura" element={<Assinatura />} />
+        
+          <Route path="/pagamento/:planoId" element={<Pagamento />} />
+          <Route path="/pagamento/pix/:planoId" element={<PagamentoPix />} />
+          <Route path="/pagamento/cartao/:planoId" element={<PagamentoCartao />} />
           
-          {/* Novas rotas de pagamento */}
-          <Route 
-            path="/pagamento/:planoId" 
-            element={
-              <ProtectedRoute>
-                <Pagamento />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/pagamento/pix/:planoId" 
-            element={
-              <ProtectedRoute>
-                <PagamentoPix />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/pagamento/cartao/:planoId" 
-            element={
-              <ProtectedRoute>
-                <PagamentoCartao />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/assinatura" 
-            element={
-              <ProtectedRoute>
-                <Assinatura />
-              </ProtectedRoute>
-            } 
-          />
-         
+          </Route>
         </Routes>
+        
 
         <ToastContainer 
           position="top-right"

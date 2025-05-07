@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useApp } from '../auth';
+import { useApp } from '../../../context/AppContext';
 
 export default function PaymentPanel({ user, socket, onClose }) {
   const { Criptografar, Descriptografar } = useApp();

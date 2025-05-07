@@ -10,12 +10,12 @@ import Variaveis from '../../Variaveis.json'
 //       "my-custom-header": "value"
 //     }
 //   });
-  
-  
+
+
 //   socket.on('connect', () => {
 //     console.log('coneectou', socket.id);
 //   });
-  
+
 //   socket.on('connect_error', (err) => {
 //     console.error('Erro na conexão com o WebSocket:', err);
 //   });
@@ -27,7 +27,7 @@ class SocketService {
     this.listeners = new Map();
   }
 
- connect(url = Variaveis.TESTE) { 
+  connect(url = Variaveis.TESTE) {
     if (!this.socket) {
       this.socket = io(url, {
         path: '/socket.io',
@@ -35,11 +35,11 @@ class SocketService {
         withCredentials: true
       });
       this.setupListeners();
-      
+
       this.socket.on('connect', () => {
         console.log('socket conectado com dashboard');
       });
-      
+
       this.socket.on('connect_error', (error) => {
         console.error('Socket connection error:', error);
       });
@@ -62,7 +62,7 @@ class SocketService {
     }
   }
 
-  
+
   once(event, callback) {
     if (this.socket && this.socket.connected) {
       this.socket.once(event, callback);
@@ -70,7 +70,7 @@ class SocketService {
       console.error('Socket not connected');
     }
   }
-  
+
 
   on(event, callback) {
     if (!this.listeners.has(event)) {
@@ -106,26 +106,89 @@ class SocketService {
   async requestData(emitEvent, responseEvent, data) {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
-        reject(new Error('Request timeout'));
-      }, 30000);
-
+        this.off(responseEvent, handleResponse);
+        reject(new Error('Request timeout after 15 seconds'));
+      }, 15000); // Increased from 5000 to 15000
+  
       const handleResponse = (response) => {
         clearTimeout(timeout);
         this.off(responseEvent, handleResponse);
         try {
+          // Handle different response formats
           if (typeof response === 'string') {
-            const decrypted = Descriptografar(response);
-            resolve(decrypted);
+            try {
+              // First try to decrypt
+              const decrypted = Descriptografar(response);
+              if (decrypted) {
+                try {
+                  // Then try to parse as JSON
+                  resolve(JSON.parse(decrypted));
+                } catch (jsonError) {
+                  // If not valid JSON, return as string
+                  resolve(decrypted);
+                }
+              } else {
+                resolve(response);
+              }
+            } catch (decryptError) {
+              // If decryption fails, try direct JSON parsing
+              try {
+                resolve(JSON.parse(response));
+              } catch (jsonError) {
+                // If not valid JSON, return as string
+                resolve(response);
+              }
+            }
+          } else if (response && response.Code !== undefined) {
+            // Handle object with encrypted fields
+            const result = {};
+            for (const [key, value] of Object.entries(response)) {
+              if (typeof value === 'string') {
+                try {
+                  const decrypted = Descriptografar(value);
+                  try {
+                    result[key] = JSON.parse(decrypted);
+                  } catch (e) {
+                    result[key] = decrypted;
+                  }
+                } catch (e) {
+                  result[key] = value;
+                }
+              } else {
+                result[key] = value;
+              }
+            }
+            resolve(result);
           } else {
+            // Direct object return
             resolve(response);
           }
         } catch (error) {
+          console.error('Error processing response:', error);
           reject(error);
         }
       };
-
+  
       this.on(responseEvent, handleResponse);
-      this.emit(emitEvent, Criptografar(JSON.stringify(data)));
+      
+      // Encrypt data if it's not already encrypted
+      let encryptedData;
+      if (typeof data === 'string') {
+        try {
+          // Check if already encrypted
+          Descriptografar(data);
+          encryptedData = data; // Already encrypted
+        } catch (e) {
+          // Not encrypted, so encrypt it
+          encryptedData = Criptografar(data);
+        }
+      } else if (typeof data === 'object') {
+        encryptedData = Criptografar(JSON.stringify(data));
+      } else {
+        encryptedData = data;
+      }
+      
+      this.emit(emitEvent, encryptedData);
     });
   }
 
@@ -160,6 +223,115 @@ class SocketService {
     return this.requestData('HistoricoPagamentos', 'responseHistoricoPagamentos', data);
   }
 
+  // Missing event handlers for critical functionality
+  async sendMessage(protocolo, mensagem, login, botProtocolo, plataforma) {
+    const data = {
+      Code: '32564436525443565434',
+      Protocolo: protocolo,
+      Mensagem: mensagem,
+      Login: login,
+      Bot_Protocolo: botProtocolo,
+      Plataforma: plataforma
+    };
+    return this.requestData('EnviarMensagem', 'ResponseEnviarMensagem', data);
+  }
+
+  async getConversations(login, contador) {
+    const data = {
+      Code: '65466556476567545665745',
+      login: login,
+      contador: contador
+    };
+    return this.requestData('ReceberConversa', 'ResponseConversa', data);
+  }
+
+  async getMessages(protocolo, contador) {
+    const data = {
+      code: '90343263779',
+      protocolo: protocolo,
+      contador: contador
+    };
+    return this.requestData('RequestMensagens', 'ResponseMensagens', data);
+  }
+
+  async updateMessageStatus(data) {
+    return this.requestData('RequestUpdateMensagensLida', 'ResponseUpdateMensagensLida', data);
+  }
+
+  async deleteConversation(protocolo) {
+    const data = {
+      Code: '5659723568999234',
+      Protocolo: protocolo
+    };
+    return this.requestData('ExcluirConversa', 'responseExcluirConversa', data);
+  }
+
+  async createProduct(productData, login, protocolo) {
+    const data = {
+      Code: '45489644589644',
+      Produtos: productData,
+      Login: login,
+      Protocolo: protocolo
+    };
+    return this.requestData('CriarProdutos', 'RespostaDaCriação', data);
+  }
+
+  async getProducts(login, protocolo) {
+    const data = {
+      Code: '45635465344565344564562546762',
+      Login: login,
+      Protocolo: protocolo
+    };
+    return this.requestData('ReceberProdutos', 'ResponseReceberProdutos', data);
+  }
+
+  async editProduct(productData) {
+    return this.requestData('EditarProduto', 'ResponseEditarProduto', productData);
+  }
+
+  async deleteProduct(linkFotos) {
+    const data = {
+      LINK_FOTOS: linkFotos
+    };
+    return this.requestData('ExcluirProduto', null, data);
+  }
+
+  async checkPlatformStatus(identificador, platform) {
+    const data = {
+      Identificador: identificador
+    };
+    const event = platform === 'instagram' ? 'StatusInstagram' : 'StatusWhatsapp';
+    const responseEvent = platform === 'instagram' ? 'updatesInstagram' : 'updatesWhatsapp';
+    return this.requestData(event, responseEvent, data);
+  }
+
+  async connectPlatform(conta, identificador, platform) {
+    const data = {
+      code: platform === 'instagram' ? '7554749056' : '2544623544284',
+      conta: conta,
+      Identificador: identificador
+    };
+    const event = platform === 'instagram' ? 'Instagram' : 'Whatsapp';
+    const responseEvent = platform === 'instagram' ? 'InstagramResponse' : 'WhatsappResponse';
+    return this.requestData(event, responseEvent, data);
+  }
+
+  async getBalance(login) {
+    const data = {
+      Code: '3214654132654746856474651',
+      login: login
+    };
+    return this.requestData('SaldoAtual', 'SaldoAtualresponse', data);
+  }
+
+  async saveApiKey(data) {
+    return this.requestData('SalvandoApi', 'RespondendoApi', data);
+  }
+
+  async getApiKeys(login) {
+    return this.requestData('CarregandoChaves', 'RecebendoChaves', login);
+  }
+
   async saveBehavior(empresa, atendente, protocolo, login, redes, objetivo, perguntas, gatilho) {
     const data = {
       Code: '658467658467865671',
@@ -172,13 +344,13 @@ class SocketService {
       Perguntas: perguntas,
       Gatilho: gatilho
     };
-    
+
     for (const [key, value] of Object.entries(data)) {
       if (key !== 'Code') {
         data[key] = Criptografar(value);
       }
     }
-    
+
     return this.requestData('CriarBot', 'RespostaDaCriação', data);
   }
 

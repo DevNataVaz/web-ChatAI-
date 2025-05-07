@@ -2,17 +2,17 @@
 import React, { useState } from 'react';
 import styles from './Sidebar.module.css';
 import { useApp } from '../../../context/AppContext';
-import { useCredits } from '../../../hooks/useCredits';
+// import { useCredits } from '../../../hooks/useCredits';
 
 export default function Sidebar({ activeView, setContentView }) {
   const [activeNav, setActiveNav] = useState('agentes');
   const { agents, currentAgent, selectAgent, user } = useApp();
-  const credits = useCredits();
+  // const credits = useCredits();
   
   // Calculate credits percentage
-  const creditsPercentage = credits.total > 0 
-    ? ((credits.current / credits.total) * 100).toFixed(1) 
-    : 0;
+  // const creditsPercentage = credits.total > 0 
+  //   ? ((credits.current / credits.total) * 100).toFixed(1) 
+  //   : 0;
 
   const handleAgentClick = (event) => {
     event.preventDefault();
@@ -185,7 +185,7 @@ export default function Sidebar({ activeView, setContentView }) {
         </div>
       </nav>
 
-      <div className={styles.credits}>
+      {/* <div className={styles.credits}>
         <div className={styles.creditsInfo}>
           <div className={styles.creditsTitle}>Créditos</div>
           <div className={styles.creditsValue}>{credits.current} / {credits.total}</div>
@@ -203,7 +203,7 @@ export default function Sidebar({ activeView, setContentView }) {
             <path d="M12 5L19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
-      </div>
+      </div> */}
     </aside>
   );
 }

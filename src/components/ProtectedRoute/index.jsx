@@ -1,17 +1,22 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 
-const ProtectedRoute = ({ children }) => {
-  const { user } = useApp();
+/**
+ * A wrapper component for protected routes
+ * Redirects to login page if user is not authenticated
+ */
+const ProtectedRoute = () => {
+  const { isAuthenticated, initializing } = useApp();
   
-  // Se não houver usuário logado, redireciona para login
-  if (!user) {
-    return <Navigate to="/login" replace />;
+  // Show nothing while checking authentication
+  if (initializing) {
+    return null; // Or a loading spinner/screen
   }
   
-  // Se houver usuário, renderiza os filhos
-  return children;
+  // If authenticated, render the child routes
+  // Otherwise, redirect to login
+  return isAuthenticated() ? <Outlet /> : <Navigate to="/login" replace />;
 };
 
 export default ProtectedRoute;

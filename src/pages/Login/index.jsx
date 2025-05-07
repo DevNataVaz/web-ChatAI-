@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { toast } from 'react-toastify';
 import styles from './LoginPage.module.css';
 import MD5 from 'react-native-md5';
-import { Descriptografar, Criptografar } from '../../Cripto';
+import { Descriptografar } from '../../Cripto';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({ login: '', senha: '' });
@@ -12,7 +12,19 @@ export default function LoginPage() {
   const [errors, setErrors] = useState({});
 
   const navigate = useNavigate();
-  const { isLoading: appLoading, setUser, loadUserData } = useApp();
+  const { 
+    isLoading: appLoading, 
+    login, 
+    isAuthenticated,
+    loadInitialData 
+  } = useApp();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -66,12 +78,17 @@ export default function LoginPage() {
 
       if (dados.length > 0) {
         const userData = dados[0];
-        const encrypted = Criptografar(JSON.stringify(userData));
-        localStorage.setItem('animusia_user', encrypted);
-        setUser(userData);
-        if (userData.LOGIN) await loadUserData(userData.LOGIN);
+        
+        // Use the login function from AppContext
+        login(userData);
+        
+        // Load initial data (user profile, agents, notifications)
+        if (userData.LOGIN) {
+          await loadInitialData(userData.LOGIN);
+        }
+        
         toast.success('Login realizado com sucesso!');
-        navigate('/dashboard');
+        navigate('/plano');
       } else {
         toast.error('Credenciais inválidas. Verifique seus dados.');
       }

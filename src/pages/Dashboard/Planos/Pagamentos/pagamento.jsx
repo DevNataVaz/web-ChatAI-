@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import styles from './pagamento.module.css';
 import { safeDescriptografar, Criptografar } from '../../../../Cripto';
 import { useApp } from '../../../../context/AppContext';
+import { socketService } from '../../../../services/socketService';
 
 function PagamentoPix() {
   const { planoId } = useParams();
