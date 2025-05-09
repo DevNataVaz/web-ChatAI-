@@ -21,7 +21,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 
-// Loading component with animation
+
 const LoadingPanel = () => (
   <div className={styles.loadingPanel}>
     <div className={styles.loadingSpinner}></div>
@@ -29,7 +29,7 @@ const LoadingPanel = () => (
   </div>
 );
 
-// Empty state component
+
 const EmptyState = ({ title, description, icon }) => (
   <div className={styles.emptyState}>
     {icon}
@@ -38,7 +38,7 @@ const EmptyState = ({ title, description, icon }) => (
   </div>
 );
 
-// Message timestamp formatter
+
 const formatTime = (dateStr, timeStr) => {
   if (!dateStr || !timeStr) return '';
   
@@ -54,7 +54,7 @@ const formatTime = (dateStr, timeStr) => {
   }
 };
 
-// Format date for conversation list
+
 const formatDate = (dateStr, timeStr) => {
   if (!dateStr || !timeStr) return '';
   const today = new Date();
@@ -68,7 +68,7 @@ const formatDate = (dateStr, timeStr) => {
          ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
-// Helper to check valid date/time
+
 const isValidDate = (dateString) => {
   const regex = /^\d{4}-\d{2}-\d{2}$/;
   return dateString && regex.test(dateString);
@@ -79,14 +79,14 @@ const isValidTime = (timeString) => {
   return timeString && regex.test(timeString);
 };
 
-// Format date string from ISO format
+
 const formatDateString = (dateTimeString) => {
   if (!dateTimeString) return '';
   const [date] = dateTimeString.split('T');
   return date;
 };
 
-// Organize conversations by date (mais recentes primeiro)
+
 const organizeConversations = (array) => {
   if (!array || !Array.isArray(array)) return [];
   
@@ -102,7 +102,7 @@ const organizeConversations = (array) => {
     .sort((a, b) => {
       const dateA = new Date(`${a.DATA}T${a.HORAS}`);
       const dateB = new Date(`${b.DATA}T${b.HORAS}`);
-      return dateB - dateA; // Ordem cronológica reversa
+      return dateB - dateA; 
     });
 };
 
@@ -118,8 +118,8 @@ function PainelConversas() {
   } = useApp();
   
   // Acesso direto ao socket e funções de criptografia
-  const socket = socketService.socket; // Use a referência direta do serviço importado
-  // Usamos as funções de criptografia importadas diretamente, não de window
+  const socket = socketService.socket; 
+  
   
   // State para dados de conversas
   const [conversations, setConversations] = useState([]);
