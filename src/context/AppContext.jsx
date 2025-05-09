@@ -300,7 +300,7 @@ const refreshSubscriptionInfo = useCallback(() => {
     }
   }, [socketConnected]);
   
-  const loadMessages = useCallback(async (protocolo, count = 15) => {
+  const loadMessages = useCallback(async (protocolo, count = 10) => {
     if (!socketConnected) return;
     
     try {

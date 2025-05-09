@@ -41,8 +41,17 @@ const EmptyState = ({ title, description, icon }) => (
 // Message timestamp formatter
 const formatTime = (dateStr, timeStr) => {
   if (!dateStr || !timeStr) return '';
-  const date = new Date(`${dateStr} ${timeStr}`);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  
+  try {
+    // Assume que dateStr está no formato YYYY-MM-DD e timeStr no formato HH:MM:SS
+    const [hours, minutes] = timeStr.split(':');
+    
+    // Retorna hora formatada sem criar objeto Date completo
+    return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+  } catch (error) {
+    console.log("Erro ao formatar hora:", error, "Para os valores:", { dateStr, timeStr });
+    return 'Hora inválida';
+  }
 };
 
 // Format date for conversation list
@@ -98,7 +107,7 @@ const organizeConversations = (array) => {
 };
 
 // Componente principal
-function ConversationsPanel() {
+function PainelConversas() {
   const { 
     user, 
     socketConnected,
@@ -197,7 +206,7 @@ function ConversationsPanel() {
       
       // Setup listeners for real-time updates
       const handleNovaConversa = (data) => {
-        console.log("Recebido evento ResponseNovaConversa:", data);
+        // console.log("Recebido evento ResponseNovaConversa:", data);
         handleConversationsResponse(data);
       };
       
@@ -273,16 +282,16 @@ function ConversationsPanel() {
       socket.emit('NovaConversa', encryptedData);
       
       // Mecanismo de timeout para garantir que recebemos resposta
-      const timeoutId = setTimeout(() => {
-        console.warn("Timeout atingido ao esperar resposta de conversas. Tentando novamente...");
-        setPagingLoading(false);
+      // const timeoutId = setTimeout(() => {
+      //   console.warn("Timeout atingido ao esperar resposta de conversas. Tentando novamente...");
+      //   setPagingLoading(false);
         
-        // Tentar novamente após timeout
-        if (socket.connected) {
-          console.log("Tentando novamente buscar conversas...");
-          socket.emit('NovaConversa', encryptedData);
-        }
-      }, 10000); // 10 segundos de timeout
+      //   // Tentar novamente após timeout
+      //   if (socket.connected) {
+      //     // console.log("Tentando novamente buscar conversas...");
+      //     // socket.emit('NovaConversa', encryptedData);
+      //   }
+      // }, 10000); // 10 segundos de timeout
       
       // Armazenar o timeout ID para limpar depois
       return () => clearTimeout(timeoutId);
@@ -319,9 +328,9 @@ function ConversationsPanel() {
           }));
           
           // Se for a primeira página, substituímos todas as conversas
-          if (currentPage === 1) {
-            return newConversations;
-          }
+          // if (currentPage === 1) {
+          //   return newConversations;
+          // }
           
           // Caso contrário, mesclamos com as conversas existentes
           const updatedConversations = [...prevConversations];
@@ -389,19 +398,12 @@ function ConversationsPanel() {
       console.log(`Buscando mensagens para conversa: ${conversation.PROTOCOLO_CONVERSA}`);
       setLoadingMessages(true);
       
-      // IMPORTANTE: Usar EXATAMENTE o mesmo formato do app mobile
-      // Os objetos devem ser criptografados individualmente
+      // Mantenha o formato exato da requisição mobile
       const data = {
         code: Criptografar('90343263779'),
         protocolo: Criptografar(conversation.PROTOCOLO_CONVERSA),
-        contador: Criptografar('0')
+        contador: Criptografar(0)
       };
-      
-      console.log("Dados da requisição de mensagens:", {
-        code: '90343263779',
-        protocolo: conversation.PROTOCOLO_CONVERSA,
-        contador: '0'
-      });
       
       // Remover listener anterior para evitar duplicação
       socket.off('ResponseMensagens');
@@ -411,22 +413,22 @@ function ConversationsPanel() {
         console.log("Resposta de mensagens recebida:", responseData);
         
         try {
-          if (!responseData || !responseData.Dados) {
-            console.error("Resposta inválida para mensagens", responseData);
+          // Adicione a verificação do código como no mobile
+          if (Descriptografar(responseData.Code) !== '9875697857598647565') {
+            console.error("Código de resposta inválido", responseData);
             setLoadingMessages(false);
             return;
           }
           
-          const decrypted = JSON.parse(Descriptografar(responseData.Dados));
+          // Descriptografar sem JSON.parse como no mobile
+          const decrypted = Descriptografar(responseData.Dados);
           console.log("Mensagens descriptografadas:", decrypted);
+          const mensagensOrdenadas = Array.isArray(decrypted) ? [...decrypted].reverse() : [];
           
           // Atualizar estado com as mensagens recebidas
-          setMessages(decrypted || []);
+          setMessages(mensagensOrdenadas);
           
-          // Desligar o estado de loading
           setLoadingMessages(false);
-          
-          // Removemos o listener para evitar duplicação em futuras chamadas
           socket.off('ResponseMensagens');
         } catch (err) {
           console.error("Erro ao processar resposta de mensagens:", err);
@@ -435,21 +437,18 @@ function ConversationsPanel() {
         }
       });
       
-      // Usar o nome exato do evento como no backend
-      console.log("Enviando evento 'requestMensagens'...");
-      socket.emit('requestMensagens', data);
+      // IMPORTANTE: use a mesma capitalização do mobile
+      console.log("Enviando evento 'RequestMensagens'...");
+      socket.emit('RequestMensagens', data);
       
-      // Definir um timeout para evitar ficar preso no carregamento
+      // Timeout para retry se necessário
       const timeout = setTimeout(() => {
         if (loadingMessages) {
-          console.error("Timeout ao carregar mensagens! Tentando novamente...");
-          // Tentar novamente com o mesmo protocolo
-          socket.emit('requestMensagens', data);
+          console.log("Tentando novamente buscar mensagens...");
+          socket.emit('RequestMensagens', data);
           
-          // Definir outro timeout para desligar o estado de loading em caso de falha persistente
           setTimeout(() => {
             if (loadingMessages) {
-              console.error("Falha persistente ao carregar mensagens. Desligando loading.");
               setLoadingMessages(false);
               socket.off('ResponseMensagens');
             }
@@ -466,10 +465,7 @@ function ConversationsPanel() {
       setLoadingMessages(false);
       socket.off('ResponseMensagens');
     }
-  }, [socket]);
-
-  // Remover o effect em conflito que estava configurando listeners novamente
-  // Como os listeners agora são configurados diretamente na função fetchMessages
+}, [socket, loadingMessages]);
 
   // Enviar uma nova mensagem - CORRIGIDO
   const sendMessage = useCallback(() => {
@@ -811,7 +807,7 @@ function ConversationsPanel() {
                 ref={conversationsListRef}
                 onScroll={handleScroll}
               >
-                {pagingLoading && currentPage === 1 ? (
+                {pagingLoading && currentPage === 4 ? (
                   <div className={styles.loadingConversations}>
                     <div className={styles.conversationSkeleton}></div>
                     <div className={styles.conversationSkeleton}></div>
@@ -1004,4 +1000,4 @@ function ConversationsPanel() {
   );
 }
 
-export default ConversationsPanel;
+export default PainelConversas;
