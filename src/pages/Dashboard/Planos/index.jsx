@@ -72,7 +72,7 @@ function Planos() {
         }
         
         // Redirecionar para pagamento se estiver logado
-        navigate(`/pagamento/:${planoId}`);
+        navigate(`/pagamento/${planoId}`);
     };
 
     // Formatação de preço

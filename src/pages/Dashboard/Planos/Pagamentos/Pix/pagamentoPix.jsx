@@ -133,7 +133,7 @@ function PixPayment() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <button 
+        {/* <button 
           className={styles.backButton} 
           onClick={() => navigate(`/pagamento/${planoId}`)}
         >
@@ -141,7 +141,7 @@ function PixPayment() {
             <path d="M19 12H5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             <path d="M12 19L5 12L12 5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-        </button>
+        </button> */}
         <div className={styles.headerCircle}>
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 2L6.5 11H17.5L12 2Z" fill="white" />

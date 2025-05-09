@@ -1,12 +1,12 @@
 .container {
   min-height: 100vh;
-  background-color: #f5f5f7;
-  color: #333333;
+  background-color: #13131F;
+  color: #F5F5F7;
 }
 
 .header {
   height: 80px;
-  background: linear-gradient(135deg, #8A05BE, #AB3FE5);
+  background: linear-gradient(135deg, #8A05BE, #6B24F2);
   color: white;
   display: flex;
   align-items: center;
@@ -49,22 +49,23 @@
   font-size: 1.3rem;
   font-weight: 600;
   margin-bottom: 20px;
-  color: #333;
+  color: #F5F5F7;
 }
 
 .planCard {
-  background-color: white;
+  background-color: #1E1E2E;
   border-radius: 12px;
   padding: 20px;
   display: flex;
   margin-bottom: 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid #2A2A3A;
 }
 
 .planIcon {
   width: 56px;
   height: 56px;
-  background-color: rgba(138, 5, 190, 0.1);
+  background-color: rgba(138, 5, 190, 0.15);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -80,7 +81,7 @@
 .planDetails h3 {
   font-size: 1.2rem;
   font-weight: 600;
-  color: #333;
+  color: #F5F5F7;
   margin-bottom: 5px;
 }
 
@@ -91,13 +92,13 @@
 .planPrice h2 {
   font-size: 1.4rem;
   font-weight: 700;
-  color: #8A05BE;
+  color: #916bfb;
   margin-bottom: 5px;
 }
 
 .planPrice span {
   font-size: 0.9rem;
-  color: #777;
+  color: #A0A0A0;
 }
 
 .planFeatures {
@@ -114,7 +115,7 @@
 
 .featureItem span {
   font-size: 0.95rem;
-  color: #555;
+  color: #CCCCCC;
 }
 
 .paymentMethods {
@@ -125,25 +126,27 @@
 }
 
 .paymentMethod {
-  background-color: white;
+  background-color: #1E1E2E;
   border-radius: 12px;
   padding: 20px;
   display: flex;
   align-items: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   cursor: pointer;
   transition: all 0.2s;
+  border: 1px solid #2A2A3A;
 }
 
 .paymentMethod:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: #916bfb;
+  box-shadow: 0 6px 16px rgba(138, 5, 190, 0.3);
 }
 
 .methodIcon {
   width: 48px;
   height: 48px;
-  background-color: rgba(138, 5, 190, 0.1);
+  background-color: rgba(138, 5, 190, 0.15);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -159,13 +162,13 @@
 .methodInfo h4 {
   font-size: 1rem;
   font-weight: 600;
-  color: #333;
+  color: #F5F5F7;
   margin-bottom: 5px;
 }
 
 .methodInfo p {
   font-size: 0.9rem;
-  color: #777;
+  color: #A0A0A0;
 }
 
 .securityInfo {
@@ -173,7 +176,7 @@
   align-items: center;
   gap: 10px;
   justify-content: center;
-  color: #777;
+  color: #A0A0A0;
   font-size: 0.9rem;
   margin-top: 20px;
 }
@@ -205,12 +208,12 @@
 }
 
 .errorContainer p {
-  color: #d32f2f;
+  color: #f23d4f;
   margin-bottom: 20px;
 }
 
 .returnButton {
-  background-color: #8A05BE;
+  background: linear-gradient(135deg, #8A05BE, #6B24F2);
   color: white;
   padding: 10px 20px;
   border: none;
@@ -220,5 +223,5 @@
 }
 
 .returnButton:hover {
-  background-color: #9928c3;
+  filter: brightness(1.1);
 }

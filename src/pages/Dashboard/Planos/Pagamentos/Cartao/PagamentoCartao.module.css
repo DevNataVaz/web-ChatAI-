@@ -1,12 +1,12 @@
 .container {
   min-height: 100vh;
-  background-color: #f5f5f7;
-  color: #333333;
+  background-color: #13131F;
+  color: #F5F5F7;
 }
 
 .header {
   height: 120px;
-  background: linear-gradient(135deg, #8A05BE, #AB3FE5);
+  background: linear-gradient(135deg, #8A05BE, #6B24F2);
   color: white;
   display: flex;
   align-items: flex-start;
@@ -38,14 +38,14 @@
 .headerCircle {
   width: 85px;
   height: 85px;
-  background-color: #8A05BE;
+  background: linear-gradient(135deg, #8A05BE, #6B24F2);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 3px solid white;
+  border: 3px solid #13131F;
   margin-top: 40px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
   position: absolute;
   top: 60px;
   z-index: 10;
@@ -60,7 +60,7 @@
 .content h1 {
   font-size: 1.3rem;
   font-weight: 600;
-  color: #333;
+  color: #F5F5F7;
   text-align: center;
   margin-bottom: 20px;
 }
@@ -68,7 +68,7 @@
 .content h2 {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #333;
+  color: #F5F5F7;
   margin: 25px 0 15px;
 }
 
@@ -85,6 +85,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #1E1E2E;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .cardBrand img {
@@ -129,22 +133,24 @@
 
 .formGroup label {
   font-size: 0.9rem;
-  color: #555;
+  color: #A0A0A0;
   margin-bottom: 8px;
 }
 
 .formGroup input {
   height: 48px;
-  border: 1px solid #ddd;
+  background-color: #1E1E2E;
+  border: 1px solid #2A2A3A;
   border-radius: 8px;
   padding: 0 15px;
   font-size: 0.95rem;
   transition: border-color 0.2s;
+  color: #F5F5F7;
 }
 
 .formGroup input:focus {
   outline: none;
-  border-color: #8A05BE;
+  border-color: #916bfb;
   box-shadow: 0 0 0 2px rgba(138, 5, 190, 0.1);
 }
 
@@ -186,21 +192,22 @@
 .expiryRow span {
   font-size: 1.2rem;
   font-weight: 600;
-  color: #555;
+  color: #F5F5F7;
 }
 
 .orderSummary {
-  background-color: white;
+  background-color: #1E1E2E;
   border-radius: 12px;
   padding: 20px;
   margin: 25px 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid #2A2A3A;
 }
 
 .orderSummary h3 {
   font-size: 1rem;
   font-weight: 600;
-  color: #333;
+  color: #F5F5F7;
   margin-bottom: 15px;
 }
 
@@ -212,24 +219,24 @@
 
 .summaryItem {
   font-size: 0.95rem;
-  color: #777;
+  color: #A0A0A0;
 }
 
 .summaryTotal {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #333;
+  color: #F5F5F7;
   margin-top: 15px;
   padding-top: 15px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #2A2A3A;
 }
 
 .summaryTotal span:last-child {
-  color: #8A05BE;
+  color: #916bfb;
 }
 
 .errorMessage {
-  background-color: rgba(242, 61, 79, 0.1);
+  background-color: rgba(242, 61, 79, 0.15);
   border-left: 3px solid #f23d4f;
   padding: 12px 15px;
   border-radius: 4px;
@@ -247,7 +254,7 @@
 
 .payButton {
   width: 100%;
-  background-color: #8A05BE;
+  background: linear-gradient(135deg, #8A05BE, #6B24F2);
   color: white;
   border: none;
   height: 55px;
@@ -264,10 +271,20 @@
 }
 
 .payButton:hover:not(:disabled) {
-  background-color: #9928C3;
+  filter: brightness(1.1);
+  transform: translateY(-2px);
 }
 
 .payButton:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+.buttonSpinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s linear infinite;
 }

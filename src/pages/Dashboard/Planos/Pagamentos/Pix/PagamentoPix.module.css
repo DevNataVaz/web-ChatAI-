@@ -1,12 +1,12 @@
 .container {
   min-height: 100vh;
-  background-color: #f5f5f7;
-  color: #333333;
+  background-color: #13131F;
+  color: #F5F5F7;
 }
 
 .header {
   height: 120px;
-  background: linear-gradient(135deg, #8A05BE, #AB3FE5);
+  background: linear-gradient(135deg, #8A05BE, #6B24F2);
   color: white;
   display: flex;
   align-items: flex-start;
@@ -38,14 +38,14 @@
 .headerCircle {
   width: 85px;
   height: 85px;
-  background-color: #8A05BE;
+  background: linear-gradient(135deg, #8A05BE, #6B24F2);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 3px solid white;
+  border: 3px solid #13131F;
   margin-top: 40px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
   position: absolute;
   top: 60px;
   z-index: 10;
@@ -63,14 +63,14 @@
 .content h1 {
   font-size: 1.3rem;
   font-weight: 600;
-  color: #333;
+  color: #F5F5F7;
   text-align: center;
   margin-bottom: 10px;
 }
 
 .subText {
   font-size: 0.95rem;
-  color: #777;
+  color: #A0A0A0;
   text-align: center;
   margin-bottom: 30px;
 }
@@ -107,12 +107,12 @@
 }
 
 .errorContainer p {
-  color: #777;
+  color: #A0A0A0;
   margin-bottom: 20px;
 }
 
 .retryButton {
-  background-color: #8A05BE;
+  background: linear-gradient(135deg, #8A05BE, #6B24F2);
   color: white;
   border: none;
   padding: 12px 24px;
@@ -123,11 +123,12 @@
 
 .pixCodeCard {
   width: 100%;
-  background-color: white;
+  background-color: #1E1E2E;
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid #2A2A3A;
 }
 
 .pixCodeHeader {
@@ -139,7 +140,7 @@
 .pixIcon {
   width: 48px;
   height: 48px;
-  background-color: rgba(145, 107, 251, 0.1);
+  background-color: rgba(145, 107, 251, 0.15);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -154,20 +155,20 @@
 
 .pixCodeLabel {
   font-size: 0.9rem;
-  color: #777;
+  color: #A0A0A0;
   display: block;
   margin-bottom: 5px;
 }
 
 .pixCodeValue {
   font-size: 0.95rem;
-  color: #333;
+  color: #F5F5F7;
   word-break: break-all;
 }
 
 .copyButton {
   width: 100%;
-  background-color: #916bfb;
+  background: linear-gradient(135deg, #8A05BE, #6B24F2);
   color: white;
   border: none;
   padding: 14px;
@@ -182,16 +183,18 @@
 }
 
 .copyButton:hover {
-  background-color: #845ff0;
+  filter: brightness(1.1);
+  transform: translateY(-2px);
 }
 
 .detailsCard {
   width: 100%;
-  background-color: white;
+  background-color: #1E1E2E;
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 15px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid #2A2A3A;
 }
 
 .detailsItem {
@@ -202,7 +205,7 @@
 .detailsIcon {
   width: 48px;
   height: 48px;
-  background-color: rgba(145, 107, 251, 0.1);
+  background-color: rgba(145, 107, 251, 0.15);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -214,18 +217,18 @@
 .detailsInfo h4 {
   font-size: 1rem;
   font-weight: 600;
-  color: #333;
+  color: #F5F5F7;
   margin-bottom: 5px;
 }
 
 .detailsInfo p {
   font-size: 0.9rem;
-  color: #777;
+  color: #A0A0A0;
 }
 
 .verifyButton {
   width: 100%;
-  background-color: #8A05BE;
+  background: linear-gradient(135deg, #8A05BE, #6B24F2);
   color: white;
   border: none;
   padding: 15px;
@@ -241,7 +244,8 @@
 }
 
 .verifyButton:hover:not(:disabled) {
-  background-color: #9928C3;
+  filter: brightness(1.1);
+  transform: translateY(-2px);
 }
 
 .verifyButton:disabled {
