@@ -72,7 +72,7 @@ function Planos() {
         }
         
         // Redirecionar para pagamento se estiver logado
-        navigate(`/pagamento/${planoId}/${assinaturaId || ''}`);
+        navigate(`/pagamento/:${planoId}`);
     };
 
     // Formatação de preço
@@ -106,6 +106,22 @@ function Planos() {
 
     // Planos estáticos como fallback
     const planosEstaticos = [
+        {
+            ID: 1,
+            PLANO: "Started",
+            PRECO_MES: "99,90",
+            ATENDENTES: 1,
+            LIMITE_MENSAGENS: 2000,
+            PRODUTOS: 5,
+            AUTOMACAO: 1,
+            SUGESTAO_CONTEUDO: false,
+            OTIMIZACAO_LINKS: false,
+            ACESSO_MULTIUSUARIO: false,
+            INTEGRACAO_API: false,
+            OTIMIZACAO_KEYWORDS: false,
+            META_TAGS: false,
+            trial: true
+        },
         {
             ID: 2,
             PLANO: "Standard",
@@ -174,45 +190,84 @@ function Planos() {
 
     return (
         <div className={styles.container} id="planos">
-            <div className={styles.containerTitle} >
+            <div className={styles.containerTitle}>
                 <h1>Escolha nosso plano de assinatura</h1>
                 <p>Escolha o plano certo para atender às suas necessidades de SEO e comece a otimizar hoje mesmo.</p>
             </div>
 
             {loading ? (
-                <div className={styles.loading}>Carregando planos...</div>
+                <div className={styles.loading}>
+                    <div className={styles.spinner}></div>
+                    <p>Carregando planos...</p>
+                </div>
             ) : error ? (
                 <div className={styles.error}>
                     <p>{error}</p>
-                    <button onClick={() => window.location.reload()}>Tentar novamente</button>
+                    <button onClick={() => window.location.reload()} className={styles.retryBtn}>
+                        Tentar novamente
+                    </button>
                 </div>
             ) : (
                 <div className={styles.containerPlanos}> 
                     {planosParaExibir.map((plano, index) => {
-                        // Determinar se é o plano atual do usuário
-                        const ehPlanoAtual = planoAtual && (plano.ID == planoAtual);
+                        // Determinar se é o plano atual do usuário - MODIFICADO: agora verifica da tabela user, coluna PLANO
+                        const ehPlanoAtual = user?.PLANO && (plano.PLANO === user.PLANO);
+                        
                         // Gerar benefícios dinamicamente com base nas propriedades do plano
                         const beneficios = plano.beneficios || mapearBeneficios(plano);
+                        
+                        // Verificar se é o plano Started para mostrar o trial
+                        const ehPlanoStarted = plano.PLANO === "Started" || plano.trial;
                         
                         return (
                             <div 
                                 key={plano.ID}
-                                className={`${styles.planos} ${plano.destaque ? styles.destaque : ''} ${ehPlanoAtual ? styles.planoAtual : ''}`} 
+                                className={`${styles.planos} 
+                                           ${plano.destaque ? styles.destaque : ''} 
+                                           ${ehPlanoAtual ? styles.planoAtual : ''}
+                                           ${ehPlanoStarted ? styles.planoStarted : ''}`}
                                 
                             >
-                                {ehPlanoAtual && <div className={styles.planoAtualLabel}>Seu plano atual</div>}
-                                <h2>{plano.PLANO}</h2>
-                                <p className={styles.preco}>R${formatarPreco(plano.PRECO_MES)}/mês</p>
+                                {ehPlanoAtual && (
+                                    <div className={styles.planoAtualContainer}>
+                                        <div className={styles.planoAtualLabel}>
+                                            <span>Seu plano atual</span>
+                                        </div>
+                                        <div className={styles.checkmark}></div>
+                                    </div>
+                                )}
+                                
+                                {ehPlanoStarted && (
+                                    <div className={styles.trialRibbon}>
+                                        <span>7 dias grátis</span>
+                                    </div>
+                                )}
+                                
+                                <div className={styles.planoHeader}>
+                                    <h2>{plano.PLANO}</h2>
+                                    <p className={styles.preco}>
+                                        <span className={styles.moeda}>R$</span>
+                                        <span className={styles.valor}>{formatarPreco(plano.PRECO_MES)}</span>
+                                        <span className={styles.periodo}>/mês</span>
+                                    </p>
+                                </div>
+                                
                                 <div className={styles.divisor}></div>
+                                
                                 <div className={styles.beneficios}>
                                     {beneficios.map((beneficio, idx) => (
-                                        <p key={idx}>
-                                            <img src={Certo} alt="" /> {beneficio}
+                                        <p key={idx} className={styles.beneficioItem}>
+                                            <span className={styles.checkIcon}>
+                                                <img src={Certo} alt="" />
+                                            </span>
+                                            <span>{beneficio}</span>
                                         </p>
                                     ))}
                                 </div>
+                                
                                 <button 
-                                    className={`${styles.comprar} ${ehPlanoAtual ? styles.desabilitado : ''}`}
+                                    className={`${styles.comprar} 
+                                              ${ehPlanoAtual ? styles.desabilitado : ''}`}
                                     onClick={() => handleEscolherPlano(plano.ID)}
                                     disabled={ehPlanoAtual}
                                 >

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from '../Planos/Pagamentos/pagamento.module.css';
+import styles from './Assinatura.module.css';
 import { useApp } from '../../../context/AppContext';
 
 function Assinatura() {

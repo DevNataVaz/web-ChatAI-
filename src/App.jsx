@@ -30,9 +30,9 @@ import RegisterPage from './pages/Registro';
 import Planos from './pages/Dashboard/Planos';
 
 // Novas páginas de pagamento
-import Pagamento from './pages/Dashboard/Planos/Pagamentos/pagamento';
-import PagamentoPix from './pages/Dashboard/Planos/Pagamentos/pagamentoPix';
-import PagamentoCartao from './pages/Dashboard/Planos/Pagamentos/pagamentoCartao';
+import Pagamento from './pages/Dashboard/Planos/Pagamentos/Pagamento/pagamento';
+import PagamentoPix from './pages/Dashboard/Planos/Pagamentos/Pix/pagamentoPix';
+import PagamentoCartao from './pages/Dashboard/Planos/Pagamentos/Cartao/pagamentoCartao';
 import Assinatura from './pages/Dashboard/Assinaturas';
 
 import { AppProvider } from './context/AppContext';

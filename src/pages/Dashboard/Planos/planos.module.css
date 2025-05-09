@@ -1,9 +1,21 @@
 .container {
-  padding: 80px 0;
+  padding: 100px 0;
   color: white;
- 
   background-size: cover;
+  position: relative;
+  overflow: hidden;
+}
 
+.container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, rgba(140, 69, 255, 0.1) 0%, rgba(28, 28, 43, 0) 70%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .containerTitle {
@@ -11,255 +23,531 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 60px;
 }
 
 .containerTitle h1 {
-  font-size: 36px;
+  font-size: 42px;
   margin-bottom: 20px;
+  background: linear-gradient(to right, #fff, #a9a8a8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: fadeIn 0.8s ease-out;
 }
 
 .containerTitle p {
   font-size: 16px;
   color: #a9a8a8;
-  width: 30%;
+  width: 40%;
   margin-bottom: 50px;
+  line-height: 1.6;
+  animation: fadeIn 1s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .containerPlanos {
   display: flex;
   justify-content: center;
-  gap: 30px;
+  gap: 25px;
   flex-wrap: wrap;
+  padding: 20px 0;
 }
 
 .planos {
-  background-color: #1c1c2b;
+  background-color: rgba(28, 28, 43, 0.8);
+  backdrop-filter: blur(10px);
   border: 1px solid #3a3a50;
-  border-radius: 16px;
+  border-radius: 20px;
   width: 330px;
-  height: 600px;
-  padding: 30px 20px;
+  height: 620px;
+  padding: 30px 25px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   text-align: center;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
+.planos:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 35px rgba(140, 69, 255, 0.15);
+}
+
+/* Estilo para o plano de destaque */
 .planos.destaque {
-  background-color: #191919;
+  background: linear-gradient(145deg, rgba(25, 25, 25, 0.8), rgba(35, 35, 50, 0.8));
   border: 2px solid var(--primary);
-  transform: scale(1.09);
-  box-shadow: 0 0 35px var(--primaryLight);
-  z-index: 1;
+  transform: scale(1.05);
+  box-shadow: 0 15px 40px rgba(140, 69, 255, 0.3);
+  z-index: 2;
+}
+
+.planos.destaque:hover {
+  transform: scale(1.07) translateY(-5px);
+}
+
+/* Estilo para o plano atual do usuário */
+.planos.planoAtual {
+  border: 3px solid #4CAF50;
+  box-shadow: 0 10px 30px rgba(76, 175, 80, 0.3);
+}
+
+.planoAtualContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.planoAtualLabel {
+  background-color: #4CAF50;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 0 0 12px 12px;
+  font-weight: bold;
+  font-size: 14px;
+  box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+  animation: pulseGreen 2s infinite;
+}
+
+.checkmark {
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  width: 40px;
+  height: 40px;
+  background-color: #4CAF50;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.checkmark:before {
+  content: '✓';
+  font-size: 22px;
+  color: white;
+}
+
+@keyframes pulseGreen {
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 7px rgba(76, 175, 80, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
+}
+
+/* Estilo para o plano Started com faixa de trial */
+.planos.planoStarted {
+  border-color: #FFD700;
+}
+
+.trialRibbon {
+  position: absolute;
+  top: 20px;
+  right: -35px;
+  background: #FFD700;
+  color: #000;
+  padding: 5px 40px;
+  font-weight: bold;
+  font-size: 14px;
+  transform: rotate(45deg);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  z-index: 3;
+}
+
+.trialRibbon::before, .trialRibbon::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  bottom: -5px;
+  z-index: -1;
+}
+
+.trialRibbon::before {
+  left: 0;
+  transform: skewY(45deg);
+}
+
+.trialRibbon::after {
+  right: 0;
+  transform: skewY(-45deg);
+}
+
+.planoHeader {
+  margin-bottom: 20px;
 }
 
 .planos h2 {
-  font-size: 24px;
-  margin-bottom: 5px;
+  font-size: 28px;
+  margin-bottom: 15px;
+  background: linear-gradient(to right, #ffffff, #cccccc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 1px;
 }
 
-.planos .preco {
+.preco {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  margin-bottom: 20px;
+}
+
+.moeda {
   font-size: 18px;
   color: #aaa;
-  margin-bottom: 20px;
+  margin-right: 5px;
+}
+
+.valor {
+  font-size: 32px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.periodo {
+  font-size: 16px;
+  color: #aaa;
+  margin-left: 5px;
 }
 
 .divisor {
   height: 1px;
-  background-color: #3a3a50;
+  background: linear-gradient(to right, transparent, #3a3a50, transparent);
   margin: 20px 0;
+  opacity: 0.6;
 }
 
 .beneficios {
   flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 25px;
 }
 
-.beneficios p {
+.beneficioItem {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 8px 0;
-  color: #ccc;
+  gap: 12px;
+  color: #ddd;
   font-size: 14px;
-  padding-bottom: 10px;
+  padding: 5px 0;
+  transition: all 0.3s ease;
+}
+
+.beneficioItem:hover {
+  transform: translateX(5px);
+  color: #fff;
+}
+
+.checkIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.checkIcon img {
+  width: 18px;
+  height: 18px;
+  filter: drop-shadow(0 0 3px rgba(140, 69, 255, 0.5));
 }
 
 .comprar {
   margin-top: 20px;
-  padding: 12px 20px;
+  padding: 14px 25px;
   border: none;
   border-radius: 12px;
-  background: linear-gradient(to right, var(--primaryLight), var(--primaryDark));
+  background: linear-gradient(45deg, var(--primaryLight), var(--primaryDark));
   color: white;
   font-weight: bold;
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: all 0.3s ease;
+  letter-spacing: 1px;
+  box-shadow: 0 5px 15px rgba(140, 69, 255, 0.3);
+  position: relative;
+  overflow: hidden;
 }
 
-.planos.destaque .comprar {
-  background: var(--primary);
-  animation: pulseEffect 1.5s infinite;
+.comprar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: 0.5s;
+}
+
+.comprar:hover::before {
+  left: 100%;
 }
 
 .comprar:hover {
-  opacity: 0.85;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(140, 69, 255, 0.4);
 }
 
-.pulse {
-  animation: pulseEffect 1.5s infinite;
+.comprar:active {
+  transform: translateY(1px);
 }
 
-@keyframes pulseEffect {
+.planos.destaque .comprar {
+  background: linear-gradient(45deg, var(--primary), var(--primaryLight));
+  animation: pulsePrimary 2s infinite;
+}
+
+.desabilitado {
+  background: #505050 !important;
+  cursor: not-allowed;
+  animation: none !important;
+  opacity: 0.8;
+  box-shadow: none !important;
+}
+
+.desabilitado:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.desabilitado::before {
+  display: none;
+}
+
+@keyframes pulsePrimary {
   0% {
-      transform: scale(1);
-      box-shadow: 0 0 0 0 rgba(140, 69, 255, 0.7);
+    box-shadow: 0 0 0 0 rgba(140, 69, 255, 0.7);
   }
   70% {
-      transform: scale(1.05);
-      box-shadow: 0 0 0 10px rgba(140, 69, 255, 0);
+    box-shadow: 0 0 0 10px rgba(140, 69, 255, 0);
   }
   100% {
-      transform: scale(1);
-      box-shadow: 0 0 0 0 rgba(140, 69, 255, 0);
+    box-shadow: 0 0 0 0 rgba(140, 69, 255, 0);
   }
+}
+
+/* Loading spinner */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  gap: 20px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(140, 69, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: var(--primary);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error message */
+.error {
+  background-color: rgba(255, 87, 87, 0.1);
+  border: 1px solid #ff5757;
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 500px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.retryBtn {
+  background-color: #ff5757;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin-top: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retryBtn:hover {
+  background-color: #ff3838;
+  transform: translateY(-2px);
 }
 
 /* Media Query para 1280px */
 @media (max-width: 1280px) {
   .containerTitle h1 {
-      font-size: 32px;
+    font-size: 36px;
   }
   
   .containerTitle p {
-      width: 50%;
-      margin-bottom: 40px;
+    width: 60%;
+    margin-bottom: 40px;
   }
   
   .containerPlanos {
-      padding: 0 20px;
-      gap: 20px;
+    padding: 0 20px;
+    gap: 20px;
   }
   
   .planos {
-      width: 280px;
-      height: 580px;
-      padding: 25px 15px;
+    width: 300px;
+    height: 580px;
+    padding: 25px 15px;
   }
   
   .planos.destaque {
-      transform: scale(1.05);
+    transform: scale(1.03);
   }
   
   .planos h2 {
-      font-size: 22px;
+    font-size: 24px;
   }
   
-  .planos .preco {
-      font-size: 16px;
-  }
-  
-  .beneficios p {
-      font-size: 13px;
+  .valor {
+    font-size: 28px;
   }
 }
 
 /* Media Query para 768px */
 @media (max-width: 768px) {
   .container {
-      padding: 60px 0;
+    padding: 70px 0;
   }
   
   .containerTitle h1 {
-      font-size: 28px;
-      padding: 0 15px;
+    font-size: 30px;
+    padding: 0 15px;
   }
   
   .containerTitle p {
-      width: 80%;
-      font-size: 15px;
-      margin-bottom: 30px;
+    width: 80%;
+    font-size: 15px;
+    margin-bottom: 30px;
   }
   
   .containerPlanos {
-      flex-direction: column;
-      align-items: center;
-      gap: 40px;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
   }
   
   .planos {
-      width: 90%;
-      max-width: 400px;
-      height: auto;
-      min-height: 500px;
+    width: 90%;
+    max-width: 400px;
+    height: auto;
+    min-height: 500px;
   }
   
   .planos.destaque {
-      transform: none;
-      order: -1; /* Coloca o plano de destaque primeiro */
-      border-width: 3px;
+    transform: none;
+    order: -1; /* Coloca o plano de destaque primeiro */
+    border-width: 3px;
   }
   
-  .beneficios p {
-      justify-content: center;
+  .planos.planoAtual:not(.destaque) {
+    order: -2; /* Coloca o plano atual antes do plano de destaque */
+  }
+  
+  .beneficios {
+    align-items: flex-start;
+    padding-left: 20px;
   }
   
   .comprar {
-      padding: 15px 20px;
-      font-size: 15px;
+    padding: 15px 20px;
+    font-size: 15px;
   }
 }
 
 /* Media Query para 450px */
 @media (max-width: 450px) {
   .container {
-      padding: 40px 0;
+    padding: 50px 0;
   }
   
   .containerTitle h1 {
-      font-size: 24px;
+    font-size: 26px;
   }
   
   .containerTitle p {
-      width: 90%;
-      font-size: 14px;
-      margin-bottom: 25px;
+    width: 90%;
+    font-size: 14px;
+    margin-bottom: 25px;
   }
   
   .planos {
-      width: 90%;
-      padding: 20px 10px;
-      min-height: 450px;
+    width: 90%;
+    padding: 20px 15px;
+    min-height: 450px;
   }
   
   .planos h2 {
-      font-size: 20px;
+    font-size: 22px;
   }
   
-  .planos .preco {
-      font-size: 15px;
+  .valor {
+    font-size: 26px;
   }
   
   .divisor {
-      margin: 15px 0;
+    margin: 15px 0;
   }
   
-  .beneficios p {
-      font-size: 13px;
-      padding-bottom: 8px;
-      margin: 6px 0;
-      gap: 8px;
+  .beneficioItem {
+    font-size: 13px;
+    gap: 8px;
   }
   
-  .beneficios p img {
-      width: 16px;
-      height: 16px;
+  .checkIcon img {
+    width: 16px;
+    height: 16px;
   }
   
   .comprar {
-      padding: 12px 16px;
-      font-size: 14px;
-      margin-top: 15px;
+    padding: 12px 16px;
+    font-size: 14px;
+    margin-top: 15px;
+  }
+  
+  .trialRibbon {
+    right: -45px;
+    padding: 5px 45px;
+    font-size: 12px;
+  }
+  
+  .planoAtualLabel {
+    padding: 6px 15px;
+    font-size: 12px;
   }
 }
