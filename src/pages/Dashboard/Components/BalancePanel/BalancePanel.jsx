@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Criptografar, Descriptografar } from '../../../Cripto';
+import { Criptografar, Descriptografar } from '../../../../Cripto';
 import styles from './BalancePanel.module.css'
 
 export default function BalancePanel({ user, socket }) {

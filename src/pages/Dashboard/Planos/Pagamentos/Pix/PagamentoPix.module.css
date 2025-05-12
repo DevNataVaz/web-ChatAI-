@@ -261,3 +261,16 @@
   border-top-color: white;
   animation: spin 1s linear infinite;
 }
+
+/* Adicione estes estilos ao seu arquivo CSS */
+.errorMessage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  margin-bottom: 20px;
+  background-color: rgba(242, 61, 79, 0.1);
+  border-left: 3px solid #f23d4f;
+  border-radius: 4px;
+  color: #f23d4f;
+}

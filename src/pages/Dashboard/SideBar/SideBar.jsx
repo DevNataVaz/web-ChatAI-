@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import styles from './Sidebar.module.css';
 import { useApp } from '../../../context/AppContext';
 import { useCredits } from '../../../hooks/useCredits';
-import CreateAgentModal from '../MainDashboard/CreateAgenteModal/CreateAgenteModal';
+import CreateAgentModal from '../Components/CreateAgenteModal/CreateAgenteModal';
 import { socketService } from '../../../services/socketService';
 
 export default function Sidebar({ activeView, setContentView }) {

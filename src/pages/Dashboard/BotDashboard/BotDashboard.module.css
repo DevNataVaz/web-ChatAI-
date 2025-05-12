@@ -1,0 +1,340 @@
+/* BotDashboard.module.css */
+
+/* Mobile style container */
+.mobileContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+
+}
+
+/* Header gradient */
+.headerGradient {
+  border-radius: 20px 20px 0 0;
+  background: linear-gradient(135deg, #8A05BE, #9928C3);
+  min-height: 180px;
+  position: relative;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.headerContent {
+  padding-bottom: 30px;
+}
+
+.headerContent h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 8px;
+}
+
+.headerContent p {
+  margin: 0;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.botLimitBadge {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Bots container */
+.botsContainer {
+  
+  padding: 20px;
+  margin-top: 20px;
+  flex: 1;
+}
+
+/* Bots grid */
+.botsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 16px;
+  justify-content: center;
+}
+
+.botCard {
+  background-color: white;
+  border-radius: 16px;
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.botCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.botIconContainer {
+  margin-bottom: 12px;
+}
+
+.botIconCircle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #8A05BE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 8px rgba(138, 5, 190, 0.3);
+  margin: 0 auto;
+  position: relative;
+}
+
+.botIconCircle.connected {
+  background-color: #4CAF50;
+}
+
+.botIconCircle.connected::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #4CAF50;
+  border: 2px solid white;
+}
+
+.botIcon {
+  font-size: 22px;
+  color: white;
+}
+
+.botName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333333;
+  text-align: center;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.botPlatform {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #777777;
+  font-size: 12px;
+}
+
+/* Add Button (floating action button) */
+.addButton {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #8A05BE;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 4px 12px rgba(138, 5, 190, 0.4);
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.addButton:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(138, 5, 190, 0.5);
+}
+
+.addButton:disabled {
+  background: #999999;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Empty state */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 24px;
+  height: 50vh;
+}
+
+.emptyIcon {
+  color: rgba(138, 5, 190, 0.6);
+  margin-bottom: 20px;
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.emptyState p {
+  color: #777777;
+  max-width: 280px;
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Loading states */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #F0F0F5;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(138, 5, 190, 0.1);
+  border-radius: 50%;
+  border-top-color: #8A05BE;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 16px;
+}
+
+.loadingContainer p {
+  color: #777777;
+  font-size: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive styles */
+@media (min-width: 768px) {
+  /* Tablet and larger */
+  .botsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .headerGradient {
+    padding: 30px 40px;
+  }
+  
+  .headerContent h1 {
+    font-size: 36px;
+  }
+  
+  .headerContent p {
+    font-size: 18px;
+  }
+  
+  .botLimitBadge {
+    padding: 6px 16px;
+    font-size: 14px;
+    top: 30px;
+    right: 40px;
+  }
+  
+  .botName {
+    font-size: 16px;
+  }
+  
+  .botPlatform {
+    font-size: 13px;
+  }
+  
+  .botIconCircle {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .botIcon {
+    font-size: 28px;
+  }
+  
+  .addButton {
+    width: 70px;
+    height: 70px;
+    bottom: 30px;
+    right: 30px;
+  }
+}
+
+@media (min-width: 1280px) {
+  /* Desktop */
+  .botsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+  
+  .headerGradient {
+    padding: 40px 60px;
+  }
+  
+  .botsContainer {
+    padding: 30px 60px;
+  }
+  
+  .headerContent {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Small mobile */
+  .botsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+  
+  .botCard {
+    padding: 12px 8px;
+  }
+  
+  .botIconCircle {
+    width: 42px;
+    height: 42px;
+  }
+  
+  .botIcon {
+    font-size: 20px;
+  }
+  
+  .botName {
+    font-size: 13px;
+  }
+}

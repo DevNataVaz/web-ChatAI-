@@ -18,12 +18,12 @@ import Footer from './components/footer';
 import Banner from './components/banner';
 import Iphone from './components/iphoneMedia';
 import ProtectedRoute from './components/ProtectedRoute';
-import ConnectionStatus from './pages/Dashboard/MainDashboard/ConnectionStatus';
+import ConnectionStatus from './pages/Dashboard/Components/ConnectionStatus';
 
 //pages
 import DownloadPage from './pages/Download';
 import Dashboard from './pages/Dashboard';
-import MainDashboard from './pages/Dashboard/MainDashboard/index';
+import Components from './pages/Dashboard/Components/index';
 import LoginPage from './pages/Login';
 import RegisterPage from './pages/Registro';
 

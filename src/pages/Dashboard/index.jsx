@@ -8,6 +8,7 @@ import styles from './Dashboard.module.css';
 import { AppProvider, useApp } from '../../context/AppContext';
 import LoadingScreen from '../../components/loading/LoadingScreen';
 import ErrorBoundary from './ErrorBoundary/index';
+import BotDashboard from "./BotDashboard/BotDashboard";
 
 
 // Importar os componentes da estrutura
@@ -19,7 +20,7 @@ import {
   MetricsPanel,
   PaymentPanel,
   ProductsPanel
-} from './MainDashboard/index';
+} from './Components/index';
 
 // Componente interno que usa o contexto
 function DashboardContent() {
@@ -74,12 +75,12 @@ function DashboardContent() {
         case 'products':
           return <ProductsPanel />;
         default:
-          return <Content activeTab={activeTab} contentView={activeView} />;
+          return <BotDashboard activeTab={activeTab} contentView={activeView} />;
       }
     }
     
     // Caso contrário, renderizar o conteúdo baseado na aba ativa
-    return <Content activeTab={activeTab} contentView={activeView} />;
+    return <BotDashboard activeTab={activeTab} contentView={activeView} />;
   };
 
   return (

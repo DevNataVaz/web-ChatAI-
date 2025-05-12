@@ -4,15 +4,15 @@ import Header from '../Header/Header';
 import Content from '../Content/Content';
 import Tabs from '../Tabs/Tabs';
 import PaymentPanel from './PaymentPanel';
-import ConversationsPanel from './ConversationsPanel';
+import ConversationsPanel from './PainelConversas/ConversationsPanel';
 import AgentsPanel from './AgentsPanel';
-import MetricsPanel from './MetricsPanel';
+import MetricsPanel from './MetricsPanel/MetricsPanel';
 import ProductsPanel from './ProductsPanel';
-import BalancePanel from './BalancePanel';
+import BalancePanel from './BalancePanel/BalancePanel';
 import CreateAgentModal from './CreateAgentModal';
 
 // IMPORTANTE: Importar useApp do arquivo App onde está definido o contexto
-export default function MainDashboard({ user, onLogout, socket, Criptografar, Descriptografar }) {
+export default function Components({ user, onLogout, socket, Criptografar, Descriptografar }) {
   const [activeTab, setActiveTab] = useState('');
   const [activeNav, setActiveNav] = useState('agentes');
   const [showPayment, setShowPayment] = useState(false);
@@ -280,9 +280,9 @@ export default function MainDashboard({ user, onLogout, socket, Criptografar, De
 
 
 export { default as AgentsPanel } from './AgentsPanel';
-export { default as BalancePanel } from './BalancePanel';
-export { default as ConversationsPanel } from './ConversationsPanel';
+export { default as BalancePanel } from './BalancePanel/BalancePanel';
+export { default as ConversationsPanel } from './PainelConversas/ConversationsPanel';
 export { default as CreateAgentModal } from './CreateAgentModal';
-export { default as MetricsPanel } from './MetricsPanel';
+export { default as MetricsPanel } from './MetricsPanel/MetricsPanel';
 export { default as PaymentPanel } from './PaymentPanel';
 export { default as ProductsPanel } from './ProductsPanel';

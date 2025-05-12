@@ -1,11 +1,13 @@
-import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback, useRef } from 'react';
 import { socketService } from '../services/socketService';
 import { useNavigate } from 'react-router-dom';
 import { Descriptografar, Criptografar } from '../Cripto';
+import { toast } from 'react-toastify'; // Assuming you use react-toastify for notifications
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
+  // State management
   const [initializing, setInitializing] = useState(true);
   const [socketConnected, setSocketConnected] = useState(false);
   const [user, setUser] = useState(null);
@@ -17,28 +19,36 @@ export const AppProvider = ({ children }) => {
   const [conversations, setConversations] = useState([]);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [messages, setMessages] = useState([]);
-
-  // Novos estados para gerenciamento de pagamentos
   const [planos, setPlanos] = useState([]);
   const [assinatura, setAssinatura] = useState(null);
   const [paymentHistory, setPaymentHistory] = useState([]);
-
   const [products, setProducts] = useState([]);
-
-  const navigate = useNavigate();
-
-  // Platform status
   const [platformStatus, setPlatformStatus] = useState({
     instagram: false,
     whatsapp: false
   });
 
-  // Verifica se usuário está autenticado
+  // Refs to prevent stale closures in socket callbacks
+  const userRef = useRef(null);
+  const socketConnectedRef = useRef(false);
+  const conversationsRef = useRef([]);
+  
+  // Navigation
+  const navigate = useNavigate();
+
+  // Update refs when state changes
+  useEffect(() => {
+    userRef.current = user;
+    socketConnectedRef.current = socketConnected;
+    conversationsRef.current = conversations;
+  }, [user, socketConnected, conversations]);
+
+  // Check if user is authenticated
   const isAuthenticated = useCallback(() => {
     return user !== null;
   }, [user]);
 
-  // Carrega usuário do localStorage
+  // Load user from localStorage with error handling
   const loadUserFromStorage = useCallback(() => {
     try {
       const savedUser = localStorage.getItem('animusia_user');
@@ -47,44 +57,71 @@ export const AppProvider = ({ children }) => {
       const decrypted = Descriptografar(savedUser);
       return JSON.parse(decrypted);
     } catch (err) {
-      console.error('Erro ao carregar usuário do localStorage:', err);
+      console.error('Error loading user from localStorage:', err);
+      // Clear potentially corrupted data
+      localStorage.removeItem('animusia_user');
       return null;
     }
   }, []);
 
-  // Inicializa conexão de socket
+  // Initialize socket connection with improved error handling
   const initializeSocket = useCallback(() => {
-    // Conectar socket
-    const socket = socketService.connect();
-    
-    // Setup global listeners that should persist
-    socketService.on('connect', () => {
-      console.log('Socket connected');
-      setSocketConnected(true);
-    });
+    try {
+      // Connect socket
+      const socket = socketService.connect();
+      
+      // Setup global listeners that should persist
+      socketService.on('connect', () => {
+        console.log('Socket connected');
+        setSocketConnected(true);
+        
+        // Reconnect logic - reload essential data when reconnected
+        const currentUser = userRef.current;
+        if (currentUser?.LOGIN) {
+          loadInitialData(currentUser.LOGIN).catch(err => {
+            console.error('Failed to reload data after reconnection:', err);
+          });
+        }
+      });
 
-    socketService.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
-      setError('Erro de conexão com o servidor');
-      setSocketConnected(false);
-    });
+      socketService.on('connect_error', (error) => {
+        console.error('Socket connection error:', error);
+        setError(`Connection error: ${error.message}`);
+        setSocketConnected(false);
+      });
 
-    socketService.on('disconnect', () => {
-      console.log('Socket disconnected');
-      setSocketConnected(false);
-    });
-    
-    // Setup message listeners
-    setupMessageListeners();
+      socketService.on('disconnect', (reason) => {
+        console.log(`Socket disconnected: ${reason}`);
+        setSocketConnected(false);
+        
+        // Auto-reconnect for certain disconnect reasons
+        if (reason === 'io server disconnect') {
+          // Server disconnected explicitly - try to reconnect
+          setTimeout(() => {
+            socketService.connect();
+          }, 3000);
+        }
+      });
+      
+      // Setup message listeners
+      setupMessageListeners();
+      
+      return socket;
+    } catch (err) {
+      console.error('Socket initialization error:', err);
+      setError(`Failed to initialize connection: ${err.message}`);
+      return null;
+    }
   }, []);
 
-  // Configurar listeners de mensagens
+  // Setup message listeners with improved error handling
   const setupMessageListeners = useCallback(() => {
     socketService.on('ResponseUpdateMensagens', (data) => {
       try {
+        if (!data) return;
         const decrypted = JSON.parse(Descriptografar(data));
-        if (decrypted.Ativador && user?.LOGIN) {
-          loadConversations(user.LOGIN);
+        if (decrypted.Ativador && userRef.current?.LOGIN) {
+          loadConversations(userRef.current.LOGIN);
         }
       } catch (err) {
         console.error('Error processing message update:', err);
@@ -93,29 +130,42 @@ export const AppProvider = ({ children }) => {
     
     socketService.on('ResponseNovaConversa', (data) => {
       try {
+        if (!data) return;
         const decrypted = JSON.parse(Descriptografar(data));
         if (decrypted.GetAtualizar && decrypted.GetAtualizar.length > 0) {
           setConversations(prev => {
-            const newConvs = [...decrypted.GetAtualizar];
-            const existingIds = new Set(prev.map(c => c.ID));
-            const filteredNewConvs = newConvs.filter(c => !existingIds.has(c.ID));
-            return [...filteredNewConvs, ...prev];
+            // Only add conversations that don't already exist
+            const currentIds = new Set(prev.map(c => c.ID));
+            const newConversations = decrypted.GetAtualizar.filter(c => !currentIds.has(c.ID));
+            
+            if (newConversations.length > 0) {
+              // Sort by date, most recent first
+              return [...newConversations, ...prev].sort((a, b) => {
+                const dateA = new Date(`${a.DATA} ${a.HORAS}`);
+                const dateB = new Date(`${b.DATA} ${b.HORAS}`);
+                return dateB - dateA;
+              });
+            }
+            return prev;
           });
+          
+        
+         
         }
       } catch (err) {
         console.error('Error processing new conversation:', err);
       }
     });
-  }, [user]);
+  }, []);
 
-  // Inicializa a aplicação
+  // Initialize the application with improved error handling
   useEffect(() => {
     const init = async () => {
       try {
-        // Conectar socket primeiro
+        // Connect socket first
         initializeSocket();
         
-        // Tentar carregar usuário do localStorage
+        // Try to load user from localStorage
         const savedUser = loadUserFromStorage();
         
         if (savedUser) {
@@ -123,6 +173,7 @@ export const AppProvider = ({ children }) => {
         }
       } catch (err) {
         console.error('Error initializing app:', err);
+        setError(`Initialization error: ${err.message}`);
       } finally {
         setInitializing(false);
       }
@@ -137,15 +188,33 @@ export const AppProvider = ({ children }) => {
     };
   }, [initializeSocket, loadUserFromStorage]);
 
-  // Carrega dados do usuário após login
+  // Load user data after login with retry mechanism
   useEffect(() => {
-    if (user?.LOGIN && socketConnected) {
-      loadUserData(user.LOGIN).catch(err => {
-        console.error('Failed to load user data:', err);
-      });
-    }
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    const loadData = async () => {
+      if (user?.LOGIN && socketConnected) {
+        try {
+          await loadInitialData(user.LOGIN);
+        } catch (err) {
+          console.error(`Failed to load user data (attempt ${retryCount + 1}/${maxRetries}):`, err);
+          if (retryCount < maxRetries) {
+            retryCount++;
+            // Exponential backoff
+            const delay = Math.pow(2, retryCount) * 1000;
+            setTimeout(loadData, delay);
+          } else {
+            setError('Failed to load your data after multiple attempts. Please refresh the page.');
+          }
+        }
+      }
+    };
+    
+    loadData();
   }, [user?.LOGIN, socketConnected]);
 
+  // Load all initial data in sequence to avoid race conditions
   const loadInitialData = useCallback(async (login) => {
     if (!socketConnected) {
       console.log('Socket not connected, waiting...');
@@ -154,31 +223,52 @@ export const AppProvider = ({ children }) => {
     
     try {
       setIsLoading(true);
+      setError(null);
+      
       // Load data in sequence to avoid race conditions
       await loadUserData(login);
       await loadAgents(login);
       await loadNotifications(login);
+      await loadConversations(login);
+      await loadSubscription(login);
+      
+      // Check if we have a current agent to load platform status
+      const currentAgentData = agents[0]; // Default to first agent if none selected
+      if (currentAgentData) {
+        await checkPlatformStatus(currentAgentData.PROTOCOLO);
+      }
     } catch (err) {
       console.error('Error loading initial data:', err);
-      setError('Erro ao carregar dados iniciais');
+      setError('Failed to load initial data. Please try again.');
+      throw err; // Rethrow for retry mechanism
     } finally {
       setIsLoading(false);
     }
   }, [socketConnected]);
 
+  // Load notifications with caching mechanism
   const loadNotifications = useCallback(async (login) => {
     if (!socketConnected) return;
     
     try {
       const notificationsData = await socketService.getNotifications(login);
       if (notificationsData && notificationsData.resultado) {
-        setNotifications(notificationsData.resultado);
+        // Sort notifications by date, newest first
+        const sortedNotifications = [...notificationsData.resultado].sort((a, b) => {
+          const dateA = new Date(`${a.DATA} ${a.HORA}`);
+          const dateB = new Date(`${b.DATA} ${b.HORA}`);
+          return dateB - dateA;
+        });
+        
+        setNotifications(sortedNotifications);
       }
     } catch (err) {
       console.error('Error loading notifications:', err);
+      // Don't set global error for this non-critical feature
     }
   }, [socketConnected]);
 
+  // Load user profile data
   const loadUserData = useCallback(async (login) => {
     if (!socketConnected) return;
     
@@ -186,19 +276,32 @@ export const AppProvider = ({ children }) => {
       setIsLoading(true);
       const profile = await socketService.getUserProfile(login);
       if (profile) {
-        // Mesclar dados do perfil com o usuário atual
+        // Merge profile data with current user
         setUser(prevUser => ({
           ...prevUser,
           ...profile
         }));
+        
+        // Save updated user to localStorage
+        try {
+          const encrypted = Criptografar(JSON.stringify({
+            ...userRef.current,
+            ...profile
+          }));
+          localStorage.setItem('animusia_user', encrypted);
+        } catch (storageErr) {
+          console.error('Error saving updated user to localStorage:', storageErr);
+        }
       }
     } catch (err) {
-      console.error('Erro ao carregar perfil:', err);
+      console.error('Error loading profile:', err);
+      throw err; // Rethrow for retry mechanism
     } finally {
       setIsLoading(false);
     }
   }, [socketConnected]);
 
+  // Load user's agents
   const loadAgents = useCallback(async (login) => {
     if (!socketConnected) return;
     
@@ -206,15 +309,17 @@ export const AppProvider = ({ children }) => {
       const agentsData = await socketService.getMyAgents(login);
       if (agentsData && agentsData.Dados) {
         setAgents(agentsData.Dados || []);
-        if (agentsData.Dados.length > 0) {
+        if (agentsData.Dados.length > 0 && !currentAgent) {
           setCurrentAgent(agentsData.Dados[0]);
         }
       }
     } catch (err) {
-      console.error('Erro ao carregar agentes:', err);
+      console.error('Error loading agents:', err);
+      throw err; // Rethrow for retry mechanism
     }
-  }, [socketConnected]);
+  }, [socketConnected, currentAgent]);
 
+  // Load available plans
   const loadPlans = useCallback(async (login) => {
     if (!socketConnected) return null;
     
@@ -228,12 +333,12 @@ export const AppProvider = ({ children }) => {
       const response = await socketService.requestData('GetPlanos', 'ResponseGetPlanos', data);
 
       if (response && response.Resultado) {
-        const planosProcessados = response.Resultado.map(plano => ({
-          ...plano,
-          destaque: plano.ID === 3
+        const processedPlans = response.Resultado.map(plan => ({
+          ...plan,
+          destaque: plan.ID === 3 // Highlight plan with ID 3
         }));
 
-        setPlanos(planosProcessados);
+        setPlanos(processedPlans);
         return {
           Id_Assinatura: response.Id_Assinatura,
           Plano_atual: response.Plano_atual
@@ -242,48 +347,50 @@ export const AppProvider = ({ children }) => {
       return null;
     } catch (err) {
       console.error('Error loading plans:', err);
-      setError('Erro ao carregar planos');
+      setError('Failed to load plans');
       return null;
     } finally {
       setIsLoading(false);
     }
   }, [socketConnected]);
 
+  // Load user subscription
   const loadSubscription = useCallback(async (login) => {
     if (!socketConnected) return null;
     
     try {
-      const faturaData = await socketService.getFaturas(login);
-      setAssinatura(faturaData);
+      const subscriptionData = await socketService.getFaturas(login);
+      if (subscriptionData) {
+        setAssinatura(subscriptionData);
+        return subscriptionData;
+      }
+      return null;
     } catch (err) {
-      console.error('Erro ao carregar assinatura:', err);
-      return null
+      console.error('Error loading subscription:', err);
+      return null;
     }
   }, [socketConnected]);
 
-
-const refreshSubscriptionInfo = useCallback(() => {
-  if (!user || !socketConnected) return Promise.resolve(null);
-  
-  try {
-    setIsLoading(true);
-    if (user.LOGIN) {
-      return loadSubscription(user.LOGIN)
-      .finally(() => setIsLoading(false));
+  // Refresh subscription info
+  const refreshSubscriptionInfo = useCallback(() => {
+    if (!user || !socketConnected) return Promise.resolve(null);
+    
+    try {
+      setIsLoading(true);
+      if (user.LOGIN) {
+        return loadSubscription(user.LOGIN)
+          .finally(() => setIsLoading(false));
+      }
+      return Promise.resolve(null);
+    } catch (err) {
+      console.error('Error updating subscription info:', err);
+      setError('Failed to update subscription information');
+      setIsLoading(false);
+      return Promise.resolve(null);
     }
-    return Promise.resolve(null);
-  } catch (err) {
-    console.error('Erro ao atualizar informações da assinatura:', err);
-    setError('Falha ao atualizar informações da assinatura');
-    setIsLoading(false);
-    return Promise.resolve(null);
-  }
-}, [user, socketConnected, loadSubscription]);
+  }, [user, socketConnected, loadSubscription]);
 
-
-
- 
-
+  // Load conversations with pagination
   const loadConversations = useCallback(async (login, count = 10) => {
     if (!socketConnected) return;
     
@@ -291,33 +398,54 @@ const refreshSubscriptionInfo = useCallback(() => {
       setIsLoading(true);
       const data = await socketService.getConversations(login, count);
       if (data && data.Conversa) {
-        setConversations(data.Conversa);
+        // Sort by date, newest first
+        const sortedConversations = [...data.Conversa].sort((a, b) => {
+          const dateA = new Date(`${a.DATA} ${a.HORAS}`);
+          const dateB = new Date(`${b.DATA} ${b.HORAS}`);
+          return dateB - dateA;
+        });
+        
+        setConversations(sortedConversations);
       }
     } catch (err) {
       console.error('Error loading conversations:', err);
+      toast.error('Failed to load conversations');
     } finally {
       setIsLoading(false);
     }
   }, [socketConnected]);
   
-  const loadMessages = useCallback(async (protocolo, count = 10) => {
+  // Load messages for a conversation
+  const loadMessages = useCallback(async (protocolo, count = 15) => {
     if (!socketConnected) return;
     
     try {
       setIsLoading(true);
       const data = await socketService.getMessages(protocolo, count);
       if (data && data.Dados) {
-        setMessages(data.Dados);
+        // Sort messages by timestamp (oldest first for chat display)
+        const sortedMessages = [...data.Dados].sort((a, b) => {
+          const dateA = new Date(`${a.DATA} ${a.HORA}`);
+          const dateB = new Date(`${b.DATA} ${b.HORA}`);
+          return dateA - dateB;
+        });
+        
+        setMessages(sortedMessages);
       }
     } catch (err) {
       console.error('Error loading messages:', err);
+      toast.error('Failed to load messages');
     } finally {
       setIsLoading(false);
     }
   }, [socketConnected]);
   
+  // Send a message
   const sendMessage = useCallback(async (protocolo, message, botProtocolo, plataforma) => {
-    if (!socketConnected || !user || !botProtocolo) return false;
+    if (!socketConnected || !user || !botProtocolo) {
+      toast.error('You need to be connected to send messages');
+      return false;
+    }
     
     try {
       setIsLoading(true);
@@ -329,17 +457,20 @@ const refreshSubscriptionInfo = useCallback(() => {
         plataforma
       );
       
+      // If successful, reload messages to show the new message
       await loadMessages(protocolo);
       return true;
     } catch (err) {
       console.error('Error sending message:', err);
-      setError('Erro ao enviar mensagem');
+      setError('Failed to send message');
+      toast.error('Message could not be sent. Please try again.');
       return false;
     } finally {
       setIsLoading(false);
     }
   }, [socketConnected, user, loadMessages]);
   
+  // Load products for an agent
   const loadProducts = useCallback(async (login, protocolo) => {
     if (!socketConnected) return;
     
@@ -351,13 +482,15 @@ const refreshSubscriptionInfo = useCallback(() => {
       }
     } catch (err) {
       console.error('Error loading products:', err);
+      toast.error('Failed to load products');
     } finally {
       setIsLoading(false);
     }
   }, [socketConnected]);
 
+  // Check platform connection status
   const checkPlatformStatus = useCallback(async (identificador) => {
-    if (!socketConnected) return;
+    if (!socketConnected || !identificador) return;
     
     try {
       const instagramStatus = await socketService.checkPlatformStatus(identificador, 'instagram');
@@ -372,43 +505,66 @@ const refreshSubscriptionInfo = useCallback(() => {
     }
   }, [socketConnected]);
   
+  // Connect to a platform (Instagram, WhatsApp)
   const connectPlatform = useCallback(async (platform) => {
-    if (!socketConnected || !user || !currentAgent) return false;
+    if (!socketConnected || !user || !currentAgent) {
+      toast.error('You need to be connected and have an agent selected');
+      return false;
+    }
     
     try {
       setIsLoading(true);
+      setError(null);
+      
       const result = await socketService.connectPlatform(
         user.LOGIN,
         currentAgent.PROTOCOLO,
         platform
       );
       
+      // Refresh status after connection attempt
       await checkPlatformStatus(currentAgent.PROTOCOLO);
-      return true;
+      
+      if (result && result.Code) {
+        toast.success(`Connected to ${platform} successfully`);
+        return true;
+      } else {
+        toast.warning('Connection may not have been successful');
+        return false;
+      }
     } catch (err) {
       console.error(`Error connecting to ${platform}:`, err);
-      setError(`Erro ao conectar ao ${platform}`);
+      setError(`Failed to connect to ${platform}`);
+      toast.error(`Could not connect to ${platform}. Please try again.`);
       return false;
     } finally {
       setIsLoading(false);
     }
   }, [socketConnected, user, currentAgent, checkPlatformStatus]);
 
-  // Login simplificado e robusto
+  // Enhanced login with validation
   const login = useCallback((userData) => {
+    if (!userData || !userData.LOGIN) {
+      console.error('Invalid user data for login');
+      return false;
+    }
+    
     setUser(userData);
     
-    // Salvar no localStorage
+    // Save to localStorage
     try {
       const encrypted = Criptografar(JSON.stringify(userData));
       localStorage.setItem('animusia_user', encrypted);
+      return true;
     } catch (err) {
-      console.error('Erro ao salvar usuário no localStorage:', err);
+      console.error('Error saving user to localStorage:', err);
+      return false;
     }
   }, []);
 
-  // Logout simplificado
+  // Enhanced logout
   const logout = useCallback(() => {
+    // Clear all state
     setUser(null);
     setAgents([]);
     setCurrentAgent(null);
@@ -416,24 +572,40 @@ const refreshSubscriptionInfo = useCallback(() => {
     setPlanos([]);
     setAssinatura(null);
     setPaymentHistory([]);
+    setConversations([]);
+    setCurrentConversation(null);
+    setMessages([]);
+    setProducts([]);
     
+    // Clear localStorage
     localStorage.removeItem('animusia_user');
     
-    // Não desconectar o socket, apenas redirecionar
+    // Redirect to login
     navigate('/login');
   }, [navigate]);
 
+  // Select an agent
   const selectAgent = useCallback((agent) => {
     setCurrentAgent(agent);
-  }, []);
+    
+    // Check platform status when changing agent
+    if (agent && agent.PROTOCOLO) {
+      checkPlatformStatus(agent.PROTOCOLO);
+    }
+  }, [checkPlatformStatus]);
 
+  // Update agent behavior
   const updateAgentBehavior = useCallback(async (behaviorText, settings) => {
-    if (!socketConnected || !currentAgent || !user) return false;
+    if (!socketConnected || !currentAgent || !user) {
+      toast.error('You need to be connected and have an agent selected');
+      return false;
+    }
     
     try {
       setIsLoading(true);
       setError(null);
-      const perguntas = [{ Pergunta: 'Comportamento', Resposta: behaviorText }];
+      
+      const questions = [{ Pergunta: 'Comportamento', Resposta: behaviorText }];
       const response = await socketService.saveBehavior(
         currentAgent.EMPRESA,
         currentAgent.ATENDENTE,
@@ -441,28 +613,123 @@ const refreshSubscriptionInfo = useCallback(() => {
         user.LOGIN,
         currentAgent.REDE,
         currentAgent.OBJETIVO,
-        perguntas,
+        questions,
         settings.gatilho || 'automatico'
       );
-      if (response.Res) {
+      
+      if (response && response.Res) {
         await loadAgents(user.LOGIN);
+        toast.success('Agent behavior updated successfully');
         return true;
       }
+      
+      toast.warning('Behavior may not have been updated');
       return false;
     } catch (err) {
-      setError('Erro ao atualizar comportamento: ' + err.message);
+      const errorMessage = 'Error updating behavior: ' + (err.message || 'Unknown error');
+      setError(errorMessage);
+      toast.error(errorMessage);
       return false;
     } finally {
       setIsLoading(false);
     }
   }, [socketConnected, currentAgent, user, loadAgents]);
 
+  // Mark messages as read
+  const markMessagesAsRead = useCallback(async (protocolo) => {
+    if (!socketConnected || !protocolo) return false;
+    
+    try {
+      await socketService.updateMessageRead(protocolo);
+      return true;
+    } catch (err) {
+      console.error('Error marking messages as read:', err);
+      return false;
+    }
+  }, [socketConnected]);
+
+  // Delete a conversation
+  const deleteConversation = useCallback(async (protocolo) => {
+    if (!socketConnected || !protocolo) {
+      toast.error('Cannot delete conversation at this time');
+      return false;
+    }
+    
+    try {
+      setIsLoading(true);
+      const result = await socketService.deleteConversation(protocolo);
+      
+      if (result) {
+        // Update local state to remove the deleted conversation
+        setConversations(prevConversations => 
+          prevConversations.filter(conv => conv.PROTOCOLO_CONVERSA !== protocolo)
+        );
+        
+        // If the current conversation was deleted, clear it
+        if (currentConversation && currentConversation.PROTOCOLO_CONVERSA === protocolo) {
+          setCurrentConversation(null);
+          setMessages([]);
+        }
+        
+        toast.success('Conversation deleted successfully');
+        return true;
+      }
+      
+      return false;
+    } catch (err) {
+      console.error('Error deleting conversation:', err);
+      toast.error('Failed to delete conversation');
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [socketConnected, currentConversation]);
+
+  // API key management
+  const saveApiKey = useCallback(async (apiData) => {
+    if (!socketConnected || !user) return false;
+    
+    try {
+      setIsLoading(true);
+      const result = await socketService.saveApiKey(apiData);
+      
+      if (result && result.Estado) {
+        toast.success('API key saved successfully');
+        return true;
+      }
+      
+      toast.warning('API key may not have been saved');
+      return false;
+    } catch (err) {
+      console.error('Error saving API key:', err);
+      toast.error('Failed to save API key');
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [socketConnected, user]);
+
+  const loadApiKeys = useCallback(async () => {
+    if (!socketConnected || !user) return [];
+    
+    try {
+      setIsLoading(true);
+      return await socketService.getApiKeys(user.LOGIN);
+    } catch (err) {
+      console.error('Error loading API keys:', err);
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  }, [socketConnected, user]);
+
+  // Context value
   const value = {
-    // Auth related
+    // Auth
     isAuthenticated,
     socketConnected,
     
-    // Existing values
+    // User and data
     user,
     setUser,
     agents,
@@ -475,13 +742,8 @@ const refreshSubscriptionInfo = useCallback(() => {
     setIsLoading,
     error,
     setError,
-    login,
-    logout,
-    updateAgentBehavior,
-    loadUserData,
-    loadAgents,
-    loadPlans,
-    loadSubscription,
+    
+    // Subscription and plans
     planos,
     setPlanos,
     assinatura,
@@ -489,9 +751,8 @@ const refreshSubscriptionInfo = useCallback(() => {
     paymentHistory,
     setPaymentHistory,
     initializing,
-    refreshSubscriptionInfo,
     
-    // New values
+    // Conversations and messages
     conversations,
     setConversations,
     currentConversation,
@@ -503,15 +764,31 @@ const refreshSubscriptionInfo = useCallback(() => {
     platformStatus,
     setPlatformStatus,
     
-    // New functions
+    // Core actions
+    login,
+    logout,
+    
+    // Data loading
+    loadUserData,
+    loadAgents,
+    loadPlans,
+    loadSubscription,
+    refreshSubscriptionInfo,
     loadConversations,
     loadMessages,
-    sendMessage,
     loadProducts,
+    loadNotifications,
+    loadInitialData,
+    loadApiKeys,
+    
+    // Actions
+    sendMessage,
     checkPlatformStatus,
     connectPlatform,
-    loadNotifications,
-    loadInitialData
+    updateAgentBehavior,
+    markMessagesAsRead,
+    deleteConversation,
+    saveApiKey
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
