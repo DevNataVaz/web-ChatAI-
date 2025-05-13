@@ -1,0 +1,211 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #F5F5FA;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Header Styles */
+.header {
+  background: linear-gradient(135deg, #8A05BE, #9928C3, #AB3FE5);
+  padding: 1.5rem 1rem;
+  color: white;
+  width: 100%;
+}
+
+.headerContent {
+  max-width: 768px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+}
+
+.headerText {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.backButton:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.placeholder {
+  width: 40px;
+}
+
+/* Content Container */
+.contentContainer {
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+  width: 100%;
+}
+
+/* Card Styles */
+.card {
+  background-color: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  width: 100%;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Status Card */
+.statusIconContainer {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.successText {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333333;
+  text-align: center;
+  margin: 0 0 0.5rem 0;
+}
+
+.dateText {
+  font-size: 0.875rem;
+  color: #777777;
+  text-align: center;
+  margin: 0;
+}
+
+/* Amount Card */
+.amountContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.amountLabel {
+  font-size: 0.875rem;
+  color: #777777;
+  margin: 0 0 0.5rem 0;
+}
+
+.amountValue {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #333333;
+  margin: 0;
+}
+
+/* Recipient Card */
+.recipientContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.recipientLabel {
+  font-size: 0.875rem;
+  color: #777777;
+  margin: 0 0 0.5rem 0;
+}
+
+.recipientName {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333333;
+  margin: 0 0 0.25rem 0;
+}
+
+.recipientCPF {
+  font-size: 0.875rem;
+  color: #777777;
+  margin: 0;
+}
+
+/* Transaction Card */
+.transactionContainer {
+  width: 100%;
+}
+
+.transactionRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.transactionRow:last-child {
+  border-bottom: none;
+}
+
+.transactionLabel {
+  font-size: 0.875rem;
+  color: #777777;
+  margin: 0;
+}
+
+.transactionValue {
+  font-size: 0.875rem;
+  color: #333333;
+  font-weight: 500;
+  margin: 0;
+}
+
+.transactionStatus {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Status Indicator */
+.statusIndicator {
+  height: 4px;
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Responsive Styles */
+@media (max-width: 480px) {
+  .contentContainer {
+    padding: 1rem 0.5rem;
+  }
+  
+  .card {
+    padding: 1.25rem;
+  }
+  
+  .amountValue {
+    font-size: 1.5rem;
+  }
+  
+  .recipientName {
+    font-size: 1.125rem;
+  }
+}

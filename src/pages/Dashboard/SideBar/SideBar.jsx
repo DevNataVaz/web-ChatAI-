@@ -22,9 +22,9 @@ export default function Sidebar({ activeView, setContentView }) {
     setContentView('agents');
   };
 
-  const handleBalanceClick = () => {
-    setActiveNav('balance');
-    setContentView('balance');
+  const handleBalancoClick = () => {
+    setActiveNav('balanco');
+    setContentView('balanco');
   };
 
   const handleConversationsClick = () => {
@@ -32,9 +32,9 @@ export default function Sidebar({ activeView, setContentView }) {
     setContentView('conversations');
   };
 
-  const handleFunnelClick = () => {
-    setActiveNav('funil');
-    setContentView('funnel');
+  const handleGatilhoClick = () => {
+    setActiveNav('gatilhos');
+    setContentView('gatilhos');
   };
 
   const handleLeadsClick = () => {
@@ -123,13 +123,13 @@ export default function Sidebar({ activeView, setContentView }) {
                 <span>Ver conversas</span>
               </li>
               <li
-                className={activeNav === 'funil' ? styles.active : ''}
-                onClick={handleFunnelClick}
+                className={activeNav === 'gatilhos' ? styles.active : ''}
+                onClick={handleGatilhoClick}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M22 3H2L10 12.46V19L14 21V12.46L22 3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <span>Ver funil</span>
+                <span>Gatilhos</span>
               </li>
               <li
                 className={activeNav === 'leads' ? styles.active : ''}
@@ -168,7 +168,7 @@ export default function Sidebar({ activeView, setContentView }) {
                   <path d="M12 15C15.866 15 19 11.866 19 8C19 4.13401 15.866 1 12 1C8.13401 1 5 4.13401 5 8C5 11.866 8.13401 15 12 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M8.21 13.89L7 23L12 20L17 23L15.79 13.88" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <span>Seus Agentes AI ({agents.length})</span>
+                <span>Seus Agentes AI</span>
               </li>
             </ul>
           </div>
@@ -194,18 +194,18 @@ export default function Sidebar({ activeView, setContentView }) {
           </div>
 
           <div className={styles.navSection}>
-            <span className={styles.navTitle}>FINANCEIRO</span>
+            <span className={styles.navTitle}>Financeiro</span>
             <ul>
               <li
-                className={activeNav === 'balance' ? styles.active : ''}
-                onClick={handleBalanceClick}
+                className={activeNav === 'gatilho' ? styles.active : ''}
+                onClick={handleBalancoClick}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M12 1V23M1 12H23" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
                   <path d="M17 8.5C16 6.5 14 6.5 12 8.5C9 10.5 15 11.5 12 13.5C10 15.5 8 15.5 7 13.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <span>Saldo</span>
+                <span>Balanço</span>
               </li>
             </ul>
           </div>
@@ -213,18 +213,34 @@ export default function Sidebar({ activeView, setContentView }) {
 
         <div className={styles.credits}>
           <div className={styles.creditsInfo}>
-            <div className={styles.creditsTitle}>Créditos</div>
-            <div className={styles.creditsValue}>{credits.current} / {credits.total}</div>
-            <div className={styles.creditsProgress}>
-              <div className={styles.creditsProgressBar} style={{ width: `${creditsPercentage}%` }}></div>
-            </div>
+            <div className={styles.creditsTitle}>Mensagens</div>
+            {credits.isLoading && !credits.lastUpdated ? (
+              <div className={styles.creditsLoading}>Carregando...</div>
+            ) : (
+              <>
+                <div className={styles.creditsValue}>{credits.current} / {credits.total}</div>
+                <div className={styles.creditsProgress}>
+                  <div
+                    className={styles.creditsProgressBar}
+                    style={{ width: `${credits.percentage}%` }}
+                  ></div>
+                </div>
+                {credits.error && (
+                  <div className={styles.creditsErrorHint} title={credits.error}>
+                    <small>Usando dados em cache</small>
+                  </div>
+                )}
+              </>
+            )}
           </div>
           <div className={styles.buttonGroup}>
+            
             <button
               className={styles.upgradeButton}
-              onClick={handlePaymentClick}
+              onClick={() => window.location.href = '/planos'}
+              
             >
-              <span>Scale Up</span>
+              <span>Planos</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M12 5L19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -246,7 +262,7 @@ export default function Sidebar({ activeView, setContentView }) {
       </aside>
 
       {showCreateModal && (
-        <CreateAgentModal 
+        <CreateAgentModal
           socketService={socketService}
           onClose={handleModalClose}
           onSuccess={handleAgentCreated}

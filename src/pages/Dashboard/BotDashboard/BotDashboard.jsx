@@ -239,35 +239,15 @@ export default function BotDashboard() {
     }
   }, [bots, checkBotStatus]);
 
-  // Handle starting a bot
+  // AQUI ESTÁ A MUDANÇA IMPORTANTE - Handle starting a bot
+  // Modificado para sempre mostrar o BotDetail, independente do status de conexão
   const handleStartBot = useCallback((bot) => {
-    // Se já estiver conectado, vá para a página de detalhes
-    if (connectionStatusRef.current[bot.protocol]) {
-      setSelectedBot(bot);
-      return;
-    }
+    // Apenas navega para o detalhe do bot
+    setSelectedBot(bot);
     
+    // Definir o protocolo atual para uso futuro
     setCurrentQrProtocol(bot.protocol);
-    setQRCodeData("");
-    setQrCodeLoading(true);
-    setShowQRModal(true);
-    
-    try {
-      // Solicitar inicialização do WhatsApp e geração de QR code
-      socketService.emit('Whatsapp', {
-        code: Criptografar('2544623544284'),
-        conta: Criptografar(user.LOGIN),
-        Identificador: Criptografar(bot.protocol),
-      });
-      
-      console.log(`Solicitação de inicialização enviada para o bot ${bot.name}`);
-    } catch (error) {
-      console.error("Erro ao iniciar bot:", error);
-      toast.error("Não foi possível iniciar o bot. Tente novamente.");
-      setShowQRModal(false);
-      setQrCodeLoading(false);
-    }
-  }, [user]);
+  }, []);
 
   // Handle QR Code timeout
   const handleQrTimeout = useCallback(() => {
@@ -302,6 +282,15 @@ export default function BotDashboard() {
         onRefresh={refreshBots}
         socketService={socketService}
         user={user}
+        // Passar props para QRCode
+        showQRModal={showQRModal}
+        setShowQRModal={setShowQRModal}
+        qrCodeData={qrCodeData}
+        setQRCodeData={setQRCodeData}
+        qrCodeLoading={qrCodeLoading}
+        setQrCodeLoading={setQrCodeLoading}
+        handleQrTimeout={handleQrTimeout}
+        currentQrProtocol={selectedBot.protocol}
       />
     );
   }
@@ -404,27 +393,7 @@ export default function BotDashboard() {
         <FiPlus size={24} />
       </button>
 
-      {/* QR Code Modal - Só exibido após clicar em "Iniciar" */}
-      <QRCodeModal 
-        visible={showQRModal}
-        qrCodeData={qrCodeData}
-        isLoading={qrCodeLoading}
-        onClose={() => setShowQRModal(false)}
-        onTimeout={handleQrTimeout}
-        onRetry={() => {
-          if (currentQrProtocolRef.current && user) {
-            setQrCodeLoading(true);
-            setQRCodeData("");
-            socketService.emit('Whatsapp', {
-              code: Criptografar('2544623544284'),
-              conta: Criptografar(user.LOGIN),
-              Identificador: Criptografar(currentQrProtocolRef.current),
-            });
-          }
-        }}
-      />
-
-      {/* Create Agent Modal */}
+      {/* CreateAgentModal - Isso permanece no BotDashboard */}
       {showCreateModal && (
         <CreateAgentModal 
           socketService={socketService}

@@ -7,7 +7,7 @@ export const useAgentMetrics = () => {
     messages: 0,
     satisfaction: 0,
     errorRate: 0,
-    conversions: 0
+    conversions: 12
   });
   const [isLoading, setIsLoading] = useState(true);
   const { currentAgent, user } = useApp();

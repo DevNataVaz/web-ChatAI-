@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../SideBar/SideBar';
 import Header from '../Header/Header';
 import Content from '../Content/Content';
-import Tabs from '../Tabs/Tabs';
+// import Tabs from '../Tabs/Tabs';
 import PaymentPanel from './PaymentPanel';
 import ConversationsPanel from './PainelConversas/ConversationsPanel';
 import AgentsPanel from './AgentsPanel';

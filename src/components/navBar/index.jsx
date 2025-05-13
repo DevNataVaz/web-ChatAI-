@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import Logo from "../../assets/logo-Aa.png"
 import styles from './navBar.module.css'
 import AuthModal from '../../components/modal';
+import Login from '../../pages/Login/index';
+import { useNavigate } from "react-router-dom";
 
 
 function NavBar() {
+    const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -35,8 +38,10 @@ function NavBar() {
 
                
             </div>
-
+            
+                <button className={styles.buttonLogin}  onClick={() => navigate('/login')}>Login</button>
             <div className={styles.containerButton} >
+               
                 <button className={styles.button} onClick={() => setShowModal(true)}>EXPERIMENTE GRÁTIS</button>
                 {showModal && <AuthModal onClose={() => setShowModal(false)} />}
             </div>

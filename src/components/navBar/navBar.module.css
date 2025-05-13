@@ -79,6 +79,18 @@
   font-size: 1.1rem;
 }
 
+.buttonLogin{
+  background-color: transparent;
+  padding: 12px 24px;
+   border: none;
+   cursor: pointer;
+    font-size: 1.3rem;
+    border-radius: 10px;
+    position: fixed;
+    left: 80%;
+    color: #fff;
+}
+
 .hamburger {
   display: none;
   flex-direction: column;

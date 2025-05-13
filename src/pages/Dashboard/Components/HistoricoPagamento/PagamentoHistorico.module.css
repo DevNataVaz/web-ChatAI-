@@ -1,0 +1,325 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color:#0a0c1b;
+  font-family: 'Inter', sans-serif;
+   border-radius: 25px 25px 0 0;
+}
+
+/* Header Styles */
+.header {
+  background: radial-gradient(circle, rgba(138, 99, 255, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
+  padding: 1.5rem 1rem;
+  color: white;
+  width: 100%;
+  border-radius: 25px 25px 0 0;
+}
+
+.headerContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+}
+
+.headerTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.backButton:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.iconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Main Content */
+.mainContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 1rem;
+  flex: 1;
+}
+
+/* Status Card Styles */
+.statusCardContainer {
+  margin-top: -20px;
+  padding: 0 1rem;
+  width: 100%;
+}
+
+.statusCard {
+  background:  rgba(138, 99, 255, 0.15);
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.statusLeftSection {
+  margin-right: 1.5rem;
+}
+
+.successAnimation,
+.warningAnimation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: #e3fff0;
+}
+
+.warningAnimation {
+  background-color: #fceae0;
+}
+
+.statusRightSection {
+  flex: 1;
+}
+
+.statusTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: #ffffff;
+}
+
+.statusSubtitle {
+  font-size: 0.875rem;
+  color: #a1a1a1;
+  margin: 0 0 1rem 0;
+}
+
+.resolveButton {
+  display: inline-block;
+  background-color: #8A05BE;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.resolveButton:hover {
+  background-color: #9928C3;
+}
+
+/* Section Title Styles */
+.sectionTitleContainer {
+  margin: 2rem 0 1rem;
+  padding: 0 1rem;
+}
+
+.sectionTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+/* Payment List Styles */
+.paymentListContainer {
+  padding: 0 1rem;
+  margin-bottom: 2rem;
+}
+
+.paymentList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1rem;
+}
+
+.paymentItem {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: fadeInUp 0.3s ease-in-out;
+}
+
+.paymentItem:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.paymentLeftSection {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.statusIconContainer {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+}
+
+.paymentInfoContainer {
+  flex: 1;
+}
+
+.paymentTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #333333;
+  margin: 0 0 0.25rem 0;
+}
+
+.paymentAmount {
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin: 0 0 0.25rem 0;
+}
+
+.paymentMethod {
+  font-size: 0.75rem;
+  color: #777777;
+  margin: 0;
+}
+
+.paymentRightSection {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  margin-left: 1rem;
+}
+
+.paymentDate,
+.paymentTime {
+  font-size: 0.75rem;
+  color: #777777;
+  margin: 0;
+}
+
+.paymentTime {
+  margin-bottom: 0.25rem;
+}
+
+.paymentStatus {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Loading and Empty States */
+.loadingContainer,
+.emptyContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 0;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(138, 5, 190, 0.2);
+  border-top-color: #8A05BE;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+.emptyIcon {
+  margin-bottom: 1rem;
+}
+
+.emptyText {
+  font-size: 0.875rem;
+  color: #777777;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { 
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .paymentList {
+    grid-template-columns: 1fr;
+  }
+  
+  .statusCard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .statusLeftSection {
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .paymentItem {
+    flex-direction: column;
+  }
+  
+  .paymentRightSection {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-left: 0;
+    margin-top: 1rem;
+    width: 100%;
+  }
+}

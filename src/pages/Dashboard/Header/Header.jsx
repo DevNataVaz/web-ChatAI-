@@ -4,6 +4,8 @@ import styles from './Header.module.css';
 import { useApp } from '../../../context/AppContext';
 import { useNotifications } from '../../../hooks/useNotifications';
 
+import { FaWhatsapp, FaInstagram, FaRobot } from 'react-icons/fa';
+
 export default function Header({ contentView }) {
   const { currentAgent, user, agents } = useApp();
   const { unreadCount } = useNotifications();
@@ -73,11 +75,7 @@ export default function Header({ contentView }) {
       <div className={styles.agentInfo}>
         <div className={styles.avatarContainer}>
           {contentView === 'agents' || !contentView ? (
-            <img 
-              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(headerContent.title)}&background=8A63FF&color=fff`} 
-              alt="avatar" 
-              className={styles.avatar} 
-            />
+             <FaRobot size={35} className={styles.emptyIcon} />
           ) : (
             <div className={styles.contentIcon}>
               {getContentIcon(contentView)}

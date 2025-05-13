@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from './SideBar/SideBar';
 import Header from './Header/Header';
-import Tabs from './Tabs/Tabs';
+// import Tabs from './Tabs/Tabs';
 import Content from './Content/Content';
 import styles from './Dashboard.module.css';
 import { AppProvider, useApp } from '../../context/AppContext';
@@ -14,14 +14,15 @@ import BotDashboard from "./BotDashboard/BotDashboard";
 // Importar os componentes da estrutura
 import {
   AgentsPanel,
-  BalancePanel,
+  
   ConversationsPanel,
   CreateAgentModal,
   MetricsPanel,
   PaymentPanel,
   ProductsPanel
 } from './Components/index';
-
+import GatilhoPainel from "./Components/BalancePanel/BalancePanel";
+import PagamentoHistorico from "./Components/HistoricoPagamento/PagamentoHistorico";
 // Componente interno que usa o contexto
 function DashboardContent() {
   const [activeTab, setActiveTab] = useState('configuracoes');
@@ -63,16 +64,16 @@ function DashboardContent() {
         case 'agents':
           return <BotDashboard activeTab={activeTab} contentView={activeView} />
           // return <AgentsPanel onCreateAgent={() => setShowCreateAgent(true)} />;
-        case 'balance':
-          return <BalancePanel />;
+        case 'gatilho':
+          return <GatilhoPainel />;
           case 'conversations':
             return (
               <ConversationsPanel />
             );
         case 'metrics':
           return <MetricsPanel />;
-        case 'payment':
-          return <PaymentPanel onClose={() => setActiveView(null)} />;
+        case 'balanco':
+          return <PagamentoHistorico />;
         case 'products':
           return <ProductsPanel />;
         default:
@@ -95,12 +96,12 @@ function DashboardContent() {
           <Header contentView={activeView} />
           
           {/* Mostrar tabs apenas quando necessário */}
-          {(['configuracoes', 'instrucoes', 'perfil'].includes(activeTab) && !activeView) && (
+          {/* {(['configuracoes', 'instrucoes', 'perfil'].includes(activeTab) && !activeView) && (
             <Tabs 
               activeTab={activeTab} 
               setActiveTab={setActiveTab} 
             />
-          )}
+          )} */}
           
           {renderMainContent()}
         </main>

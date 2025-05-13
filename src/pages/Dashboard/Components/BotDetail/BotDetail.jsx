@@ -1,19 +1,37 @@
-// BotDetail.jsx
+// BotDetail.jsx - Versão corrigida
 import React, { useState, useEffect, useCallback } from 'react';
 import styles from './BotDetail.module.css';
 import { FiSettings, FiPlay, FiPause, FiEdit2, FiCopy, FiArrowLeft } from 'react-icons/fi';
 import { FaWhatsapp, FaInstagram } from 'react-icons/fa';
 import { Criptografar, Descriptografar } from '../../../../Cripto/index';
 import { useApp } from '../../../../context/AppContext';
+import { toast } from 'react-toastify';
+import QRCodeModal from '../../QRCode/QrCode.jsx';
 
-export default function BotDetail({ bot, onBack, socket }) {
-  const [isConnected, setIsConnected] = useState(false);
+export default function BotDetail({ 
+  bot, 
+  onBack, 
+  socketService,
+  user,
+  isConnected: initialIsConnected = false,
+  // Novas props para QRCode
+  showQRModal,
+  setShowQRModal,
+  qrCodeData,
+  setQRCodeData,
+  qrCodeLoading,
+  setQrCodeLoading,
+  handleQrTimeout,
+  currentQrProtocol,
+  // Nova prop para atualizar o BotDashboard
+  onRefresh
+}) {
+  const [isConnected, setIsConnected] = useState(initialIsConnected);
   const [isStarting, setIsStarting] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
   const [botName, setBotName] = useState(bot?.name || '');
   const [isEditing, setIsEditing] = useState(false);
   const [botInfo, setBotInfo] = useState(null);
-  const { user } = useApp();
 
   // Get platform-specific icon
   const getPlatformIcon = () => {
@@ -41,28 +59,37 @@ export default function BotDetail({ bot, onBack, socket }) {
 
   // Check connection status
   const checkConnectionStatus = useCallback(() => {
-    socket.emit('StatusWhatsapp', {
+    socketService.emit('StatusWhatsapp', {
       Code: Criptografar('7668566448964451'),
       Identificador: Criptografar(bot.protocol),
     });
 
-    socket.on(`updatesWhatsapp`, (data) => {
-      if (Descriptografar(data.Code) !== '17326186765984') return;
+    const handleConnectionUpdate = (data) => {
+      if (!data || !data.Code || !data.Dados) return;
       
-      const status = Descriptografar(data.Dados) === 'true' || Descriptografar(data.Dados) === true;
-      setIsConnected(status);
-    });
+      try {
+        const code = Descriptografar(data.Code);
+        if (code === '17326186765984') {
+          const status = Descriptografar(data.Dados) === 'true' || Descriptografar(data.Dados) === true;
+          setIsConnected(status);
+        }
+      } catch (error) {
+        console.error("Erro ao processar status de conexão:", error);
+      }
+    };
+
+    socketService.on('updatesWhatsapp', handleConnectionUpdate);
 
     return () => {
-      socket.off(`updatesWhatsapp`);
+      socketService.off('updatesWhatsapp', handleConnectionUpdate);
     };
-  }, [bot, socket]);
+  }, [bot.protocol, socketService]);
 
   // Load bot information
   useEffect(() => {
     const getBotInfo = async () => {
-      // You would normally fetch this information from your server
-      // This is a placeholder for demonstration
+      // Você normalmente buscaria essas informações do servidor
+      // Este é um placeholder para demonstração
       const botDetails = {
         name: bot.name,
         platform: bot.platform,
@@ -77,64 +104,181 @@ export default function BotDetail({ bot, onBack, socket }) {
     
     getBotInfo();
     checkConnectionStatus();
-  }, [bot, checkConnectionStatus, isConnected]);
-
-  // Start/Stop bot
-// BotDetail.jsx - Atualização do método toggleBotStatus()
-const toggleBotStatus = () => {
-  if (isConnected) {
-    setIsStopping(true);
-    // Emitir evento de desconexão
-    socket.emit('Whatsapp', {
-      code: Criptografar('2544623544284'),  // Mesmo código para iniciar/parar
-      conta: Criptografar(user?.LOGIN),
-      Identificador: Criptografar(bot.protocol),
-    });
     
-    // Configurar listener para resposta
-    socket.once('WhatsappResponse', (data) => {
+    // Configurar listener para respostas WhatsApp
+    const handleWhatsappResponse = (data) => {
       try {
+        if (!data || !data.Code) return;
+        
         const code = Descriptografar(data.Code);
         if (code === '129438921435') {
-          const mensagem = Descriptografar(data.Mensagem || '');
+          const titulo = data.Titulo ? Descriptografar(data.Titulo) : '';
+          const mensagem = data.Mensagem ? Descriptografar(data.Mensagem) : '';
           
-          if (mensagem.includes('desligada com Sucesso')) {
+          if (mensagem.includes('pronta para atender') || titulo.includes('Ótimas Notícias')) {
+            setIsConnected(true);
+            setShowQRModal(false);
+            setIsStarting(false);
+            toast.success(mensagem || "WhatsApp conectado com sucesso!");
+            
+            // Atualizar o dashboard após conexão bem-sucedida
+            if (onRefresh) onRefresh();
+            
+          } else if (titulo.includes('Erro')) {
+            setIsStarting(false);
+            toast.error(mensagem || "Erro ao conectar WhatsApp");
+          } else if (mensagem.includes('desligada com Sucesso')) {
             setIsConnected(false);
+            setIsStopping(false);
             toast.success("Bot desconectado com sucesso");
-          } else {
-            toast.warning(mensagem || "Status do bot alterado");
+            
+            // Atualizar o dashboard após desconexão bem-sucedida
+            if (onRefresh) onRefresh();
           }
         }
       } catch (error) {
-        console.error("Erro ao processar resposta:", error);
-        toast.error("Erro ao desconectar bot");
-      } finally {
+        console.error("Erro ao processar resposta do WhatsApp:", error);
+        setIsStarting(false);
         setIsStopping(false);
       }
-    });
-  } else {
-    // Iniciar o bot (navegar de volta e clicar em iniciar)
-    onBack(); // Volta para a lista de bots
-    // Use setTimeout para permitir que a renderização ocorra antes de tentar iniciar o bot
-    setTimeout(() => {
-      const botElement = document.querySelector(`[data-protocol="${bot.protocol}"]`);
-      if (botElement) {
-        botElement.click();
+    };
+    
+    socketService.on('WhatsappResponse', handleWhatsappResponse);
+    
+    // Configurar listener para QR Code
+    const handleQrCode = (data) => {
+      try {
+        if (!data || !data.Code || !data.QRCODE) return;
+        
+        const code = Descriptografar(data.Code);
+        if (code === '129438921435') {
+          const qrData = Descriptografar(data.QRCODE);
+          setQRCodeData(qrData);
+          setQrCodeLoading(false);
+          console.log("QR Code recebido e decodificado");
+        }
+      } catch (error) {
+        console.error("Erro ao processar QR Code:", error);
+        setQrCodeLoading(false);
       }
-    }, 100);
-  }
-};
+    };
+    
+    socketService.on('WhatsappQR', handleQrCode);
+    
+    // Configurar listener para atualizações de status
+    const handleStatusUpdate = (data) => {
+      try {
+        if (!data || !data.Code || !data.Dados) return;
+        
+        const code = Descriptografar(data.Code);
+        if (code === '17326186765984') {
+          const status = Descriptografar(data.Dados) === 'true' || Descriptografar(data.Dados) === true;
+          
+          // Verificar se é o bot atual
+          if (data.Identificador) {
+            const botId = Descriptografar(data.Identificador);
+            if (botId === bot.protocol) {
+              setIsConnected(status);
+              setIsStopping(false); // Garantir que não fique em "Parando..."
+              
+              // Atualizar o dashboard quando o status mudar
+              if (onRefresh) onRefresh();
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao processar atualização de status:", error);
+      }
+    };
+    
+    socketService.on('updatesWhatsapp', handleStatusUpdate);
+    
+    // Cleanup
+    return () => {
+      socketService.off('WhatsappResponse', handleWhatsappResponse);
+      socketService.off('WhatsappQR', handleQrCode);
+      socketService.off('updatesWhatsapp', handleStatusUpdate);
+    };
+  }, [bot, checkConnectionStatus, isConnected, onRefresh, setQRCodeData, setQrCodeLoading, setShowQRModal, socketService]);
+
+  // Nova versão do método para iniciar/parar o bot
+  const toggleBotStatus = () => {
+    if (isConnected) {
+      // Parar o bot
+      setIsStopping(true);
+      socketService.emit('Whatsapp', {
+        code: Criptografar('2544623544284'),
+        conta: Criptografar(user?.LOGIN),
+        Identificador: Criptografar(bot.protocol),
+      });
+      
+      // Temporizador de segurança para não deixar travado no "Parando..."
+      // Caso o servidor não responda em 5 segundos
+      const safetyTimer = setTimeout(() => {
+        if (isStopping) {
+          setIsStopping(false);
+          setIsConnected(false);
+          toast.info("Automação desconectada");
+          
+          // Forçar atualização do status no BotDashboard
+          socketService.emit('StatusWhatsapp', {
+            Code: Criptografar('7668566448964451'),
+            Identificador: Criptografar(bot.protocol),
+          });
+        }
+      }, 5000);
+      
+      // Armazenar o temporizador para limpeza
+      // Não precisa limpar explicitamente pois iremos verificar isStopping antes de executar
+      return () => clearTimeout(safetyTimer);
+    } else {
+      // Iniciar o bot - Mostrar QR Code se não estiver conectado
+      setIsStarting(true);
+      setQRCodeData("");
+      setQrCodeLoading(true);
+      setShowQRModal(true);
+      
+      try {
+        // Solicitar inicialização do WhatsApp e geração de QR code
+        socketService.emit('Whatsapp', {
+          code: Criptografar('2544623544284'),
+          conta: Criptografar(user?.LOGIN),
+          Identificador: Criptografar(bot.protocol),
+        });
+        
+        console.log(`Solicitação de inicialização enviada para o bot ${bot.name}`);
+        
+        // Temporizador de segurança para "Iniciando..."
+        const safetyTimer = setTimeout(() => {
+          if (isStarting && !isConnected) {
+            setIsStarting(false);
+            toast.warning("Tempo de conexão excedido. Tente novamente.");
+            setShowQRModal(false);
+          }
+        }, 60000); // 1 minuto para timeout
+        
+        return () => clearTimeout(safetyTimer);
+      } catch (error) {
+        console.error("Erro ao iniciar bot:", error);
+        toast.error("Não foi possível iniciar o bot. Tente novamente.");
+        setShowQRModal(false);
+        setQrCodeLoading(false);
+        setIsStarting(false);
+      }
+    }
+  };
+
   // Copy bot ID to clipboard
   const copyBotId = () => {
     navigator.clipboard.writeText(bot.protocol);
-    // You could show a toast notification here
+    toast.info("ID copiado para a área de transferência");
   };
 
   // Save bot name
   const saveBotName = () => {
     // Emit event to update bot name
-    // This is a placeholder for your actual implementation
-    socket.emit('UpdateBotName', {
+    // Isso é um placeholder para sua implementação real
+    socketService.emit('UpdateBotName', {
       Code: Criptografar('1234567890'),
       Login: Criptografar(user?.LOGIN),
       Protocolo: Criptografar(bot.protocol),
@@ -142,6 +286,7 @@ const toggleBotStatus = () => {
     });
     
     setIsEditing(false);
+    toast.success("Nome do bot atualizado");
   };
 
   return (
@@ -268,6 +413,27 @@ const toggleBotStatus = () => {
             : 'Clique no botão "Iniciar" para conectar e ativar a automação.'}
         </p>
       </div>
+      
+      {/* QR Code Modal - Agora está dentro do BotDetail */}
+      <QRCodeModal 
+        visible={showQRModal}
+        qrCodeData={qrCodeData}
+        isLoading={qrCodeLoading}
+        onClose={() => {
+          setShowQRModal(false);
+          setIsStarting(false);
+        }}
+        onTimeout={handleQrTimeout}
+        onRetry={() => {
+          setQrCodeLoading(true);
+          setQRCodeData("");
+          socketService.emit('Whatsapp', {
+            code: Criptografar('2544623544284'),
+            conta: Criptografar(user?.LOGIN),
+            Identificador: Criptografar(bot.protocol),
+          });
+        }}
+      />
     </div>
   );
 }

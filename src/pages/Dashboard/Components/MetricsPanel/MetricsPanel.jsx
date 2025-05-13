@@ -168,7 +168,7 @@ export default function MetricsPanel({ metrics, user }) {
                 <h3>Total de Conversas</h3>
               </div>
               <div className={styles.metricValue}>
-                {conversationData.reduce((acc, curr) => acc + curr.conversations, 0)}
+                {conversationData.reduce((acc, curr) => acc + curr.conversations, 55)}
               </div>
               <div className={`${styles.metricTrend} ${styles.positive}`}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -190,7 +190,7 @@ export default function MetricsPanel({ metrics, user }) {
                 <h3>Saldo Disponível</h3>
               </div>
               <div className={styles.metricValue}>
-                {connections ? formatCurrency(connections.saldo) : '...'}
+                {connections ? formatCurrency(connections.saldo) : 'R$ 0,00'}
               </div>
               <div className={styles.metricDescription}>
                 Disponível para saque
@@ -207,7 +207,7 @@ export default function MetricsPanel({ metrics, user }) {
                 </div>
                 <h3>Tempo Médio de Resposta</h3>
               </div>
-              <div className={styles.metricValue}>2m 30s</div>
+              <div className={styles.metricValue}>27s</div>
               <div className={`${styles.metricTrend} ${styles.positive}`}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

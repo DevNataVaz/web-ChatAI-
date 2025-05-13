@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Criptografar, Descriptografar } from '../../../../Cripto';
 import styles from './BalancePanel.module.css'
 
-export default function BalancePanel({ user, socket }) {
+export default function GatilhoPainel({ user, socket }) {
  
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(false);

@@ -13,7 +13,7 @@
 /* Header gradient */
 .headerGradient {
   border-radius: 20px 20px 0 0;
-  background: linear-gradient(135deg, #8A05BE, #9928C3);
+  background: #0a0c1b;
   min-height: 180px;
   position: relative;
   padding: 20px;
@@ -73,9 +73,10 @@
 }
 
 .botCard {
-  background-color: white;
+  background: rgba(138, 99, 255, 0.15);
   border-radius: 16px;
-  padding: 16px 10px;
+  padding: 56px 10px;
+  gap: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -95,8 +96,8 @@
 }
 
 .botIconCircle {
-  width: 48px;
-  height: 48px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
   background-color: #8A05BE;
   display: flex;
@@ -109,7 +110,7 @@
 }
 
 .botIconCircle.connected {
-  background-color: #4CAF50;
+  background-color: #0dff56;
 }
 
 .botIconCircle.connected::after {
@@ -132,7 +133,7 @@
 .botName {
   font-size: 14px;
   font-weight: 600;
-  color: #333333;
+  color: #ffffff;
   text-align: center;
   margin-bottom: 4px;
   overflow: hidden;
