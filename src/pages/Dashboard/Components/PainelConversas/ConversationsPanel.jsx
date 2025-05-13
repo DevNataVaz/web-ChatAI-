@@ -1014,15 +1014,14 @@ function PainelConversas() {
                           <div className={styles.contactInfo}>
                             <div className={styles.avatarContainer}>
                               <img
-                                src={conversation.Imagem
-                                  ? `https://animuschatpro.up.railway.app/images?image=${conv.PROTOCOLO_CONVERSA}.jpg`
-                                  : UserImage}
+                                src={`https://animuschatpro.up.railway.app/images?image=${conversation.PROTOCOLO_CONVERSA}.jpg`
+                                  }
                                 alt="Avatar"
                                 className={styles.avatarImage}
                               />
-                              <div className={styles.platformIcon}>
+                              
                                 {renderPlatformIcon(conversation.PLATAFORMA)}
-                              </div>
+                              
                             </div>
 
                             <div className={styles.contactDetails}>

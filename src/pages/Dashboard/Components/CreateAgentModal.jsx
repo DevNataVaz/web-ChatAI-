@@ -5,6 +5,7 @@ import { Criptografar } from '../../../Cripto';
 import { useApp } from '../../../context/AppContext';
 import { FaWhatsapp, FaInstagram } from 'react-icons/fa';
 import { FiPlus, FiX, FiChevronLeft, FiChevronRight, FiCheck, FiHelpCircle } from 'react-icons/fi';
+import { socketService } from '../../../services/socketService';
 
 export default function CreateAgentModal({ socket, onClose, onSuccess }) {
   const [step, setStep] = useState(1);
@@ -168,7 +169,7 @@ export default function CreateAgentModal({ socket, onClose, onSuccess }) {
         }));
       }
 
-      socket.emit('criarBot', dataToSend);
+      socketService.emit('criarBot', dataToSend);
       setTimeout(() => {
         setLoading(false);
         onSuccess();

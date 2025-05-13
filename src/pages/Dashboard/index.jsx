@@ -61,7 +61,8 @@ function DashboardContent() {
     if (activeView) {
       switch (activeView) {
         case 'agents':
-          return <AgentsPanel onCreateAgent={() => setShowCreateAgent(true)} />;
+          return <BotDashboard activeTab={activeTab} contentView={activeView} />
+          // return <AgentsPanel onCreateAgent={() => setShowCreateAgent(true)} />;
         case 'balance':
           return <BalancePanel />;
           case 'conversations':

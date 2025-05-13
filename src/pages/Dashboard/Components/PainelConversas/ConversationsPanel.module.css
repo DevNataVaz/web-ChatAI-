@@ -534,6 +534,10 @@
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
+  z-index: 1;
+}
+.avatarIcon {
+  z-index: 999;
 }
 
 .platformIcon {
@@ -545,6 +549,7 @@
   border-radius: 50%;
   padding: 2px;
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+  z-index: 999;
 }
 
   @keyframes shimmer {
