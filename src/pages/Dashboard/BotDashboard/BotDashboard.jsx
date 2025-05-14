@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import styles from './BotDashboard.module.css';
 import { useApp } from '../../../context/AppContext';
-import QRCodeModal from '../QRCode/QrCode.jsx';
 import CreateAgentModal from '../Components/CreateAgentModal.jsx';
 import BotDetail from '../Components/BotDetail/BotDetail.jsx';
 import { socketService } from '../../../services/socketService.js';
@@ -15,7 +14,7 @@ import { FiPlus, FiMessageCircle, FiRefreshCw } from 'react-icons/fi';
 
 export default function BotDashboard() {
   const { user } = useApp();
-  
+
   // Estados do componente
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -29,7 +28,7 @@ export default function BotDashboard() {
   const [connectionStatus, setConnectionStatus] = useState({});
   const [botLimit, setBotLimit] = useState(0);
   const [error, setError] = useState(null);
-  
+
   // Refs para evitar stale closures e dependências cíclicas
   const connectionStatusRef = useRef({});
   const currentQrProtocolRef = useRef(null);
@@ -48,29 +47,29 @@ export default function BotDashboard() {
       setIsLoading(false);
       return;
     }
-    
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const get = {
         Code: '234645423654423465',
         Login: user.LOGIN,
       };
-      
+
       socketService.emit('MeusRobos', Criptografar(JSON.stringify(get)));
 
       const handleBotsResponse = (data) => {
         try {
           const decryptedData = Descriptografar(data);
           const { Code, Dados, Limite } = JSON.parse(decryptedData);
-          
+
           if (Code !== '6253442653442365') {
             throw new Error("Código de resposta inválido");
           }
-          
+
           setBotLimit(Limite || 0);
-          
+
           // Transform the data for frontend
           const botsData = Dados.map((item, index) => ({
             id: String(index + 1),
@@ -79,7 +78,7 @@ export default function BotDashboard() {
             protocol: item.PROTOCOLO,
             login: item.DADOS[0]?.LOGIN
           }));
-          
+
           setBots(botsData);
         } catch (err) {
           console.error("Erro ao processar dados de bots:", err);
@@ -90,15 +89,15 @@ export default function BotDashboard() {
           setRefreshing(false);
         }
       };
-      
+
       // Use once para evitar múltiplos handlers
       socketService.once('MeusRobosResponse', handleBotsResponse);
     } catch (error) {
       console.error("Erro ao buscar bots:", error);
       setError("Não foi possível carregar seus agentes.");
       toast.error("Falha ao carregar seus agentes");
-      setIsLoading(false);
-      setRefreshing(false);
+      setIsLoading(true);
+      setRefreshing(true);
     }
   }, [user]);
 
@@ -112,7 +111,7 @@ export default function BotDashboard() {
   // Check connection status for a specific bot
   const checkBotStatus = useCallback((protocol) => {
     if (!protocol) return;
-    
+
     try {
       socketService.emit('StatusWhatsapp', {
         Code: Criptografar('7668566448964451'),
@@ -126,12 +125,12 @@ export default function BotDashboard() {
   // Setup event listeners only once
   useEffect(() => {
     if (!user?.LOGIN || eventListenersSetRef.current) return;
-    
+
     // Setup QR Code event listener
     const handleQrCode = (data) => {
       try {
         if (!data || !data.Code || !data.QRCODE) return;
-        
+
         const code = Descriptografar(data.Code);
         if (code === '129438921435') {
           const qrData = Descriptografar(data.QRCODE);
@@ -144,25 +143,25 @@ export default function BotDashboard() {
         setQrCodeLoading(false);
       }
     };
-    
+
     // Setup WhatsApp response listener
     const handleWhatsappResponse = (data) => {
       try {
         if (!data || !data.Code) return;
-        
+
         const code = Descriptografar(data.Code);
         if (code === '129438921435') {
           const titulo = data.Titulo ? Descriptografar(data.Titulo) : '';
           const mensagem = data.Mensagem ? Descriptografar(data.Mensagem) : '';
-          
+
           if (mensagem.includes('pronta para atender') || titulo.includes('Ótimas Notícias')) {
             const currentProtocol = currentQrProtocolRef.current;
             if (currentProtocol) {
-              setConnectionStatus(prev => ({ 
-                ...prev, 
-                [currentProtocol]: true 
+              setConnectionStatus(prev => ({
+                ...prev,
+                [currentProtocol]: true
               }));
-              
+
               setShowQRModal(false);
               toast.success(mensagem || "WhatsApp conectado com sucesso!");
             }
@@ -174,17 +173,17 @@ export default function BotDashboard() {
         console.error("Erro ao processar resposta do WhatsApp:", error);
       }
     };
-    
+
     // Setup connection status update listener
     const handleConnectionUpdate = (data) => {
       try {
         if (!data || !data.Code || !data.Dados) return;
-        
+
         const code = Descriptografar(data.Code);
         if (code === '17326186765984') {
           const isConnected = Descriptografar(data.Dados) === 'true' || Descriptografar(data.Dados) === true;
           const currentProtocol = currentQrProtocolRef.current;
-          
+
           if (currentProtocol) {
             // Use updater function para evitar dependências cíclicas
             setConnectionStatus(prev => {
@@ -200,15 +199,15 @@ export default function BotDashboard() {
         console.error("Erro ao processar atualização de conexão:", error);
       }
     };
-    
+
     // Register event listeners
     socketService.on('WhatsappQR', handleQrCode);
     socketService.on('WhatsappResponse', handleWhatsappResponse);
     socketService.on('updatesWhatsapp', handleConnectionUpdate);
-    
+
     // Marcar que os listeners foram configurados
     eventListenersSetRef.current = true;
-    
+
     // Cleanup on unmount
     return () => {
       socketService.off('WhatsappQR', handleQrCode);
@@ -221,11 +220,23 @@ export default function BotDashboard() {
   // Load initial data and check bot status
   useEffect(() => {
     if (user?.LOGIN) {
-      fetchBots();
+      const startTime = Date.now();
+
+      fetchBots().finally(() => {
+        const elapsed = Date.now() - startTime;
+        const minDelay = 3500; 
+        const remaining = minDelay - elapsed;
+
+        if (remaining > 0) {
+          setTimeout(() => setIsLoading(false), remaining);
+        } else {
+          setIsLoading(false);
+        }
+      });
     }
   }, [user, fetchBots]);
 
-  // Check all bots status when bots list changes
+  
   useEffect(() => {
     if (bots.length > 0) {
       // Use setTimeout para evitar múltiplas chamadas em sequência rápida
@@ -233,8 +244,8 @@ export default function BotDashboard() {
         bots.forEach(bot => {
           checkBotStatus(bot.protocol);
         });
-      }, 1000);
-      
+      }, 3000);
+
       return () => clearTimeout(timer);
     }
   }, [bots, checkBotStatus]);
@@ -244,7 +255,7 @@ export default function BotDashboard() {
   const handleStartBot = useCallback((bot) => {
     // Apenas navega para o detalhe do bot
     setSelectedBot(bot);
-    
+
     // Definir o protocolo atual para uso futuro
     setCurrentQrProtocol(bot.protocol);
   }, []);
@@ -296,31 +307,35 @@ export default function BotDashboard() {
   }
 
   // Render loading state
+  // if (isLoading) {
+  //   return (
+  //     <div className={styles.loadingContainer}>
+  //       <div className={styles.loadingSpinner}></div>
+  //       <p>Carregando automações...</p>
+  //     </div>
+  //   );
+  // }
+
   if (isLoading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner}></div>
-        <p>Carregando automações...</p>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   // Render error state
-  if (error) {
-    return (
-      <div className={styles.errorContainer}>
-        <div className={styles.errorIcon}>⚠️</div>
-        <h2>Ops! Algo deu errado</h2>
-        <p>{error}</p>
-        <button 
-          className={styles.retryButton}
-          onClick={fetchBots}
-        >
-          Tentar novamente
-        </button>
-      </div>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <div className={styles.errorContainer}>
+  //       <div className={styles.errorIcon}>⚠️</div>
+  //       <h2>Ops! Algo deu errado</h2>
+  //       <p>{error}</p>
+  //       <button 
+  //         className={styles.retryButton}
+  //         onClick={fetchBots}
+  //       >
+  //         Tentar novamente
+  //       </button>
+  //     </div>
+  //   );
+  // }
 
   // Render dashboard
   return (
@@ -329,11 +344,11 @@ export default function BotDashboard() {
         <div className={styles.headerContent}>
           <h1>Minhas Automações</h1>
           <p>Gerencie seus bots</p>
-          
+
           <div className={styles.botLimitBadge}>
             <span>{bots.length}/{botLimit} bots</span>
           </div>
-          
+
           {/* <button
             className={styles.refreshButton}
             onClick={refreshBots}
@@ -348,8 +363,8 @@ export default function BotDashboard() {
         {bots.length > 0 ? (
           <div className={styles.botsGrid}>
             {bots.map(bot => (
-              <div 
-                key={bot.id} 
+              <div
+                key={bot.id}
                 className={styles.botCard}
                 onClick={() => handleStartBot(bot)}
                 data-protocol={bot.protocol}
@@ -379,13 +394,13 @@ export default function BotDashboard() {
         ) : (
           <div className={styles.emptyState}>
             <FaRobot size={60} className={styles.emptyIcon} />
-            <p>Nenhuma automação encontrada.<br/>
-            Clique no botão + para criar sua primeira automação.</p>
+            <p>Nenhuma automação encontrada.<br />
+              Clique no botão + para criar sua primeira automação.</p>
           </div>
         )}
       </div>
 
-      <button 
+      <button
         className={styles.addButton}
         onClick={handleCreateBot}
         disabled={bots.length >= botLimit}
@@ -395,7 +410,7 @@ export default function BotDashboard() {
 
       {/* CreateAgentModal - Isso permanece no BotDashboard */}
       {showCreateModal && (
-        <CreateAgentModal 
+        <CreateAgentModal
           socketService={socketService}
           user={user}
           onClose={() => setShowCreateModal(false)}
