@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../SideBar/SideBar';
 import Header from '../Header/Header';
-import Content from '../Content/Content';
+
 // import Tabs from '../Tabs/Tabs';
 import PaymentPanel from './PaymentPanel';
 import ConversationsPanel from './PainelConversas/ConversationsPanel';
@@ -183,7 +183,7 @@ export default function Components({ user, onLogout, socket, Criptografar, Descr
       default:
         return (
           <div className="welcome-content">
-            <Content activeTab={activeTab} user={user} socket={socket} Criptografar={Criptografar} Descriptografar={Descriptografar} />
+           
           </div>
         );
     }

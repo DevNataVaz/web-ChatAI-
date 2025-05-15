@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { IoCheckmarkCircleOutline, IoTimeOutline, IoCloseCircleOutline, IoHourglassOutline, IoArrowBack, IoClipboard } from 'react-icons/io5';
-import socketService from '../../../../services/socketService';
+import { socketService } from '../../../../services/socketService';
 import { Criptografar, Descriptografar } from '../../../../Cripto/index';
 import { useApp } from '../../../../context/AppContext';
 import styles from './PagamentoHistorico.module.css';
@@ -34,12 +34,12 @@ const PagamentoHistorico = () => {
   const [total, setTotal] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  
+
   const { user, socketConnected } = useApp();
-  
+
   // Função para obter o status dos pagamentos
   const getStatusColor = (status) => {
-    switch(status) {
+    switch (status) {
       case 'approved':
         return COLORS.success;
       case 'pending':
@@ -53,7 +53,7 @@ const PagamentoHistorico = () => {
   };
 
   const getStatusBgColor = (status) => {
-    switch(status) {
+    switch (status) {
       case 'approved':
         return COLORS.successLight;
       case 'pending':
@@ -67,7 +67,7 @@ const PagamentoHistorico = () => {
   };
 
   const getStatusIcon = (status) => {
-    switch(status) {
+    switch (status) {
       case 'approved':
         return <IoCheckmarkCircleOutline size={24} color={getStatusColor(status)} />;
       case 'pending':
@@ -81,7 +81,7 @@ const PagamentoHistorico = () => {
   };
 
   const getStatusText = (status) => {
-    switch(status) {
+    switch (status) {
       case 'approved':
         return 'Pago';
       case 'pending':
@@ -97,174 +97,160 @@ const PagamentoHistorico = () => {
   // Estados para controlar o status do socket
   const [socketError, setSocketError] = useState(false);
   const [lastCheckTime, setLastCheckTime] = useState(0);
+
+// Simplify this function
+const checkSocketAvailability = useCallback(() => {
+  // Check if we have a working socket connection
+  const isConnected = socketService && 
+                      socketService.socket && 
+                      socketConnected;
   
-  // Função para verificar se o socket está disponível
-  const checkSocketAvailability = useCallback(() => {
-    // Evitar verificações muito frequentes
-    const now = Date.now();
-    if (now - lastCheckTime < 1000) { // Evita verificar mais de uma vez por segundo
-      return false;
-    }
-    setLastCheckTime(now);
+  setSocketError(!isConnected);
+  return isConnected;
+}, [socketConnected]);
+
+ // Modify the enviar function to be more resilient to connection issues
+const enviar = useCallback(async () => {
+  if (!user) return;
+
+  const userLogin = user.login || user.LOGIN;
+  if (!userLogin) {
+    console.log('Login não disponível');
+    setIsLoading(false);
+    return;
+  }
+
+  // Only proceed if socket is connected
+  if (!socketService || !socketService.socket || !socketConnected) {
+    console.log('Socket não está conectado. Tentando reconectar...');
+    setSocketError(true);
     
-    // Verifica se o socket está disponível
-    if (socketService && socketService.socket && socketConnected) {
-      console.log('Socket está disponível');
-      setSocketError(false);
-      return true;
-    } else {
-      console.log('Socket não está disponível no momento');
-      // Só define erro se não estiver em processo de conexão
-      if (socketConnected === false) {
-        setSocketError(true);
+    // Try to reconnect if possible
+    if (socketService && !socketService.socket) {
+      try {
+        socketService.connect();
+      } catch (error) {
+        console.error('Erro ao reconectar:', error);
       }
-      return false;
-    }
-  }, [socketConnected, lastCheckTime]);
-
-  // Função para buscar os pagamentos
-  const enviar = useCallback(async () => {
-    if (!user) return;
-    
-    // Verifica disponibilidade do socket
-    const isSocketAvailable = checkSocketAvailability();
-    if (!isSocketAvailable) {
-      setIsLoading(false);
-      return;
     }
     
-    setIsLoading(true);
-    
-    const dados = {
-      Login: user.login
-    };
-    
-    try {
-      // Remover listeners antigos para evitar duplicações
-      socketService.socket.off('responseHistoricoPagamentos');
-      
-      // Enviar a solicitação para o servidor
-      socketService.socket.emit('HistoricoPagamentos', {
-        dados: Criptografar(JSON.stringify(dados))
-      });
+    setIsLoading(false);
+    return;
+  }
 
-      // Configurar o listener para a resposta com timeout
+  setIsLoading(true);
+
+  try {
+    // Clean up any existing listeners
+    socketService.socket.off('responseHistoricoPagamentos');
+    
+    // Set up the response handler first
+    const responsePromise = new Promise((resolve, reject) => {
+      // Increase timeout from 10s to 20s
       const timeoutId = setTimeout(() => {
-        console.warn('Timeout ao esperar resposta do servidor');
-        setIsLoading(false);
         socketService.socket.off('responseHistoricoPagamentos');
-        setSocketError(true);
-      }, 10000); // 10 segundos de timeout
+        reject(new Error('Timeout ao aguardar resposta'));
+      }, 20000); // Increased to 20 seconds
       
       socketService.socket.once('responseHistoricoPagamentos', (dados) => {
-        clearTimeout(timeoutId); // Limpa o timeout quando recebemos resposta
-        
-        try {
-          const { debito, pagamentos } = JSON.parse(Descriptografar(dados));
-          setFaturasPendentes(debito === 1 ? false : true);
-
-          // Em vez de manipular diretamente o historico, crie um novo array
-          const novoHistorico = Array.isArray(pagamentos) ? pagamentos.map((item, index) => ({
-            id: index + 1, 
-            titulo: item.PRODUTO, 
-            data: item.DATA.split('T')[0], 
-            hora: item.HORA, 
-            valor: parseFloat(item.VALOR).toFixed(2), 
-            forma: item.FORMA_PAGAMENTO, 
-            estado: item.ESTADO 
-          })) : [];
-
-          // Atualize os estados uma única vez
-          setHistorico(novoHistorico);
-          setTotal(novoHistorico);
-          setSocketError(false);
-        } catch (error) {
-          console.error('Erro ao processar resposta:', error);
-          setSocketError(true);
-        } finally {
-          setIsLoading(false);
-        }
+        clearTimeout(timeoutId);
+        resolve(dados);
       });
-    } catch (error) {
-      console.error('Erro ao enviar solicitação:', error);
-      setSocketError(true);
-      setIsLoading(false);
+    });
+    
+    // Send the request
+    socketService.socket.emit('HistoricoPagamentos', {
+      dados: Criptografar(JSON.stringify({ Login: userLogin }))
+    });
+    
+    // Wait for response
+    const result = await responsePromise;
+    
+    // Process the result
+    if (result) {
+      try {
+        const { debito, pagamentos } = JSON.parse(Descriptografar(result));
+        setFaturasPendentes(debito === 1 ? false : true);
+        
+        const novoHistorico = Array.isArray(pagamentos) ? pagamentos.map((item, index) => ({
+          id: index + 1,
+          titulo: item.PRODUTO,
+          data: item.DATA ? item.DATA.split('T')[0] : 'N/A',
+          hora: item.HORA || 'N/A',
+          valor: item.VALOR ? parseFloat(item.VALOR).toFixed(2) : '0.00',
+          forma: item.FORMA_PAGAMENTO || 'N/A',
+          estado: item.ESTADO || 'N/A'
+        })) : [];
+        
+        setHistorico(novoHistorico);
+        setTotal(novoHistorico);
+        setSocketError(false);
+      } catch (parseError) {
+        console.error('Erro ao processar resposta:', parseError);
+        setSocketError(true);
+      }
     }
-  }, [user, checkSocketAvailability]);
+  } catch (error) {
+    console.error('Erro ao enviar solicitação:', error);
+    setSocketError(true);
+  } finally {
+    setIsLoading(false);
+  }
+}, [user, socketConnected]);
 
-  // Efeito para carregar os dados iniciais e configurar a atualização periódica
-  useEffect(() => {
-    if (!user) return;
-    
-    let updateInterval;
-    let checkSocketInterval;
-    
-    // Função para verificar o socket e enviar dados se disponível
-    const checkAndSend = () => {
-      if (checkSocketAvailability()) {
-        // Se o socket está disponível, podemos enviar a solicitação
-        enviar();
-        
-        // Limpa o intervalo de verificação se estiver definido
-        if (checkSocketInterval) {
-          clearInterval(checkSocketInterval);
-          checkSocketInterval = null;
-        }
-        
-        // Configura um intervalo para atualização periódica quando o socket está ok
-        if (!updateInterval) {
-          updateInterval = setInterval(() => {
-            if (checkSocketAvailability()) {
-              enviar();
-            } else {
-              // Se o socket ficar indisponível durante a atualização, limpa o intervalo
-              clearInterval(updateInterval);
-              updateInterval = null;
-              // Inicia o intervalo de verificação novamente
-              if (!checkSocketInterval) {
-                checkSocketInterval = setInterval(checkAndSend, 3000);
-              }
-            }
-          }, 60000); // Atualiza a cada 1 minuto
-        }
-      } else {
-        // Se o socket não está disponível, configura um intervalo para verificar
-        if (!checkSocketInterval) {
-          checkSocketInterval = setInterval(checkAndSend, 3000); // Verifica a cada 3 segundos
-        }
-      }
-    };
-    
-    // Inicia o processo
-    checkAndSend();
-    
-    // Limpeza quando o componente é desmontado
-    return () => {
-      if (updateInterval) clearInterval(updateInterval);
-      if (checkSocketInterval) clearInterval(checkSocketInterval);
+ useEffect(() => {
+  if (!user?.login && !user?.LOGIN) return;
+  
+  let reconnectInterval;
+  
+  const setupConnection = () => {
+    if (checkSocketAvailability()) {
+      // Connected - make initial request
+      enviar();
       
-      // Remover listeners se o socket estiver disponível
-      if (socketService && socketService.socket) {
-        try {
-          socketService.socket.off('responseHistoricoPagamentos');
-        } catch (error) {
-          console.error('Erro ao remover listener:', error);
+      // Set periodic update
+      const updateInterval = setInterval(() => {
+        if (checkSocketAvailability()) {
+          enviar();
+        } else {
+          clearInterval(updateInterval);
+          // Start reconnection attempts
+          reconnectInterval = setInterval(setupConnection, 5000);
         }
-      }
-    };
-  }, [user, enviar, checkSocketAvailability]);
+      }, 60000); // Check every minute
+      
+      return () => clearInterval(updateInterval);
+    } else if (!reconnectInterval) {
+      // Not connected - start reconnection attempts
+      reconnectInterval = setInterval(setupConnection, 5000);
+      return () => clearInterval(reconnectInterval);
+    }
+  };
+  
+  const cleanup = setupConnection();
+  
+  return () => {
+    if (cleanup) cleanup();
+    if (reconnectInterval) clearInterval(reconnectInterval);
+    
+    // Remove event listeners
+    if (socketService?.socket) {
+      socketService.socket.off('responseHistoricoPagamentos');
+    }
+  };
+}, [user, enviar, checkSocketAvailability]);
 
   // Função para navegar para a tela de detalhes do pagamento
   const handlePaymentClick = (payment) => {
-    navigate(`/comprovante/${payment.id}`, { 
-      state: { 
-        estado: payment.estado, 
-        titulo: payment.titulo, 
-        valor: payment.valor, 
-        tipo: payment.forma, 
-        data: payment.data, 
-        hora: payment.hora 
-      } 
+    navigate(`/comprovante/${payment.id}`, {
+      state: {
+        estado: payment.estado,
+        titulo: payment.titulo,
+        valor: payment.valor,
+        tipo: payment.forma,
+        data: payment.data,
+        hora: payment.hora
+      }
     });
   };
 
@@ -273,16 +259,16 @@ const PagamentoHistorico = () => {
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerContent}>
-          
-          
+
+
           <h1 className={styles.headerTitle}>Minha Assinatura</h1>
-          
+
           <div className={styles.iconContainer}>
             <IoClipboard size={20} color="#FFFFFF" />
           </div>
         </div>
       </header>
-      
+
       {/* Status Card */}
       <div className={styles.mainContent}>
         <div className={styles.statusCardContainer}>
@@ -298,7 +284,7 @@ const PagamentoHistorico = () => {
                 </div>
               )}
             </div>
-            
+
             <div className={styles.statusRightSection}>
               <h2 className={styles.statusTitle}>
                 {faturasPendentes ? 'Plano Vencido' : 'Tudo certo'}
@@ -306,7 +292,7 @@ const PagamentoHistorico = () => {
               <p className={styles.statusSubtitle}>
                 {faturasPendentes ? 'Pendência encontrada' : 'Com seus planos!'}
               </p>
-              
+
               {faturasPendentes && (
                 <Link to="/faturas" className={styles.resolveButton}>
                   Resolver pendência
@@ -315,12 +301,12 @@ const PagamentoHistorico = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Section Title */}
         <div className={styles.sectionTitleContainer}>
           <h2 className={styles.sectionTitle}>Meus Pagamentos</h2>
         </div>
-        
+
         {/* Payment List */}
         <div className={styles.paymentListContainer}>
           {isLoading ? (
@@ -334,14 +320,14 @@ const PagamentoHistorico = () => {
                 <IoCloseCircleOutline size={60} color={COLORS.danger} />
               </div>
               <p className={styles.errorText || styles.emptyText}>
-                Não foi possível conectar ao servidor. 
+                Não foi possível conectar ao servidor.
               </p>
               {socketConnected === false && (
                 <p className={styles.errorSubtext || styles.emptyText} style={{ fontSize: '0.9em' }}>
                   Aguardando conexão com o servidor...
                 </p>
               )}
-              <button 
+              <button
                 className={styles.retryButton || styles.resolveButton}
                 onClick={() => {
                   setSocketError(false);
@@ -362,7 +348,7 @@ const PagamentoHistorico = () => {
           ) : total.length !== 0 ? (
             <div className={styles.paymentList}>
               {total.map((item) => (
-                <div 
+                <div
                   key={item.id}
                   className={styles.paymentItem}
                   onClick={() => handlePaymentClick(item)}
@@ -371,7 +357,7 @@ const PagamentoHistorico = () => {
                     <div className={styles.statusIconContainer} style={{ backgroundColor: getStatusBgColor(item.estado) }}>
                       {getStatusIcon(item.estado)}
                     </div>
-                    
+
                     <div className={styles.paymentInfoContainer}>
                       <h3 className={styles.paymentTitle}>
                         {item.titulo}
@@ -384,7 +370,7 @@ const PagamentoHistorico = () => {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className={styles.paymentRightSection}>
                     <p className={styles.paymentDate}>
                       {item.data}

@@ -24,19 +24,19 @@ class SocketService {
    */
   connect(url = this.connectionUrl) {
     this.connectionUrl = url;
-    
+
     if (this.socket && this.socket.connected) {
       console.log('Socket already connected');
       return this.socket;
     }
-    
+
     // Clear any existing socket
     if (this.socket) {
       this.socket.removeAllListeners();
-     
+
       this.socket = null;
     }
-    
+
     // Create a new socket connection
     this.socket = io(url, {
       path: '/socket.io',
@@ -55,7 +55,7 @@ class SocketService {
       console.log('Socket connected with dashboard');
       this.isReconnecting = false;
       this.reconnectionAttempts = 0;
-      
+
       // Re-establish registered event listeners after reconnection
       this.setupListeners();
     });
@@ -64,16 +64,16 @@ class SocketService {
       console.error('Socket connection error:', error);
       this.handleReconnection();
     });
-    
+
     this.socket.on('disconnect', (reason) => {
       console.log('Socket disconnected:', reason);
-      
+
       // Retry connecting in certain scenarios
       if (reason === 'io server disconnect' || reason === 'transport close') {
         this.handleReconnection();
       }
     });
-    
+
     this.socket.on('error', (error) => {
       console.error('Socket error:', error);
     });
@@ -86,21 +86,21 @@ class SocketService {
    */
   handleReconnection() {
     if (this.isReconnecting) return;
-    
+
     this.isReconnecting = true;
     this.reconnectionAttempts++;
-    
+
     const delay = Math.min(
       Math.pow(2, this.reconnectionAttempts) * RECONNECTION_DELAY,
       MAX_RECONNECTION_DELAY
     );
-    
-    console.log(`Attempting to reconnect in ${delay/1000} seconds (attempt ${this.reconnectionAttempts})`);
-    
+
+    console.log(`Attempting to reconnect in ${delay / 1000} seconds (attempt ${this.reconnectionAttempts})`);
+
     setTimeout(() => {
       if (this.reconnectionAttempts <= RECONNECTION_ATTEMPTS) {
         console.log(`Reconnection attempt ${this.reconnectionAttempts}`);
-        
+
         if (this.socket) {
           this.socket.connect();
         } else {
@@ -109,7 +109,7 @@ class SocketService {
       } else {
         console.log('Max reconnection attempts reached, giving up');
         this.isReconnecting = false;
-        
+
         // Notify any pending requests about the failure
         this.pendingRequests.forEach((requestInfo, requestId) => {
           if (requestInfo.reject) {
@@ -133,7 +133,7 @@ class SocketService {
         }
       });
       this.pendingRequests.clear();
-      
+
       this.socket.disconnect();
       this.socket = null;
     }
@@ -154,7 +154,7 @@ class SocketService {
       console.error(`Cannot emit ${event}: Socket not connected`);
       throw new Error('Socket not connected');
     }
-    
+
     try {
       this.socket.emit(event, data);
       return true;
@@ -202,7 +202,7 @@ class SocketService {
         this.listeners.delete(event);
       }
     }
-    
+
     if (this.socket) {
       if (callback) {
         this.socket.off(event, callback);
@@ -231,17 +231,17 @@ class SocketService {
   async requestData(emitEvent, responseEvent, data, timeoutDuration = DEFAULT_TIMEOUT) {
     // Generate a unique request ID
     const requestId = this.requestId++;
-    
+
     return new Promise((resolve, reject) => {
       // Set timeout handler
       const timeout = setTimeout(() => {
         this.off(responseEvent, handleResponse);
         this.pendingRequests.delete(requestId);
-        reject(new Error(`Request timeout after ${timeoutDuration/1000} seconds`));
+        reject(new Error(`Request timeout after ${timeoutDuration / 1000} seconds`));
       }, timeoutDuration);
-      
+
       // Store the request info
-      this.pendingRequests.set(requestId, { 
+      this.pendingRequests.set(requestId, {
         emitEvent,
         responseEvent,
         data,
@@ -250,16 +250,20 @@ class SocketService {
         timeout,
         startTime: Date.now()
       });
-  
+
       const handleResponse = (response) => {
         clearTimeout(timeout);
         this.off(responseEvent, handleResponse);
         this.pendingRequests.delete(requestId);
-        
+
         try {
           // Handle different response formats
           if (typeof response === 'string') {
             try {
+              if (response.trim() === '') {
+                resolve(response);
+                return;
+              }
               // First try to decrypt
               const decrypted = Descriptografar(response);
               if (decrypted) {
@@ -275,12 +279,7 @@ class SocketService {
               }
             } catch (decryptError) {
               // If decryption fails, try direct JSON parsing
-              try {
-                resolve(JSON.parse(response));
-              } catch (jsonError) {
-                // If not valid JSON, return as string
-                resolve(response);
-              }
+             resolve(response);
             }
           } else if (response && response.Code !== undefined) {
             // Handle object with encrypted fields
@@ -311,10 +310,10 @@ class SocketService {
           reject(error);
         }
       };
-  
+
       // Register response handler
       this.on(responseEvent, handleResponse);
-      
+
       // Prepare data for emission
       let encryptedData;
       try {
@@ -332,7 +331,7 @@ class SocketService {
         } else {
           encryptedData = data;
         }
-        
+
         // Emit the request
         this.emit(emitEvent, encryptedData);
       } catch (error) {
@@ -348,21 +347,21 @@ class SocketService {
   /**
    * Request with retry logic
    */
-  async requestWithRetry(emitEvent, responseEvent, data, maxRetries = 3, timeoutDuration = DEFAULT_TIMEOUT) {
+  async requestWithRetry(emitEvent, responseEvent, data, maxRetries = 2, timeoutDuration = 15000) {
     let retries = 0;
-    
+
     while (retries <= maxRetries) {
       try {
         return await this.requestData(emitEvent, responseEvent, data, timeoutDuration);
       } catch (error) {
         retries++;
-        
+
         if (retries > maxRetries || !error.message.includes('timeout')) {
           throw error;
         }
-        
-        console.log(`Retry ${retries}/${maxRetries} for ${emitEvent}`);
-        
+
+       
+
         // Exponential backoff
         const retryDelay = Math.min(Math.pow(2, retries) * 1000, 10000);
         await new Promise(resolve => setTimeout(resolve, retryDelay));
@@ -371,196 +370,196 @@ class SocketService {
   }
 
   async requestWhatsAppQRCode(agentProtocol, userLogin) {
-  if (!agentProtocol || !userLogin) {
-    throw new Error("Protocolo do agente e login do usuário são obrigatórios");
-  }
-  
-  try {
-    // Solicitar QR Code
-    const encryptedData = {
-      code: Criptografar('2544623544284'),
-      conta: Criptografar(userLogin),
-      Identificador: Criptografar(agentProtocol)
-    };
-    
-    // Este evento não retorna diretamente um QR code, 
-    // o QR code virá em um evento separado 'WhatsappQR'
-    await this.emit('Whatsapp', encryptedData);
-    
-    // Configurar um promise que será resolvido quando o QR code for recebido
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        this.off('WhatsappQR');
-        reject(new Error('Tempo esgotado ao aguardar QR code'));
-      }, 30000);
-      
-      this.once('WhatsappQR', (data) => {
-        clearTimeout(timeout);
-        
-        try {
-          if (Descriptografar(data.Code) === '129438921435') {
-            resolve({
-              qrCode: Descriptografar(data.QRCODE),
-              protocol: agentProtocol
-            });
-          } else {
-            reject(new Error('Código de resposta inválido ao solicitar QR code'));
-          }
-        } catch (error) {
-          reject(new Error(`Erro ao processar QR code: ${error.message}`));
-        }
-      });
-    });
-  } catch (error) {
-    console.error('Erro ao solicitar QR code WhatsApp:', error);
-    throw error;
-  }
-}
+    if (!agentProtocol || !userLogin) {
+      throw new Error("Protocolo do agente e login do usuário são obrigatórios");
+    }
 
-// Função para verificar status de conexão de um agente
-async checkAgentConnectionStatus(agentProtocol, platform = 'whatsapp') {
-  if (!agentProtocol) {
-    throw new Error("Protocolo do agente é obrigatório");
-  }
-  
-  try {
-    const eventName = platform === 'instagram' ? 'StatusInstagram' : 'StatusWhatsapp';
-    const responseEvent = platform === 'instagram' ? 'updatesInstagram' : 'updatesWhatsapp';
-    const codeField = platform === 'instagram' ? '678984766951766581' : '17326186765984';
-    
-    const encryptedData = {
-      Code: Criptografar('7668566448964451'),
-      Identificador: Criptografar(agentProtocol)
-    };
-    
-    // Emitir evento para verificar status
-    this.emit(eventName, encryptedData);
-    
-    // Aguardar resposta
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        this.off(responseEvent);
-        reject(new Error('Tempo esgotado ao verificar status de conexão'));
-      }, 10000);
-      
-      this.once(responseEvent, (data) => {
-        clearTimeout(timeout);
-        
-        try {
-          if (Descriptografar(data.Code) === codeField) {
-            const isConnected = Descriptografar(data.Dados) === 'true' || Descriptografar(data.Dados) === true;
-            resolve(isConnected);
-          } else {
-            reject(new Error('Código de resposta inválido ao verificar status'));
+    try {
+      // Solicitar QR Code
+      const encryptedData = {
+        code: Criptografar('2544623544284'),
+        conta: Criptografar(userLogin),
+        Identificador: Criptografar(agentProtocol)
+      };
+
+      // Este evento não retorna diretamente um QR code, 
+      // o QR code virá em um evento separado 'WhatsappQR'
+      await this.emit('Whatsapp', encryptedData);
+
+      // Configurar um promise que será resolvido quando o QR code for recebido
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          this.off('WhatsappQR');
+          reject(new Error('Tempo esgotado ao aguardar QR code'));
+        }, 30000);
+
+        this.once('WhatsappQR', (data) => {
+          clearTimeout(timeout);
+
+          try {
+            if (Descriptografar(data.Code) === '129438921435') {
+              resolve({
+                qrCode: Descriptografar(data.QRCODE),
+                protocol: agentProtocol
+              });
+            } else {
+              reject(new Error('Código de resposta inválido ao solicitar QR code'));
+            }
+          } catch (error) {
+            reject(new Error(`Erro ao processar QR code: ${error.message}`));
           }
-        } catch (error) {
-          reject(new Error(`Erro ao processar status: ${error.message}`));
-        }
+        });
       });
-    });
-  } catch (error) {
-    console.error(`Erro ao verificar status de conexão ${platform}:`, error);
-    throw error;
+    } catch (error) {
+      console.error('Erro ao solicitar QR code WhatsApp:', error);
+      throw error;
+    }
   }
-}
+
+  // Função para verificar status de conexão de um agente
+  async checkAgentConnectionStatus(agentProtocol, platform = 'whatsapp') {
+    if (!agentProtocol) {
+      throw new Error("Protocolo do agente é obrigatório");
+    }
+
+    try {
+      const eventName = platform === 'instagram' ? 'StatusInstagram' : 'StatusWhatsapp';
+      const responseEvent = platform === 'instagram' ? 'updatesInstagram' : 'updatesWhatsapp';
+      const codeField = platform === 'instagram' ? '678984766951766581' : '17326186765984';
+
+      const encryptedData = {
+        Code: Criptografar('7668566448964451'),
+        Identificador: Criptografar(agentProtocol)
+      };
+
+      // Emitir evento para verificar status
+      this.emit(eventName, encryptedData);
+
+      // Aguardar resposta
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          this.off(responseEvent);
+          reject(new Error('Tempo esgotado ao verificar status de conexão'));
+        }, 10000);
+
+        this.once(responseEvent, (data) => {
+          clearTimeout(timeout);
+
+          try {
+            if (Descriptografar(data.Code) === codeField) {
+              const isConnected = Descriptografar(data.Dados) === 'true' || Descriptografar(data.Dados) === true;
+              resolve(isConnected);
+            } else {
+              reject(new Error('Código de resposta inválido ao verificar status'));
+            }
+          } catch (error) {
+            reject(new Error(`Erro ao processar status: ${error.message}`));
+          }
+        });
+      });
+    } catch (error) {
+      console.error(`Erro ao verificar status de conexão ${platform}:`, error);
+      throw error;
+    }
+  }
 
   async registerAgent(agentData) {
-  try {
-    // Verificar se temos todos os dados necessários
-    const requiredFields = ['empresa', 'atendente', 'objetivo', 'redes', 'perguntas'];
-    for (const field of requiredFields) {
-      if (!agentData[field]) {
-        throw new Error(`Campo obrigatório ausente: ${field}`);
+    try {
+      // Verificar se temos todos os dados necessários
+      const requiredFields = ['empresa', 'atendente', 'objetivo', 'redes', 'perguntas'];
+      for (const field of requiredFields) {
+        if (!agentData[field]) {
+          throw new Error(`Campo obrigatório ausente: ${field}`);
+        }
       }
-    }
-    
-    // Gerar protocolo único se não for fornecido
-    if (!agentData.protocolo) {
-      agentData.protocolo = `bot_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    }
-    
-    // Encriptar dados para envio
-    const encryptedData = {
-      Code: '658467658467865671', // Código para criação de bot
-      Empresa: Criptografar(agentData.empresa),
-      Atendente: Criptografar(agentData.atendente),
-      Protocolo: Criptografar(agentData.protocolo),
-      Login: Criptografar(agentData.login),
-      Redes: Criptografar(agentData.redes),
-      Objetivo: Criptografar(agentData.objetivo),
-      Perguntas: Criptografar(agentData.perguntas),
-      Gatilho: Criptografar(agentData.gatilho || 'automatico')
-    };
-    
-    // Enviar solicitação e aguardar resposta
-    const response = await this.requestData('CriarBot', 'RespostaDaCriação', encryptedData, 30000);
-    
-    // Validar resposta
-    if (response && response.Res === true) {
-      return {
-        success: true,
-        protocol: agentData.protocolo,
-        message: 'Agente criado com sucesso'
+
+      // Gerar protocolo único se não for fornecido
+      if (!agentData.protocolo) {
+        agentData.protocolo = `bot_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      }
+
+      // Encriptar dados para envio
+      const encryptedData = {
+        Code: '658467658467865671', // Código para criação de bot
+        Empresa: Criptografar(agentData.empresa),
+        Atendente: Criptografar(agentData.atendente),
+        Protocolo: Criptografar(agentData.protocolo),
+        Login: Criptografar(agentData.login),
+        Redes: Criptografar(agentData.redes),
+        Objetivo: Criptografar(agentData.objetivo),
+        Perguntas: Criptografar(agentData.perguntas),
+        Gatilho: Criptografar(agentData.gatilho || 'automatico')
       };
-    } else {
-      throw new Error('Falha ao criar agente. Resposta inválida do servidor.');
-    }
-  } catch (error) {
-    console.error('Erro ao registrar agente:', error);
-    throw error;
-  }
-} 
 
+      // Enviar solicitação e aguardar resposta
+      const response = await this.requestData('CriarBot', 'RespostaDaCriação', encryptedData, 30000);
 
-
-async getMyAgents(login) {
-  if (!login) {
-    throw new Error("Login do usuário é obrigatório para buscar agentes");
-  }
-  
-  try {
-    // Preparar dados para envio
-    const encryptedData = Criptografar(JSON.stringify({
-      Code: '234645423654423465',
-      Login: login
-    }));
-    
-    // Enviar solicitação
-    const response = await this.requestWithRetry('MeusRobos', 'MeusRobosResponse', encryptedData, 3, 30000);
-    
-    // Processar resposta
-    if (response && response.Dados && Array.isArray(response.Dados)) {
-      // Transformar dados para facilitar uso no frontend
-      const formattedAgents = response.Dados.map(bot => {
-        const firstBot = bot.DADOS[0] || {};
+      // Validar resposta
+      if (response && response.Res === true) {
         return {
-          id: bot.PROTOCOLO,
-          protocol: bot.PROTOCOLO,
-          name: firstBot.EMPRESA || 'Bot sem nome',
-          attendantName: firstBot.ATENDENTE || 'Atendente',
-          platform: firstBot.REDE || '0',
-          objective: firstBot.OBJETIVO || 'Outro',
-          login: firstBot.LOGIN,
-          gatilho: firstBot.GATILHO || 'automatico',
-          status: null, // Status de conexão será buscado separadamente
-          createdAt: firstBot.DATA_CRIACAO || new Date().toISOString()
+          success: true,
+          protocol: agentData.protocolo,
+          message: 'Agente criado com sucesso'
         };
-      });
-      
-      return {
-        agents: formattedAgents,
-        limit: response.Limite || 0
-      };
+      } else {
+        throw new Error('Falha ao criar agente. Resposta inválida do servidor.');
+      }
+    } catch (error) {
+      console.error('Erro ao registrar agente:', error);
+      throw error;
     }
-    
-    return { agents: [], limit: 0 };
-  } catch (error) {
-    console.error('Erro ao buscar agentes:', error);
-    throw new Error(`Falha ao buscar agentes: ${error.message}`);
   }
-}
 
-  
+
+
+  async getMyAgents(login) {
+    if (!login) {
+      throw new Error("Login do usuário é obrigatório para buscar agentes");
+    }
+
+    try {
+      // Preparar dados para envio
+      const encryptedData = Criptografar(JSON.stringify({
+        Code: '234645423654423465',
+        Login: login
+      }));
+
+      // Enviar solicitação
+      const response = await this.requestWithRetry('MeusRobos', 'MeusRobosResponse', encryptedData, 3, 30000);
+
+      // Processar resposta
+      if (response && response.Dados && Array.isArray(response.Dados)) {
+        // Transformar dados para facilitar uso no frontend
+        const formattedAgents = response.Dados.map(bot => {
+          const firstBot = bot.DADOS[0] || {};
+          return {
+            id: bot.PROTOCOLO,
+            protocol: bot.PROTOCOLO,
+            name: firstBot.EMPRESA || 'Bot sem nome',
+            attendantName: firstBot.ATENDENTE || 'Atendente',
+            platform: firstBot.REDE || '0',
+            objective: firstBot.OBJETIVO || 'Outro',
+            login: firstBot.LOGIN,
+            gatilho: firstBot.GATILHO || 'automatico',
+            status: null, // Status de conexão será buscado separadamente
+            createdAt: firstBot.DATA_CRIACAO || new Date().toISOString()
+          };
+        });
+
+        return {
+          agents: formattedAgents,
+          limit: response.Limite || 0
+        };
+      }
+
+      return { agents: [], limit: 0 };
+    } catch (error) {
+      console.error('Erro ao buscar agentes:', error);
+      throw new Error(`Falha ao buscar agentes: ${error.message}`);
+    }
+  }
+
+
   async getUserProfile(login) {
     const data = { Login: login };
     return this.requestData('GetPerfil', 'responseGetPerfil', data);
@@ -634,7 +633,7 @@ async getMyAgents(login) {
       protocolo: Criptografar(protocolo),
       contador: Criptografar(contador.toString())
     };
-    
+
     return this.requestWithRetry('requestMensagens', 'ResponseMensagens', data);
   }
 
@@ -646,7 +645,7 @@ async getMyAgents(login) {
       Code: Criptografar('56345436545434'),
       ID: Criptografar(messageId)
     };
-    
+
     return this.requestData('updateMensagensLida', 'ResponseUpdateMensagensLida', data);
   }
 
@@ -774,7 +773,7 @@ async getMyAgents(login) {
     const encryptedData = {
       Code: data.Code
     };
-    
+
     for (const [key, value] of Object.entries(data)) {
       if (key !== 'Code') {
         encryptedData[key] = Criptografar(value);
@@ -829,6 +828,6 @@ async getMyAgents(login) {
   }
 }
 
-// Create a singleton instance
+
 export const socketService = new SocketService();
 export default SocketService;

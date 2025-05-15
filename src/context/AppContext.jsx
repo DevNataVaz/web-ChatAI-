@@ -27,6 +27,8 @@ export const AppProvider = ({ children }) => {
     instagram: false,
     whatsapp: false
   });
+  const [lastDataUpdate, setLastDataUpdate] = useState(Date.now());
+  const [lastLoginTimestamp, setLastLoginTimestamp] = useState(null);
 
   // Refs to prevent stale closures in socket callbacks
   const userRef = useRef(null);
@@ -54,10 +56,15 @@ export const AppProvider = ({ children }) => {
       const savedUser = localStorage.getItem('animusia_user');
       if (!savedUser) return null;
 
+       if (typeof savedUser !== 'string' || savedUser.trim() === '') {
+      localStorage.removeItem('animusia_user');
+      return null;
+    }
+
       const decrypted = Descriptografar(savedUser);
       return JSON.parse(decrypted);
     } catch (err) {
-      console.error('Error loading user from localStorage:', err);
+      // console.error('Error loading user from localStorage:', err);
       // Clear potentially corrupted data
       localStorage.removeItem('animusia_user');
       return null;
@@ -72,26 +79,26 @@ export const AppProvider = ({ children }) => {
       
       // Setup global listeners that should persist
       socketService.on('connect', () => {
-        console.log('Socket connected');
+        // console.log('Socket connected');
         setSocketConnected(true);
         
         // Reconnect logic - reload essential data when reconnected
         const currentUser = userRef.current;
         if (currentUser?.LOGIN) {
           loadInitialData(currentUser.LOGIN).catch(err => {
-            console.error('Failed to reload data after reconnection:', err);
+            // console.error('Failed to reload data after reconnection:', err);
           });
         }
       });
 
       socketService.on('connect_error', (error) => {
-        console.error('Socket connection error:', error);
+        // console.error('Socket connection error:', error);
         setError(`Connection error: ${error.message}`);
         setSocketConnected(false);
       });
 
       socketService.on('disconnect', (reason) => {
-        console.log(`Socket disconnected: ${reason}`);
+        // console.log(`Socket disconnected: ${reason}`);
         setSocketConnected(false);
         
         // Auto-reconnect for certain disconnect reasons
@@ -108,7 +115,7 @@ export const AppProvider = ({ children }) => {
       
       return socket;
     } catch (err) {
-      console.error('Socket initialization error:', err);
+      // console.error('Socket initialization error:', err);
       setError(`Failed to initialize connection: ${err.message}`);
       return null;
     }
@@ -124,7 +131,7 @@ export const AppProvider = ({ children }) => {
           loadConversations(userRef.current.LOGIN);
         }
       } catch (err) {
-        console.error('Error processing message update:', err);
+        // console.error('Error processing message update:', err);
       }
     });
     
@@ -153,7 +160,7 @@ export const AppProvider = ({ children }) => {
          
         }
       } catch (err) {
-        console.error('Error processing new conversation:', err);
+        // console.error('Error processing new conversation:', err);
       }
     });
   }, []);
@@ -172,7 +179,8 @@ export const AppProvider = ({ children }) => {
           setUser(savedUser);
         }
       } catch (err) {
-        console.error('Error initializing app:', err);
+        // console.error('Error initializing app:', err);
+        localStorage.removeItem('animusia_user');
         setError(`Initialization error: ${err.message}`);
       } finally {
         setInitializing(false);
@@ -198,7 +206,7 @@ export const AppProvider = ({ children }) => {
         try {
           await loadInitialData(user.LOGIN);
         } catch (err) {
-          console.error(`Failed to load user data (attempt ${retryCount + 1}/${maxRetries}):`, err);
+          // console.error(`Failed to load user data (attempt ${retryCount + 1}/${maxRetries}):`, err);
           if (retryCount < maxRetries) {
             retryCount++;
             // Exponential backoff
@@ -217,7 +225,7 @@ export const AppProvider = ({ children }) => {
   // Load all initial data in sequence to avoid race conditions
   const loadInitialData = useCallback(async (login) => {
     if (!socketConnected) {
-      console.log('Socket not connected, waiting...');
+      // console.log('Socket not connected, waiting...');
       return;
     }
     
@@ -236,15 +244,22 @@ export const AppProvider = ({ children }) => {
       const currentAgentData = agents[0]; // Default to first agent if none selected
       if (currentAgentData) {
         await checkPlatformStatus(currentAgentData.PROTOCOLO);
-      }
+      }setLastDataUpdate(Date.now());
     } catch (err) {
-      console.error('Error loading initial data:', err);
-      setError('Failed to load initial data. Please try again.');
+      // console.error('Error loading initial data:', err);
+      setError('Falha ao carregar dados iniciais. Por favor tente novamente.');
       throw err; // Rethrow for retry mechanism
     } finally {
       setIsLoading(false);
     }
   }, [socketConnected]);
+
+  const forceDataUpdate = useCallback(() => {
+  if (user?.LOGIN) {
+    return loadInitialData(user.LOGIN);
+  }
+  return Promise.resolve();
+}, [user, loadInitialData]);
 
   // Load notifications with caching mechanism
   const loadNotifications = useCallback(async (login) => {
@@ -263,7 +278,7 @@ export const AppProvider = ({ children }) => {
         setNotifications(sortedNotifications);
       }
     } catch (err) {
-      console.error('Error loading notifications:', err);
+      // console.error('Error loading notifications:', err);
       // Don't set global error for this non-critical feature
     }
   }, [socketConnected]);
@@ -290,11 +305,11 @@ export const AppProvider = ({ children }) => {
           }));
           localStorage.setItem('animusia_user', encrypted);
         } catch (storageErr) {
-          console.error('Error saving updated user to localStorage:', storageErr);
+          // console.error('Error saving updated user to localStorage:', storageErr);
         }
       }
     } catch (err) {
-      console.error('Error loading profile:', err);
+      // console.error('Error loading profile:', err);
       throw err; // Rethrow for retry mechanism
     } finally {
       setIsLoading(false);
@@ -314,7 +329,7 @@ export const AppProvider = ({ children }) => {
         }
       }
     } catch (err) {
-      console.error('Error loading agents:', err);
+      // console.error('Error loading agents:', err);
       throw err; // Rethrow for retry mechanism
     }
   }, [socketConnected, currentAgent]);
@@ -346,7 +361,7 @@ export const AppProvider = ({ children }) => {
       }
       return null;
     } catch (err) {
-      console.error('Error loading plans:', err);
+      // console.error('Error loading plans:', err);
       setError('Failed to load plans');
       return null;
     } finally {
@@ -366,7 +381,7 @@ export const AppProvider = ({ children }) => {
       }
       return null;
     } catch (err) {
-      console.error('Error loading subscription:', err);
+      // console.error('Error loading subscription:', err);
       return null;
     }
   }, [socketConnected]);
@@ -383,7 +398,7 @@ export const AppProvider = ({ children }) => {
       }
       return Promise.resolve(null);
     } catch (err) {
-      console.error('Error updating subscription info:', err);
+      // console.error('Error updating subscription info:', err);
       setError('Failed to update subscription information');
       setIsLoading(false);
       return Promise.resolve(null);
@@ -408,7 +423,7 @@ export const AppProvider = ({ children }) => {
         setConversations(sortedConversations);
       }
     } catch (err) {
-      console.error('Error loading conversations:', err);
+      // console.error('Error loading conversations:', err);
       toast.error('Failed to load conversations');
     } finally {
       setIsLoading(false);
@@ -433,7 +448,7 @@ export const AppProvider = ({ children }) => {
         setMessages(sortedMessages);
       }
     } catch (err) {
-      console.error('Error loading messages:', err);
+      // console.error('Error loading messages:', err);
       toast.error('Failed to load messages');
     } finally {
       setIsLoading(false);
@@ -461,7 +476,7 @@ export const AppProvider = ({ children }) => {
       await loadMessages(protocolo);
       return true;
     } catch (err) {
-      console.error('Error sending message:', err);
+      // console.error('Error sending message:', err);
       setError('Failed to send message');
       toast.error('Message could not be sent. Please try again.');
       return false;
@@ -481,7 +496,7 @@ export const AppProvider = ({ children }) => {
         setProducts(data.Response.mensagem || []);
       }
     } catch (err) {
-      console.error('Error loading products:', err);
+      // console.error('Error loading products:', err);
       toast.error('Failed to load products');
     } finally {
       setIsLoading(false);
@@ -501,7 +516,7 @@ export const AppProvider = ({ children }) => {
         whatsapp: whatsappStatus && whatsappStatus.Dados === true
       });
     } catch (err) {
-      console.error('Error checking platform status:', err);
+      // console.error('Error checking platform status:', err);
     }
   }, [socketConnected]);
   
@@ -533,7 +548,7 @@ export const AppProvider = ({ children }) => {
         return false;
       }
     } catch (err) {
-      console.error(`Error connecting to ${platform}:`, err);
+      // console.error(`Error connecting to ${platform}:`, err);
       setError(`Failed to connect to ${platform}`);
       toast.error(`Could not connect to ${platform}. Please try again.`);
       return false;
@@ -545,11 +560,12 @@ export const AppProvider = ({ children }) => {
   // Enhanced login with validation
   const login = useCallback((userData) => {
     if (!userData || !userData.LOGIN) {
-      console.error('Invalid user data for login');
+      // console.error('Invalid user data for login');
       return false;
     }
     
     setUser(userData);
+    setLastLoginTimestamp(Date.now());
     
     // Save to localStorage
     try {
@@ -557,7 +573,7 @@ export const AppProvider = ({ children }) => {
       localStorage.setItem('animusia_user', encrypted);
       return true;
     } catch (err) {
-      console.error('Error saving user to localStorage:', err);
+      // console.error('Error saving user to localStorage:', err);
       return false;
     }
   }, []);
@@ -580,8 +596,10 @@ export const AppProvider = ({ children }) => {
     // Clear localStorage
     localStorage.removeItem('animusia_user');
     
-    // Redirect to login
-    navigate('/login');
+    // forçar volta pra tela de login
+    window.location.href = '/login';
+
+    // navigate('/login');
   }, [navigate]);
 
   // Select an agent
@@ -643,7 +661,7 @@ export const AppProvider = ({ children }) => {
       await socketService.updateMessageRead(protocolo);
       return true;
     } catch (err) {
-      console.error('Error marking messages as read:', err);
+      // console.error('Error marking messages as read:', err);
       return false;
     }
   }, [socketConnected]);
@@ -677,7 +695,7 @@ export const AppProvider = ({ children }) => {
       
       return false;
     } catch (err) {
-      console.error('Error deleting conversation:', err);
+      // console.error('Error deleting conversation:', err);
       toast.error('Failed to delete conversation');
       return false;
     } finally {
@@ -701,7 +719,7 @@ export const AppProvider = ({ children }) => {
       toast.warning('API key may not have been saved');
       return false;
     } catch (err) {
-      console.error('Error saving API key:', err);
+      // console.error('Error saving API key:', err);
       toast.error('Failed to save API key');
       return false;
     } finally {
@@ -716,7 +734,7 @@ export const AppProvider = ({ children }) => {
       setIsLoading(true);
       return await socketService.getApiKeys(user.LOGIN);
     } catch (err) {
-      console.error('Error loading API keys:', err);
+      // console.error('Error loading API keys:', err);
       return [];
     } finally {
       setIsLoading(false);
@@ -788,7 +806,10 @@ export const AppProvider = ({ children }) => {
     updateAgentBehavior,
     markMessagesAsRead,
     deleteConversation,
-    saveApiKey
+    saveApiKey,
+    lastDataUpdate,
+    forceDataUpdate,
+    lastLoginTimestamp
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

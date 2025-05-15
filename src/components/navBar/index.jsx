@@ -36,16 +36,18 @@ function NavBar() {
                     <li className={styles.navItem} onClick={() => scrollToSection("contato")}>Contato</li>
                 </ul>
 
-               
-            </div>
-            
-                <button className={styles.buttonLogin}  onClick={() => navigate('/login')}>Login</button>
-            <div className={styles.containerButton} >
-               
-                <button className={styles.button} onClick={() => setShowModal(true)}>EXPERIMENTE GRÁTIS</button>
-                {showModal && <AuthModal onClose={() => setShowModal(false)} />}
-            </div>
 
+            </div>
+            <div className={styles.containerbuttons}>
+                <div className={styles.containerbuttonLogin}>
+                    <button className={styles.buttonLogin} onClick={() => navigate('/login')}>Login</button>
+                </div>
+                <div className={styles.containerButton} >
+
+                    <button className={styles.button} onClick={() => navigate('/registro')}>EXPERIMENTE GRÁTIS</button>
+                    {/* {showModal && <AuthModal onClose={() => setShowModal(false)} />} */}
+                </div>
+            </div>
             <div className={styles.hamburger} onClick={toggleMenu}>
                 <div className={styles.bar}></div>
                 <div className={styles.bar}></div>

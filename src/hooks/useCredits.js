@@ -4,18 +4,15 @@ import { useApp } from '../context/AppContext';
 import { Criptografar, Descriptografar } from '../Cripto';
 
 export const useCredits = () => {
-
   const [messageUsage, setMessageUsage] = useState({ atual: 0, limite: 1 });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   
-
   const messageUsageRef = useRef({ atual: 0, limite: 1 });
   
   // Obtenha o contexto da aplicação
-  const { user, socketConnected } = useApp();
-  
+  const { user, socketConnected, lastLoginTimestamp } = useApp();
   
   const fetchMessages = () => {
     if (!user || !socketConnected) return;
@@ -86,13 +83,10 @@ export const useCredits = () => {
   
   // Efeito para inicializar e atualizar os dados periodicamente
   useEffect(() => {
-    
     if (user && socketConnected) {
       console.log('Iniciando busca de dados de mensagens');
       
-     
       fetchMessages();
-      
       
       const interval = setInterval(() => {
         // Só buscar novamente se não estiver já carregando
@@ -108,6 +102,14 @@ export const useCredits = () => {
       };
     }
   }, [user, socketConnected]);
+  
+  // Efeito especial que reage ao login recente
+  useEffect(() => {
+    if (lastLoginTimestamp && user && socketConnected) {
+      console.log('Login recente detectado, atualizando créditos imediatamente');
+      fetchMessages();
+    }
+  }, [lastLoginTimestamp, user, socketConnected]);
   
   // Calcular a porcentagem de uso com proteção contra valores inválidos
   const getUsagePercentage = () => {

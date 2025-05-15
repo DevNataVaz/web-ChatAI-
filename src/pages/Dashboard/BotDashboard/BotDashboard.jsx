@@ -7,6 +7,7 @@ import BotDetail from '../Components/BotDetail/BotDetail.jsx';
 import { socketService } from '../../../services/socketService.js';
 import { Criptografar, Descriptografar } from '../../../Cripto/index.jsx';
 import { toast } from 'react-toastify';
+import LoadingScreen from '../../../components/loading/LoadingScreen.jsx'
 
 // Bot platform icons
 import { FaWhatsapp, FaInstagram, FaRobot } from 'react-icons/fa';
@@ -224,7 +225,7 @@ export default function BotDashboard() {
 
       fetchBots().finally(() => {
         const elapsed = Date.now() - startTime;
-        const minDelay = 3500; 
+        const minDelay = 10500; 
         const remaining = minDelay - elapsed;
 
         if (remaining > 0) {

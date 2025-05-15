@@ -53,7 +53,8 @@ export default function LoginPage() {
       console.log('Sending loginData:', loginData);
 
       const { socketService } = await import('../../services/socketService');
-      const rawResponse = await socketService.requestData('Login', 'ResponseLog', loginData);
+      const loginDataString = JSON.stringify(loginData);
+      const rawResponse = await socketService.requestData('Login', 'ResponseLog', loginDataString);
       console.log('Raw response received (type ' + typeof rawResponse + '):', rawResponse);
 
       // Tenta descriptografar, mas trata casos onde rawResponse já é JSON/objeto
@@ -87,7 +88,10 @@ export default function LoginPage() {
           await loadInitialData(userData.LOGIN);
         }
         
-        toast.success('Login realizado com sucesso!');
+      toast.success("Login realizado com sucesso!", {
+        autoClose: 3000,
+        toastId: "login-success",
+      });
         navigate('/dashboard');
       } else {
         toast.error('Credenciais inválidas. Verifique seus dados.');
