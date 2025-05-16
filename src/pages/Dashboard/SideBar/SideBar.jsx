@@ -1,13 +1,14 @@
-// SideBar/SideBar.js
 import React, { useState } from 'react';
 import styles from './Sidebar.module.css';
 import { useApp } from '../../../context/AppContext';
 import { useCredits } from '../../../hooks/useCredits';
 import CreateAgentModal from '../Components/CreateAgenteModal/CreateAgenteModal';
 import { socketService } from '../../../services/socketService';
+import Logo from '../../../assets/logo-Aa.png';
 
 export default function Sidebar({ activeView, setContentView }) {
-  const [activeNav, setActiveNav] = useState('agentes');
+  // Definindo "metricas" como a navegação inicial ativa
+  const [activeNav, setActiveNav] = useState('metricas');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const { agents, currentAgent, selectAgent, user, logout } = useApp();
   const credits = useCredits();
@@ -34,7 +35,7 @@ export default function Sidebar({ activeView, setContentView }) {
 
   const handleGatilhoClick = () => {
     setActiveNav('gatilhos');
-    setContentView('gatilhos');
+    setContentView('gatilho');
   };
 
   const handleLeadsClick = () => {
@@ -44,7 +45,7 @@ export default function Sidebar({ activeView, setContentView }) {
 
   const handleMetricsClick = () => {
     setActiveNav('metricas');
-    setContentView('metrics');
+    setContentView('metricas'); // Corrigindo para 'metricas' em vez de 'metrics'
   };
 
   const handleProductsClick = () => {
@@ -80,13 +81,9 @@ export default function Sidebar({ activeView, setContentView }) {
         <div className={styles.logoContainer}>
           <div className={styles.logo}>
             <span className={styles.logoIcon}>
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#8A63FF" />
-                <path d="M2 17L12 22L22 17" stroke="#8A63FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M2 12L12 17L22 12" stroke="#8A63FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <img src={Logo} alt="logo" />
             </span>
-            <span>AnimusIA</span>
+            <span className={styles.logoName}>Animus Chat Pro</span>
           </div>
         </div>
 
@@ -197,7 +194,7 @@ export default function Sidebar({ activeView, setContentView }) {
             <span className={styles.navTitle}>Financeiro</span>
             <ul>
               <li
-                className={activeNav === 'gatilho' ? styles.active : ''}
+                className={activeNav === 'balanco' ? styles.active : ''}
                 onClick={handleBalancoClick}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

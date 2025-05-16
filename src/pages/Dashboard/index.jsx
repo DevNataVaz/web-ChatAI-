@@ -1,4 +1,3 @@
-// Dashboard.jsx
 import React, { useState, useEffect } from "react";
 import Sidebar from './SideBar/SideBar';
 import Header from './Header/Header';
@@ -25,8 +24,9 @@ import GatilhoPainel from "./Components/BalancePanel/BalancePanel";
 import PagamentoHistorico from "./Components/HistoricoPagamento/PagamentoHistorico";
 // Componente interno que usa o contexto
 function DashboardContent() {
+  // Definindo "metricas" como a visualização inicial
   const [activeTab, setActiveTab] = useState('configuracoes');
-  const [activeView, setActiveView] = useState(null);
+  const [activeView, setActiveView] = useState('metricas');
   const [showCreateAgent, setShowCreateAgent] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   
@@ -62,7 +62,7 @@ function DashboardContent() {
     if (activeView) {
       switch (activeView) {
         case 'agents':
-          return <BotDashboard activeTab={activeTab} contentView={activeView} />
+          return <BotDashboard  />
           // return <AgentsPanel onCreateAgent={() => setShowCreateAgent(true)} />;
         case 'gatilho':
           return <GatilhoPainel />;
@@ -70,14 +70,14 @@ function DashboardContent() {
             return (
               <ConversationsPanel />
             );
-        case 'metrics':
-          return <MetricsPanel />;
+        case 'metricas':
+          return <MetricsPanel activeTab={activeTab} contentView={activeView} />;
         case 'balanco':
           return <PagamentoHistorico />;
         case 'products':
           return <ProductsPanel />;
         default:
-          return <BotDashboard activeTab={activeTab} contentView={activeView} />;
+          return <BotDashboard/>;
       }
     }
     
@@ -113,7 +113,7 @@ function DashboardContent() {
             onSuccess={() => {
               setShowCreateAgent(false);
               // Atualizar dados se estiver visualizando agentes
-              if (activeView === 'agents') {
+              if (activeView === 'metricas') {
                 // Trigger agentes refresh
               }
             }}

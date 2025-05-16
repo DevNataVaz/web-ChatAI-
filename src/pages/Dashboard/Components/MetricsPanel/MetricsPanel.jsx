@@ -381,12 +381,11 @@ const MetricsPanel = ({ metrics, user }) => {
     <div style={{
       height: '1550%',
       padding: 0,
-      backgroundColor: COLORS.background,
+      backgroundColor: "#0a0c1b",
       borderRadius: '0.75rem',
       color: COLORS.text,
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-      border: `1px solid ${COLORS.border}`,
       overflow: 'hidden',
     }}>
       {/* Cabeçalho do Dashboard */}
@@ -395,8 +394,8 @@ const MetricsPanel = ({ metrics, user }) => {
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: '1.25rem 1.5rem',
-        borderBottom: `1px solid ${COLORS.border}`,
-        backgroundColor: COLORS.backgroundCard,
+        
+        backgroundColor: "#0a0c1b",
         borderRadius: '0.75rem 0.75rem 0 0',
       }}>
         <div style={{

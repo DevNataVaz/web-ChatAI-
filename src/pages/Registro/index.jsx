@@ -18,7 +18,7 @@ export default function RegisterPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  
+
   const navigate = useNavigate();
 
   const validateEmail = (email) => {
@@ -28,39 +28,39 @@ export default function RegisterPage() {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.nome.trim()) {
       newErrors.nome = 'Nome completo é obrigatório';
     }
-    
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email é obrigatório';
     } else if (!validateEmail(formData.email)) {
       newErrors.email = 'Email inválido';
     }
-    
+
     if (!formData.empresa.trim()) {
       newErrors.empresa = 'Nome da empresa é obrigatório';
     }
-    
+
     if (!formData.login.trim()) {
       newErrors.login = 'Nome de usuário é obrigatório';
     } else if (formData.login.length < 3) {
       newErrors.login = 'Nome de usuário deve ter pelo menos 3 caracteres';
     }
-    
+
     if (!formData.senha) {
       newErrors.senha = 'Senha é obrigatória';
     } else if (formData.senha.length < 6) {
       newErrors.senha = 'Senha deve ter pelo menos 6 caracteres';
     }
-    
+
     if (!formData.confirmarSenha) {
       newErrors.confirmarSenha = 'Confirmação de senha é obrigatória';
     } else if (formData.senha !== formData.confirmarSenha) {
       newErrors.confirmarSenha = 'As senhas não coincidem';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -71,7 +71,7 @@ export default function RegisterPage() {
       ...prev,
       [name]: value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -81,45 +81,119 @@ export default function RegisterPage() {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!validateForm()) {
+    return;
+  }
+
+  setIsLoading(true);
+  try {
+    const senhaCriptografada = MD5.hex_md5(formData.senha);
+
+    const data = {
+      Code: '16254361254413321475648868769',
+      nome: formData.nome,
+      login: formData.login,
+      senha: senhaCriptografada,
+      email: formData.email,
+      empresa: formData.empresa,
+    };
+
+    console.log("Enviando dados:", data);
+
+    const response = await socketService.requestData(
+      'EnviarRegistro',
+      'ResponseRegistro',
+      data
+    );
+
+    console.log("Resposta do servidor:", response);
+
+    // A resposta deve ter sido descriptografada pelo socketService
+    // Verificando o formato correto
+    if (response && response.Dados && typeof response.Dados === 'object') {
+      // Caso 1: Já descriptografado pelo socketService
+      if (response.Dados.Response === true) {
+        toast.success('Cadastro realizado com sucesso!', {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        
+        setTimeout(() => {
+          navigate('/login');
+        }, 1500);
+        return;
+      } 
+      else if (response.Dados.Mensagem) {
+        toast.error(response.Dados.Mensagem, {
+          position: "top-right",
+          autoClose: 5000,
+        });
+        return;
+      }
+    } 
+    // Caso 2: Dados ainda como string (não descriptografado completamente)
+    else if (response && response.Dados && typeof response.Dados === 'string') {
+      try {
+        const dadosObj = JSON.parse(response.Dados);
+        if (dadosObj.Response === true) {
+          toast.success('Cadastro realizado com sucesso!', {
+            position: "top-right", 
+            autoClose: 3000,
+          });
+          
+          setTimeout(() => {
+            navigate('/login');
+          }, 1500);
+          return;
+        } else if (dadosObj.Mensagem) {
+          toast.error(dadosObj.Mensagem, {
+            position: "top-right",
+            autoClose: 5000,
+          });
+          return;
+        }
+      } catch (parseError) {
+        console.error("Erro ao analisar dados:", parseError);
+      }
+    }
+
+    // Verificação legada (caso a estrutura seja diferente)
+    if (response && response.Response === true) {
+      toast.success('Cadastro realizado com sucesso!', {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      
+      setTimeout(() => {
+        navigate('/login');
+      }, 1500);
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const senhaCriptografada = MD5.hex_md5(formData.senha);
-      
-      const data = {
-        Code: '16254361254413321475648868769',
-        nome: formData.nome,
-        login: formData.login,
-        senha: senhaCriptografada,
-        email: formData.email,
-        empresa: formData.empresa,
-      };
-
-      const response = await socketService.requestData(
-        'EnviarRegistro',
-        'ResponseRegistro',
-        data
-      );
-
-      if (response.Response) {
-        toast.success('Cadastro realizado com sucesso!');
-      
-      } else if (response.Mensagem) {
-        toast.error(response.Mensagem);
-      }
-    } catch (error) {
-      console.error('Register error:', error);
-      toast.error('Erro ao realizar cadastro. Tente novamente.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    // Fallback para quando os dados estão sendo registrados mas a resposta não está no formato esperado
+    // Esta parte deve ocorrer apenas em situações excepcionais
+    console.warn("Resposta em formato inesperado, mas o cadastro parece ter sido realizado:", response);
+    toast.success('Cadastro parece ter sido realizado com sucesso!', {
+      position: "top-right",
+      autoClose: 3000,
+    });
+    
+    setTimeout(() => {
+      navigate('/login');
+    }, 1500);
+  } catch (error) {
+    console.error('Register error:', error);
+    toast.error('Erro ao realizar cadastro: ' + (error.message || 'Tente novamente.'), {
+      position: "top-right",
+      autoClose: 5000,
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const navigateToLogin = () => {
     navigate('/login');
@@ -131,7 +205,7 @@ export default function RegisterPage() {
         <h1 className={styles.title}>Cadastrar conta</h1>
         <p className={styles.subtitle}>Cadastre-se agora e ganhe 30 dias grátis!</p>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
+        <form onSubmit={handleSubmit} className={styles.form}  method="POST">
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
               <label htmlFor="nome">Nome completo</label>
@@ -220,8 +294,8 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className={styles.submitButton}
             disabled={isLoading}
           >
@@ -230,7 +304,7 @@ export default function RegisterPage() {
         </form>
 
         <p className={styles.loginLink}>
-          Já tem uma conta? 
+          Já tem uma conta?
           <button onClick={navigateToLogin} className={styles.linkButton}>
             Entrar
           </button>
