@@ -1,302 +1,370 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import styles from './Assinatura.module.css';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApp } from '../../../context/AppContext';
+import PaymentModal from './Pagamento/Pagamento';
+import styles from './Assinatura.module.css';
+import { toast } from 'react-toastify';
+import { 
+  FiCalendar, 
+  FiMessageSquare, 
+  FiTrendingUp, 
+  FiCheckCircle,
+  FiAlertCircle,
+  FiClock,
+  FiRefreshCw,
+  FiArrowUp
+} from 'react-icons/fi';
 
-function Assinatura() {
-  const { 
-    user, 
-    assinatura, 
-    isLoading, 
-    error, 
-    socketConnected,
-    loadSubscription 
+const Subscription = () => {
+  const {
+    user,
+    socketService,
+    socketConnected
   } = useApp();
-  
-  const [localError, setLocalError] = useState(null);
-  const navigate = useNavigate();
 
-  // Função para atualizar informações da assinatura
-  const refreshSubscriptionInfo = () => {
-    if (!user || !user.LOGIN) return;
-    
-    // Verifica se o socket está conectado
-    if (!socketConnected) {
-      setLocalError("Aguardando conexão com o servidor...");
-      // Tentar novamente em 2 segundos se não estiver conectado
-      const timer = setTimeout(() => refreshSubscriptionInfo(), 2000);
-      return () => clearTimeout(timer);
-    }
-    
-    // Carrega informações da assinatura
+  // Estados principais
+  const [faturaData, setFaturaData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentData, setPaymentData] = useState(null);
+
+  // Buscar dados da fatura (baseado no componente mobile)
+  const buscarFatura = useCallback(async () => {
+    if (!user?.LOGIN || !socketConnected || loading) return;
+
+    setLoading(true);
     try {
-      loadSubscription(user.LOGIN);
-    } catch (err) {
-      setLocalError("Não foi possível carregar informações da assinatura");
-      console.error("Erro ao carregar assinatura:", err);
-    }
-  };
-
-  useEffect(() => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-
-    // Buscar informações atualizadas da assinatura
-    refreshSubscriptionInfo();
-    
-    // Configurar um intervalo para atualizar periodicamente
-    const refreshInterval = setInterval(() => {
-      refreshSubscriptionInfo();
-    }, 60000); // Atualiza a cada minuto
-    
-    return () => clearInterval(refreshInterval);
-  }, [user, navigate, socketConnected]);
-
-  // Resetar erro local quando o erro global mudar
-  useEffect(() => {
-    if (error) {
-      setLocalError(error);
-    }
-  }, [error]);
-
-  // Reset local error when socket connects
-  useEffect(() => {
-    if (socketConnected && localError === "Aguardando conexão com o servidor...") {
-      setLocalError(null);
-      refreshSubscriptionInfo();
-    }
-  }, [socketConnected, localError]);
-
-  const getStatusColor = (status) => {
-    if (!status) return '#aaa';
-    
-    switch (status.toLowerCase()) {
-      case 'ativo':
-        return '#4CAF50';
-      case 'desativado':
-      case 'inativo':
-        return '#ff4444';
-      case 'pendente':
-        return '#FFA500';
-      default:
-        return '#aaa';
-    }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Data não disponível';
-    
-    try {
-      return new Date(dateString).toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      });
+      const response = await socketService.getFaturas(user.LOGIN);
+      
+      if (response?.Dados) {
+        const dados = JSON.parse(response.Dados);
+        
+        // Estrutura similar ao mobile
+        const faturaFormatada = {
+          id: '1',
+          nome_plano: dados.NOME_PLANO,
+          status: dados.STATUS,
+          valor: parseFloat(dados.VALOR),
+          vencimento: dados.VENCIMENTO,
+          frequencia: dados.FREQUENCIA,
+          id_assinatura: dados.ID_ASSINATURA,
+          data: dados.DATA,
+          limite_mensagem: dados.LIMITE_MENSAGEM,
+          atual_mensagens: dados.ATUAL_MENSAGENS
+        };
+        
+        setFaturaData(faturaFormatada);
+      }
     } catch (error) {
-      console.error('Erro ao formatar data:', error);
-      return 'Data inválida';
+      console.error('Erro ao buscar fatura:', error);
+      toast.error('Erro ao carregar dados da assinatura');
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [user?.LOGIN, socketConnected, loading, socketService]);
 
-  const handlePagarFatura = () => {
-    if (assinatura) {
-      // Redireciona para pagamento da fatura com ID da assinatura
-      navigate(`/pagamento/1`, {
-        state: {
-          assinaturaId: assinatura.ID_ASSINATURA,
-          valor: assinatura.VALOR,
-          tipo: 'FATURA'
-        }
-      });
+  // Calcular dias restantes
+  const calcularDiasRestantes = useCallback((vencimento) => {
+    if (!vencimento) return 0;
+    
+    const hoje = new Date();
+    const dataVencimento = new Date(vencimento);
+    const diffTime = dataVencimento - hoje;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return Math.max(0, diffDays);
+  }, []);
+
+  // Calcular progresso das mensagens
+  const calcularProgressoMensagens = useCallback(() => {
+    if (!faturaData) return { usadas: 0, total: 1, restantes: 0, percentual: 0 };
+    
+    const usadas = faturaData.atual_mensagens || 0;
+    const total = faturaData.limite_mensagem || 1;
+    const restantes = Math.max(0, total - usadas);
+    const percentual = Math.min(100, Math.round((usadas / total) * 100));
+    
+    return { usadas, total, restantes, percentual };
+  }, [faturaData]);
+
+  // Formatar data para exibição
+  const formatarData = useCallback((data) => {
+    if (!data) return 'N/A';
+    return new Date(data).toLocaleDateString('pt-BR');
+  }, []);
+
+  // Handle upgrade
+  const handleUpgrade = useCallback(() => {
+    if (!faturaData) return;
+    
+    // Definir dados do upgrade baseado no plano atual
+    let upgradeData = null;
+    
+    if (faturaData.nome_plano === 'Starter') {
+      upgradeData = {
+        produto: 'Professional',
+        valor: 49.90,
+        assunto: 'PLANO',
+        assinatura: faturaData.id_assinatura,
+        description: 'Upgrade para Professional'
+      };
+    } else if (faturaData.nome_plano === 'Professional') {
+      upgradeData = {
+        produto: 'Enterprise',
+        valor: 99.90,
+        assunto: 'PLANO',
+        assinatura: faturaData.id_assinatura,
+        description: 'Upgrade para Enterprise'
+      };
     }
-  };
+    
+    if (upgradeData) {
+      setPaymentData(upgradeData);
+      setShowPaymentModal(true);
+    } else {
+      toast.info('Você já possui o plano mais avançado!');
+    }
+  }, [faturaData]);
 
-  const handleAtualizar = () => {
-    navigate('/planos');
-  };
+  // Handle pagamento bem-sucedido
+  const handlePaymentSuccess = useCallback(async () => {
+    toast.success('Upgrade realizado com sucesso!');
+    setShowPaymentModal(false);
+    setPaymentData(null);
+    
+    // Recarregar dados
+    setTimeout(() => {
+      buscarFatura();
+    }, 2000);
+  }, [buscarFatura]);
 
-  const handleTentarNovamente = () => {
-    setLocalError(null);
-    refreshSubscriptionInfo();
-  };
+  // Carregar dados quando componente montar
+  useEffect(() => {
+    if (user?.LOGIN && socketConnected) {
+      buscarFatura();
+    }
+  }, [user?.LOGIN, socketConnected]);
 
-  // Renderiza estado de carregamento
-  if (isLoading && !assinatura) {
+  // Auto-refresh a cada 30 segundos (como no mobile)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (user?.LOGIN && socketConnected && !loading) {
+        buscarFatura();
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [user?.LOGIN, socketConnected, loading, buscarFatura]);
+
+  if (!user?.LOGIN) {
     return (
       <div className={styles.container}>
-        <div className={styles.loadingContainer}>
-          <div className={styles.spinner}></div>
-          <p className={styles.loadingText}>Carregando informações da assinatura...</p>
+        <div className={styles.emptyState}>
+          <FiAlertCircle size={48} />
+          <h3>Faça login para ver sua assinatura</h3>
+          <p>Você precisa estar logado para acessar esta página</p>
         </div>
       </div>
     );
   }
 
-  // Renderiza erro
-  if (localError && !assinatura) {
+  if (!socketConnected) {
     return (
       <div className={styles.container}>
-        <div className={styles.errorContainer}>
-          <div className={styles.errorIcon}>⚠️</div>
-          <h2>Erro ao carregar assinatura</h2>
-          <p>{localError}</p>
-          <button 
-            onClick={handleTentarNovamente}
-            className={styles.retryButton}
-          >
-            Tentar novamente
-          </button>
+        <div className={styles.emptyState}>
+          <FiRefreshCw size={48} className={styles.spinning} />
+          <h3>Conectando ao servidor...</h3>
+          <p>Aguarde enquanto estabelecemos a conexão</p>
         </div>
       </div>
     );
   }
 
-  // Renderiza quando não há assinatura
-  if (!assinatura) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.noAssinaturaContainer}>
-          <h2>Você não possui uma assinatura ativa</h2>
-          <p>Escolha um plano para começar a usar nossa plataforma.</p>
-          <button 
-            onClick={handleAtualizar}
-            className={styles.escolherPlanoButton}
-          >
-            Ver planos disponíveis
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const progressoMensagens = calcularProgressoMensagens();
+  const diasRestantes = calcularDiasRestantes(faturaData?.vencimento);
 
   return (
     <div className={styles.container}>
-      <div className={styles.assinaturaContainer}>
-        <h1>Minha Assinatura</h1>
-        
-        {localError && (
-          <div className={styles.alertError}>
-            <p>{localError}</p>
-            <button onClick={handleTentarNovamente}>Tentar Novamente</button>
-          </div>
-        )}
-        
-        {assinatura && (
-          <div className={styles.assinaturaCard}>
-            <div className={styles.assinaturaHeader}>
-              <h2>Plano {assinatura.NOME_PLANO || 'Padrão'}</h2>
-              <span 
-                className={styles.status}
-                style={{ 
-                  color: getStatusColor(assinatura.STATUS),
-                  backgroundColor: `${getStatusColor(assinatura.STATUS)}20` 
-                }}
-              >
-                {assinatura.STATUS ? assinatura.STATUS.toUpperCase() : 'STATUS DESCONHECIDO'}
-              </span>
-            </div>
-
-            <div className={styles.assinaturaInfo}>
-              <div className={styles.infoItem}>
-                <label>Valor Mensal:</label>
-                <p>R$ {assinatura.VALOR || '0,00'}</p>
-              </div>
-
-              <div className={styles.infoItem}>
-                <label>Data de Vencimento:</label>
-                <p>{formatDate(assinatura.VENCIMENTO)}</p>
-              </div>
-
-              {isLoading && (
-                <div className={styles.refreshIndicator}>
-                  <small>Atualizando informações...</small>
-                </div>
-              )}
-
-              <div className={styles.infoItem}>
-                <label>Mensagens Disponíveis:</label>
-                <p>
-                  {assinatura.ATUAL_MENSAGENS || 0} / {assinatura.LIMITE_MENSAGEM || 0}
-                </p>
-              </div>
-
-              <div className={styles.progressBar}>
-                <div 
-                  className={styles.progressFill}
-                  style={{ 
-                    width: `${assinatura.LIMITE_MENSAGEM ? (assinatura.ATUAL_MENSAGENS / assinatura.LIMITE_MENSAGEM) * 100 : 0}%`,
-                    backgroundColor: assinatura.ATUAL_MENSAGENS > assinatura.LIMITE_MENSAGEM * 0.8 ? '#ff4444' : '#4CAF50'
-                  }}
-                ></div>
-              </div>
-              
-              {assinatura.ATUAL_MENSAGENS > assinatura.LIMITE_MENSAGEM * 0.8 && (
-                <div className={styles.limitWarning}>
-                  <p>Você está se aproximando do limite de mensagens!</p>
-                </div>
-              )}
-            </div>
-
-            <div className={styles.acoes}>
-              {(assinatura.STATUS === 'desativado' || assinatura.STATUS === 'inativo') && (
-                <button 
-                  onClick={handlePagarFatura}
-                  className={styles.pagarButton}
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Processando...' : 'Pagar Fatura'}
-                </button>
-              )}
-              
-              <button 
-                onClick={handleAtualizar}
-                className={styles.atualizarButton}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Processando...' : 'Atualizar Plano'}
-              </button>
-              
-              <button 
-                onClick={refreshSubscriptionInfo}
-                className={styles.refreshButton}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Atualizando...' : 'Atualizar Dados'}
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className={styles.historicoSection}>
-          <h2>Histórico de Pagamentos</h2>
-          
-          <div className={styles.historicoEmpty}>
-            <p>Histórico de pagamentos não disponível no momento.</p>
-          </div>
-          
-        
-          <div className={styles.historicoTable}>
-            <table>
-              <thead>
-                <tr>
-                  <th>Data</th>
-                  <th>Valor</th>
-                  <th>Status</th>
-                  <th>Método</th>
-                </tr>
-              </thead>
-              <tbody>
-                {/* Dados de histórico viriam aqui */}
-              </tbody>
-            </table>
-          </div>
-          
+      {/* Header */}
+      <div className={styles.header}>
+        <div className={styles.headerContent}>
+          <h1>Minha Assinatura</h1>
+          <p>Atualize suas informações de plano de maneira fácil e ágil</p>
         </div>
+        <button 
+          className={styles.refreshButton}
+          onClick={buscarFatura}
+          disabled={loading}
+        >
+          <FiRefreshCw className={loading ? styles.spinning : ''} />
+          {loading ? 'Carregando...' : 'Atualizar'}
+        </button>
       </div>
+
+      {/* Card Principal da Assinatura */}
+      <div className={styles.subscriptionCard}>
+        {faturaData ? (
+          <>
+            {/* Indicador de Status */}
+            <div className={`${styles.statusBar} ${faturaData.status === 'ativo' ? styles.active : styles.inactive}`} />
+            
+            <div className={styles.cardContent}>
+              {/* Informações principais */}
+              <div className={styles.planHeader}>
+                <div className={styles.planInfo}>
+                  <h2>{faturaData.nome_plano}</h2>
+                  <div className={styles.planPrice}>
+                    R$ {faturaData.valor?.toFixed(2)}
+                    <span>/{faturaData.frequencia === '1' ? 'mês' : 'ano'}</span>
+                  </div>
+                </div>
+                
+                <div className={styles.statusIndicator}>
+                  {faturaData.status === 'ativo' ? (
+                    <FiCheckCircle className={styles.iconActive} />
+                  ) : (
+                    <FiAlertCircle className={styles.iconInactive} />
+                  )}
+                  <span className={faturaData.status === 'ativo' ? styles.textActive : styles.textInactive}>
+                    {faturaData.status}
+                  </span>
+                </div>
+              </div>
+
+              {/* Detalhes da assinatura */}
+              <div className={styles.subscriptionDetails}>
+                <div className={styles.detailItem}>
+                  <FiCalendar className={styles.detailIcon} />
+                  <div className={styles.detailContent}>
+                    <span className={styles.detailLabel}>Vencimento</span>
+                    <span className={styles.detailValue}>
+                      {formatarData(faturaData.vencimento)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className={styles.detailItem}>
+                  <FiClock className={styles.detailIcon} />
+                  <div className={styles.detailContent}>
+                    <span className={styles.detailLabel}>Dias restantes</span>
+                    <span className={styles.detailValue}>
+                      {diasRestantes} {diasRestantes === 1 ? 'dia' : 'dias'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Progresso das mensagens */}
+              <div className={styles.messagesSection}>
+                <div className={styles.messagesHeader}>
+                  <FiMessageSquare className={styles.messagesIcon} />
+                  <span className={styles.messagesTitle}>
+                    {progressoMensagens.usadas.toLocaleString()} Mensagens utilizadas
+                  </span>
+                </div>
+                
+                <div className={styles.progressContainer}>
+                  <div className={styles.progressBar}>
+                    <div 
+                      className={styles.progressFill}
+                      style={{ width: `${progressoMensagens.percentual}%` }}
+                    />
+                  </div>
+                  <div className={styles.progressInfo}>
+                    <span className={styles.progressText}>
+                      {progressoMensagens.restantes.toLocaleString()} restantes de {progressoMensagens.total.toLocaleString()}
+                    </span>
+                    <span className={styles.progressPercent}>
+                      {progressoMensagens.percentual}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ações */}
+              <div className={styles.actions}>
+                {faturaData.nome_plano !== 'Enterprise' && faturaData.status === 'ativo' && (
+                  <button 
+                    className={styles.upgradeButton}
+                    onClick={handleUpgrade}
+                    disabled={loading}
+                  >
+                    <FiTrendingUp />
+                    Fazer Upgrade
+                  </button>
+                )}
+                
+                {faturaData.status !== 'ativo' && (
+                  <button 
+                    className={styles.reactivateButton}
+                    onClick={() => toast.info('Entre em contato para reativar sua assinatura')}
+                  >
+                    <FiArrowUp />
+                    Reativar Plano
+                  </button>
+                )}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className={styles.loadingCard}>
+            <FiRefreshCw size={32} className={styles.spinning} />
+            <h3>Carregando informações...</h3>
+            <p>Buscando dados da sua assinatura</p>
+          </div>
+        )}
+      </div>
+
+      {/* Informações adicionais */}
+      {faturaData && (
+        <div className={styles.additionalInfo}>
+          <div className={styles.infoCard}>
+            <h3>Benefícios do seu plano</h3>
+            <ul className={styles.benefitsList}>
+              <li><FiCheckCircle /> {faturaData.limite_mensagem?.toLocaleString()} mensagens por mês</li>
+              <li><FiCheckCircle /> Suporte técnico especializado</li>
+              <li><FiCheckCircle /> Relatórios detalhados de uso</li>
+              <li><FiCheckCircle /> API de integração</li>
+              {faturaData.nome_plano !== 'Starter' && (
+                <>
+                  <li><FiCheckCircle /> Suporte prioritário</li>
+                  <li><FiCheckCircle /> Recursos avançados</li>
+                </>
+              )}
+            </ul>
+          </div>
+          
+          {diasRestantes < 7 && faturaData.status === 'ativo' && (
+            <div className={styles.warningCard}>
+              <FiAlertCircle />
+              <div>
+                <h4>Atenção: Renovação próxima</h4>
+                <p>Sua assinatura vence em {diasRestantes} {diasRestantes === 1 ? 'dia' : 'dias'}. 
+                   Certifique-se de que há saldo suficiente para renovação automática.</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Loading Overlay */}
+      {loading && (
+        <div className={styles.loadingOverlay}>
+          <div className={styles.spinner} />
+        </div>
+      )}
+
+      {/* Modal de Pagamento */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => {
+          setShowPaymentModal(false);
+          setPaymentData(null);
+        }}
+        paymentData={paymentData}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
     </div>
   );
-}
+};
 
-export default Assinatura;
+export default Subscription;

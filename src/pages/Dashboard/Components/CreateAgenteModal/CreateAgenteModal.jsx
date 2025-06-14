@@ -182,7 +182,7 @@ export default function CreateAgentModal({ socketService, onClose, onSuccess }) 
       }, 5000);
       
     } catch (error) {
-      console.error('Erro ao criar agente:', error);
+      // console.error('Erro ao criar agente:', error);
       alert('Erro ao criar agente');
       setLoading(false);
     }

@@ -1,4 +1,3 @@
-// components/ConversationsPanel/ConversationsPanel.jsx
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useApp } from '../../../../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,18 +18,23 @@ import {
   ChevronLeft,
   Filter,
   MoreVertical,
-  AlertCircle
+  AlertCircle,
+  ChevronDown,
+  CheckCheck,
+  Check,
+  Play,
+  Pause
 } from 'lucide-react';
 
-
+// Loading Panel Component
 const LoadingPanel = () => (
   <div className={styles.loadingPanel}>
     <div className={styles.loadingSpinner}></div>
-    <p>Carregando...</p>
+    <p>Carregando conversas...</p>
   </div>
 );
 
-
+// Empty State Component
 const EmptyState = ({ title, description, icon }) => (
   <div className={styles.emptyState}>
     {icon}
@@ -39,22 +43,17 @@ const EmptyState = ({ title, description, icon }) => (
   </div>
 );
 
-
+// Time Formatting Functions
 const formatTime = (dateStr, timeStr) => {
   if (!dateStr || !timeStr) return '';
 
   try {
-    // Assume que dateStr está no formato YYYY-MM-DD e timeStr no formato HH:MM:SS
     const [hours, minutes] = timeStr.split(':');
-
-    // Retorna hora formatada sem criar objeto Date completo
     return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
   } catch (error) {
-    console.log("Erro ao formatar hora:", error, "Para os valores:", { dateStr, timeStr });
     return 'Hora inválida';
   }
 };
-
 
 const formatDate = (dateStr, timeStr) => {
   if (!dateStr || !timeStr) return '';
@@ -65,11 +64,18 @@ const formatDate = (dateStr, timeStr) => {
     return `Hoje ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   }
 
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (date.toDateString() === yesterday.toDateString()) {
+    return `Ontem ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  }
+
   return date.toLocaleDateString([], { day: '2-digit', month: '2-digit' }) +
     ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
-
+// Validation Functions
 const isValidDate = (dateString) => {
   const regex = /^\d{4}-\d{2}-\d{2}$/;
   return dateString && regex.test(dateString);
@@ -80,14 +86,54 @@ const isValidTime = (timeString) => {
   return timeString && regex.test(timeString);
 };
 
-
 const formatDateString = (dateTimeString) => {
   if (!dateTimeString) return '';
   const [date] = dateTimeString.split('T');
   return date;
 };
 
+// Group messages by sender and time proximity to improve chat UI
+const groupMessages = (messages) => {
+  if (!messages || messages.length === 0) return [];
 
+  const groups = [];
+  let currentGroup = [messages[0]];
+
+  for (let i = 1; i < messages.length; i++) {
+    const currentMessage = messages[i];
+    const previousMessage = messages[i - 1];
+
+    // Group messages from the same sender that are less than 5 minutes apart
+    if (
+      currentMessage.SEQUENCIA === previousMessage.SEQUENCIA &&
+      isSameTimeWindow(previousMessage.DATA, previousMessage.HORA, currentMessage.DATA, currentMessage.HORA)
+    ) {
+      currentGroup.push(currentMessage);
+    } else {
+      groups.push([...currentGroup]);
+      currentGroup = [currentMessage];
+    }
+  }
+
+  if (currentGroup.length > 0) {
+    groups.push(currentGroup);
+  }
+
+  return groups;
+};
+
+// Check if two messages are within a 5-minute window
+const isSameTimeWindow = (date1, time1, date2, time2) => {
+  const timestamp1 = new Date(`${date1} ${time1}`).getTime();
+  const timestamp2 = new Date(`${date2} ${time2}`).getTime();
+
+  // 5 minutes in milliseconds
+  const fiveMinutes = 5 * 60 * 1000;
+
+  return Math.abs(timestamp2 - timestamp1) < fiveMinutes;
+};
+
+// Organize conversations by priority and timestamp
 const organizeConversations = (array) => {
   if (!array || !Array.isArray(array)) return [];
 
@@ -116,7 +162,7 @@ const organizeConversations = (array) => {
     });
 };
 
-// Componente principal
+// Main Component
 function PainelConversas() {
   const {
     user,
@@ -127,11 +173,10 @@ function PainelConversas() {
     setError
   } = useApp();
 
-  // Acesso direto ao socket e funções de criptografia
+  // Direct access to socket and encryption functions
   const socket = socketService.socket;
 
-
-  // State para dados de conversas
+  // State for conversation data
   const [conversations, setConversations] = useState([]);
   const [filteredConversations, setFilteredConversations] = useState([]);
   const [attendingConversations, setAttendingConversations] = useState([]);
@@ -141,6 +186,7 @@ function PainelConversas() {
   // UI state
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [messageGroups, setMessageGroups] = useState([]); // New state for grouped messages
   const [newMessage, setNewMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -150,28 +196,39 @@ function PainelConversas() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [activeTabFilter, setActiveTabFilter] = useState(1); // 1 = Todos, 2 = Atendimento, etc
   const [hasMorePages, setHasMorePages] = useState(true);
+  const [newMessageNotification, setNewMessageNotification] = useState(false);
+  const [hasImageError, setHasImageError] = useState({}); // Track image loading errors
 
+  // Bot control states - CORRIGIDO: movido para dentro do componente
+  const [dijuntor, setDijuntor] = useState(true); 
+  const [botsStatus, setBotsStatus] = useState({}); 
   // Refs
   const messagesEndRef = useRef(null);
   const messageInputRef = useRef(null);
   const conversationsListRef = useRef(null);
 
   // Scroll to bottom of messages
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = (smooth = true) => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({
+        behavior: smooth ? 'smooth' : 'auto'
+      });
+    }
   };
 
+  // Group messages when they change
+  useEffect(() => {
+    const groups = groupMessages(messages);
+    setMessageGroups(groups);
+  }, [messages]);
+
+  // Fetch conversations from server
   const fetchConversations = useCallback((page = 1) => {
     if (!socket || !user?.LOGIN) {
-      console.error("Não é possível buscar conversas: socket ou usuário indisponível", {
-        socketExists: !!socket,
-        userLogin: user?.LOGIN
-      });
       return;
     }
 
     try {
-      console.log(`Buscando conversas - página ${page} para usuário ${user.LOGIN}`);
       setPagingLoading(true);
 
       // Format exactly like the mobile app
@@ -179,27 +236,518 @@ function PainelConversas() {
         Code: '890878989048965048956089',
         Login: user.LOGIN,
         Page: page.toString(),
-        Limit: '20'
+        Limit: '150'
       };
 
-      console.log("Dados da requisição:", requestData);
-
-      // IMPORTANTE: Use o mesmo formato e métodos do app mobile
+      // Use the same format and methods as the mobile app
       const encryptedData = Criptografar(JSON.stringify(requestData));
 
-      console.log("Dados criptografados, enviando evento 'NovaConversa'...");
-
-      // IMPORTANTE: Use o nome exato do evento como no backend
+      // Use the exact event name as in the backend
       socket.emit('NovaConversa', encryptedData);
 
+      // Set a timeout to prevent infinite loading if no response
+      const timeoutId = setTimeout(() => {
+        setPagingLoading(false);
+      }, 10000);
 
-      // Armazenar o timeout ID para limpar depois
       return () => clearTimeout(timeoutId);
     } catch (error) {
-      console.error('Erro em fetchConversations:', error);
       setPagingLoading(false);
     }
-  }, [user, socket]);
+  }, [user, socket, Criptografar]);
+
+  // Função para atualizar status de bot específico
+  const updateBotStatus = useCallback((protocolo, status) => {
+    setBotsStatus(prev => ({
+      ...prev,
+      [protocolo]: status
+    }));
+  }, []);
+
+ 
+
+  // Simplificar a função fetchMessages para evitar chamadas repetidas
+  const fetchMessages = useCallback((conversation, skipLoadingState = false) => {
+    if (!socket || !conversation) {
+      return;
+    }
+
+    try {
+      // Mostrar loading apenas quando necessário
+      if (!skipLoadingState) {
+        // setLoadingMessages(true);
+      }
+
+      const data = {
+        code: Criptografar('90343263779'),
+        protocolo: Criptografar(conversation.PROTOCOLO_CONVERSA),
+        contador: Criptografar(0)
+      };
+
+      // Emitir evento para buscar mensagens sem configurar listeners aqui
+      socket.emit('RequestMensagens', data);
+
+      // Adicionar timeout para garantir que o loading é removido
+      const timeout = setTimeout(() => {
+        setLoadingMessages(false);
+      }, 5000);
+
+      return () => {
+        clearTimeout(timeout);
+      };
+    } catch (error) {
+      setLoadingMessages(false);
+    }
+  }, [socket, Criptografar]);
+
+  const sendMessage = useCallback(() => {
+    if (!newMessage.trim() || !selectedConversation || !socket || !user) return;
+
+    try {
+      // Criar uma cópia temporária da mensagem antes de enviar
+      const messageText = newMessage.trim();
+      const tempId = `temp-${Date.now()}`;
+      const timestamp = new Date();
+
+      // Limpar o campo de entrada imediatamente para melhor UX
+      setNewMessage('');
+
+      // Adicionar mensagem temporária para feedback visual instantâneo
+      setMessages(prevMessages => {
+        const tempMsg = {
+          ID: tempId,
+          PROTOCOLO_CONVERSA: selectedConversation.PROTOCOLO_CONVERSA,
+          SEQUENCIA: '0', // Mensagem enviada
+          MENSAGEM: messageText,
+          DATA: timestamp.toISOString().split('T')[0],
+          HORA: timestamp.toTimeString().split(' ')[0],
+          LIDA: 'false',
+          _temp: true // Flag para identificar mensagens temporárias
+        };
+
+        return [...prevMessages, tempMsg];
+      });
+
+      // Use the same format as the mobile app
+      const requestData = {
+        Code: '32564436525443565434',
+        Protocolo: selectedConversation.PROTOCOLO_CONVERSA,
+        Mensagem: messageText,
+        Login: user.LOGIN,
+        Bot_Protocolo: selectedConversation.PROTOCOLO_BOT,
+        Plataforma: selectedConversation.PLATAFORMA
+      };
+
+      const encryptedData = Criptografar(JSON.stringify(requestData));
+
+      // Use the event name exactly as in the backend
+      socket.emit('EnviarMensagem', encryptedData);
+
+      // Create a temporary listener for the response
+      const handleSendResponse = (data) => {
+        try {
+          const result = JSON.parse(Descriptografar(data));
+          if (result.Code === '32564436525443565434') {
+            // Substituir a mensagem temporária pela confirmada
+            setMessages(prevMessages => {
+              return prevMessages.map(msg => {
+                if (msg.ID === tempId) {
+                  // Substituir pelos dados reais se disponíveis
+                  if (result.ID) {
+                    return {
+                      ...msg,
+                      ID: result.ID,
+                      _temp: false
+                    };
+                  }
+                  return { ...msg, _temp: false };
+                }
+                return msg;
+              });
+            });
+
+            // Atualizar a prévia da conversa
+            setConversations(prevConversations => {
+              return prevConversations.map(conv => {
+                if (conv.PROTOCOLO_CONVERSA === selectedConversation.PROTOCOLO_CONVERSA) {
+                  return {
+                    ...conv,
+                    ULTIMA_MENSAGEM: messageText
+                  };
+                }
+                return conv;
+              });
+            });
+          } else {
+            fetchMessages(selectedConversation);
+          }
+        } catch (error) {
+          // Em caso de erro, atualizar todas as mensagens para garantir consistência
+          fetchMessages(selectedConversation);
+        }
+
+        // Remove the listener after receiving a response
+        socket.off('ResponseEnviarMensagem', handleSendResponse);
+      };
+
+      socket.on('ResponseEnviarMensagem', handleSendResponse);
+
+      // Timeout para remover o listener se não houver resposta
+      const timeoutId = setTimeout(() => {
+        socket.off('ResponseEnviarMensagem', handleSendResponse);
+      }, 5000);
+
+      return () => {
+        clearTimeout(timeoutId);
+        socket.off('ResponseEnviarMensagem', handleSendResponse);
+      };
+    } catch (error) {
+      return undefined; // Sempre retorna undefined para evitar erros
+    }
+  }, [newMessage, selectedConversation, user, socket, Criptografar, Descriptografar, fetchMessages]);
+
+  // Função aprimorada para marcar mensagens como lidas
+  const markConversationAsRead = useCallback(() => {
+    if (!selectedConversation || !socket || !messages.length) return;
+
+    const unreadMessages = messages.filter(msg => msg.LIDA === 'false' && msg.SEQUENCIA === '1');
+    if (unreadMessages.length === 0) return;
+
+    // Processamento em lote com throttling
+    let processedCount = 0;
+    const batchSize = 5;
+    const messagesQueue = [...unreadMessages];
+
+    const processNextBatch = () => {
+      const batch = messagesQueue.splice(0, batchSize);
+      if (batch.length === 0) return;
+
+      batch.forEach(msg => {
+        try {
+          socket.emit('updateMensagensLida', {
+            Code: Criptografar('56345436545434'),
+            ID: Criptografar(msg.ID)
+          });
+          processedCount++;
+        } catch (error) {
+          // Ignorar erros individuais
+        }
+      });
+
+      // Atualizar estado localmente apenas uma vez no final
+      if (processedCount > 0 && messagesQueue.length === 0) {
+        // Atualizar mensagens
+        setMessages(prevMessages =>
+          prevMessages.map(msg => {
+            if (msg.SEQUENCIA === '1' && msg.LIDA === 'false') {
+              return { ...msg, LIDA: 'true' };
+            }
+            return msg;
+          })
+        );
+
+        // Limpar badge de notificação 
+        if (selectedConversation.NEW_MENSAGEM === 'true') {
+          setConversations(prevConversations => {
+            return prevConversations.map(conv => {
+              if (conv.PROTOCOLO_CONVERSA === selectedConversation.PROTOCOLO_CONVERSA) {
+                return {
+                  ...conv,
+                  NEW_MENSAGEM: 'false',
+                  QUANTIDADE: '0'
+                };
+              }
+              return conv;
+            });
+          });
+        }
+      }
+
+      // Se ainda há mensagens para processar, agendar próximo lote
+      if (messagesQueue.length > 0) {
+        setTimeout(processNextBatch, 300);
+      }
+    };
+
+    // Iniciar processamento em lote
+    processNextBatch();
+
+  }, [selectedConversation, messages, socket, Criptografar]);
+
+
+
+  const updateConversations = useCallback(() => {
+  if (!socket || !user?.LOGIN) return;
+
+  try {
+    const requestData = {
+      Code: '890878989048965048956089',
+      Login: user.LOGIN,
+      Page: '1',
+      Limit: '50' // Limite maior para atualizações
+    };
+
+    const encryptedData = Criptografar(JSON.stringify(requestData));
+    socket.emit('NovaConversa', encryptedData);
+  } catch (error) {
+    // console.error('Erro ao atualizar conversas:', error);
+  }
+}, [user, socket, Criptografar]);
+
+useEffect(() => {
+  if (!socket || !user?.LOGIN) return;
+
+  // Atualizar conversas a cada 3 segundos
+  const intervalId = setInterval(() => {
+    updateConversations();
+  }, 3000);
+
+  return () => clearInterval(intervalId);
+}, [socket, user, updateConversations]);
+
+ const updateConversationWithNewMessage = useCallback((messageData) => {
+  if (!messageData || !messageData.PROTOCOLO_CONVERSA) return;
+
+  const messagePreview = messageData.MENSAGEM || "Nova mensagem";
+
+  setConversations(prevConversations => {
+    const existingIndex = prevConversations.findIndex(
+      conv => conv.PROTOCOLO_CONVERSA === messageData.PROTOCOLO_CONVERSA
+    );
+
+    if (existingIndex === -1) {
+      // Usar nova função de update para conversas novas
+      setTimeout(() => updateConversations(), 500);
+      return prevConversations;
+    }
+
+    const updatedConversations = [...prevConversations];
+    const updatedConversation = {
+      ...updatedConversations[existingIndex],
+      NEW_MENSAGEM: 'true',
+      QUANTIDADE: updatedConversations[existingIndex].QUANTIDADE
+        ? (parseInt(updatedConversations[existingIndex].QUANTIDADE) + 1).toString()
+        : '1',
+      DATA: new Date().toISOString().split('T')[0],
+      HORAS: new Date().toTimeString().split(' ')[0],
+      ULTIMA_MENSAGEM: messagePreview
+    };
+
+    // Remove conversa existente e adiciona no topo
+    updatedConversations.splice(existingIndex, 1);
+    updatedConversations.unshift(updatedConversation);
+
+    return organizeConversations(updatedConversations);
+  });
+}, [updateConversations]);
+
+  // Função PausaIndividualBots
+  const pausarIndividualBots = useCallback(() => {
+    if (!selectedConversation || !socket || !user) {
+      // console.warn("Cannot pause bots: missing conversation, socket or user");
+      return;
+    }
+
+    try {
+      const dados = {
+        Code: '34245331253432545162',
+        Protocolo: selectedConversation.PROTOCOLO_CONVERSA,
+        Login: user.LOGIN,
+        Bot_Protocolo: selectedConversation.BOT_PROTOCOLO,
+        Plataforma: selectedConversation.PLATAFORMA
+      };
+      console.log(dados);
+ 
+      socket.emit('PausaIndividualBots', Criptografar(JSON.stringify(dados)));
+
+     
+      const handlePausaResponse = (data) => {
+        try {
+          const result = JSON.parse(Descriptografar(data));
+
+          if (result.Code === '23456234456234465324') {
+           
+            setDijuntor(result.resultado);
+          
+            updateBotStatus(selectedConversation.PROTOCOLO_CONVERSA, result.resultado);
+          }
+
+          if (result.Code === '7564576554676554765654') {
+        
+            alert('Atenção: Conversa encerrada. Para interagir novamente, aguarde até que o atendimento seja reativado.');
+          }
+
+          if (result.Code === '54345653445356445453654') {
+          
+            alert(`Atenção: ${result.resultado}`);
+          }
+        } catch (error) {
+          // console.error('Error processing pause response:', error);
+          alert('Erro ao processar resposta do servidor.');
+        }
+
+        
+        socket.off('responsePausaIndividualBots', handlePausaResponse);
+      };
+
+      socket.on('responsePausaIndividualBots', handlePausaResponse);
+
+      // Timeout to remove the listener if no response
+      const timeoutId = setTimeout(() => {
+        socket.off('responsePausaIndividualBots', handlePausaResponse);
+      }, 10000);
+
+      return () => {
+        clearTimeout(timeoutId);
+        socket.off('responsePausaIndividualBots', handlePausaResponse);
+      };
+    } catch (error) {
+      // console.error('Error in pausarIndividualBots:', error);
+      alert('Erro ao pausar/retomar bots.');
+    }
+  }, [selectedConversation, socket, user, Criptografar, Descriptografar, updateBotStatus]);
+
+  useEffect(() => {
+    if (!socket || !selectedConversation) return;
+
+    // Handler para respostas de mensagens - definido fora para evitar recriação
+    const handleResponseMensagens = (responseData) => {
+      try {
+        if (Descriptografar(responseData.Code) !== '9875697857598647565') {
+          setLoadingMessages(false);
+          return;
+        }
+
+        const decrypted = Descriptografar(responseData.Dados);
+
+        if (!Array.isArray(decrypted)) {
+          setLoadingMessages(false);
+          return;
+        }
+
+        // Ordenar e definir mensagens
+        const orderedMessages = [...decrypted].reverse();
+
+        // Atualizar mensagens de uma vez só
+        setMessages(orderedMessages);
+        setLoadingMessages(false);
+
+        // Marcar conversa como lida em uma operação separada
+        if (selectedConversation.NEW_MENSAGEM === 'true') {
+          setConversations(prevConversations => {
+            return prevConversations.map(conv => {
+              if (conv.PROTOCOLO_CONVERSA === selectedConversation.PROTOCOLO_CONVERSA) {
+                return {
+                  ...conv,
+                  NEW_MENSAGEM: 'false',
+                  QUANTIDADE: '0'
+                };
+              }
+              return conv;
+            });
+          });
+        }
+
+        // Agendar marcação de mensagens como lidas
+        setTimeout(() => {
+          const unreadMessages = orderedMessages.filter(msg =>
+            msg.SEQUENCIA === '1' && msg.LIDA === 'false'
+          ).slice(0, 5); // Limitar a 5 por vez
+
+          if (unreadMessages.length > 0) {
+            unreadMessages.forEach(msg => {
+              socket.emit('updateMensagensLida', {
+                Code: Criptografar('56345436545434'),
+                ID: Criptografar(msg.ID)
+              });
+            });
+          }
+        }, 500);
+      } catch (err) {
+        setLoadingMessages(false);
+      }
+    };
+
+    // Handler para novas mensagens
+    const handleNovaMensagem = (data) => {
+      try {
+        const decryptedData = JSON.parse(Descriptografar(data));
+
+        // Verificar se a mensagem pertence à conversa atual
+        if (decryptedData.PROTOCOLO_CONVERSA === selectedConversation.PROTOCOLO_CONVERSA) {
+          // Atualizar mensagens usando função de callback para evitar dependência no estado atual
+          setMessages(prevMessages => {
+            // Verificar se a mensagem já existe
+            const messageExists = prevMessages.some(msg => msg.ID === decryptedData.ID);
+            if (messageExists) return prevMessages;
+
+            // Nova mensagem
+            const newMsg = {
+              ID: decryptedData.ID,
+              PROTOCOLO_CONVERSA: decryptedData.PROTOCOLO_CONVERSA,
+              SEQUENCIA: decryptedData.SEQUENCIA,
+              MENSAGEM: decryptedData.MENSAGEM,
+              DATA: decryptedData.DATA || new Date().toISOString().split('T')[0],
+              HORA: decryptedData.HORA || new Date().toTimeString().split(' ')[0],
+              LIDA: 'false'
+            };
+
+            // Adicionar à lista existente
+            return [...prevMessages, newMsg];
+          });
+
+          // Verificar se precisamos rolar para baixo
+          const messagesContainer = document.querySelector(`.${styles.messagesContainer}`);
+          if (messagesContainer) {
+            const isScrolledToBottom =
+              messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 100;
+
+            if (isScrolledToBottom) {
+              // Agendar rolagem para permitir que a renderização ocorra primeiro
+              // setTimeout(scrollToBottom, 100);
+            } else if (decryptedData.SEQUENCIA === '1') {
+              // Notificação apenas para mensagens recebidas
+              setNewMessageNotification(true);
+              setTimeout(() => setNewMessageNotification(false), 5000);
+            }
+          }
+
+          // Marcar como lida se for uma mensagem recebida
+          if (decryptedData.SEQUENCIA === '1') {
+            setTimeout(() => {
+              socket.emit('updateMensagensLida', {
+                Code: Criptografar('56345436545434'),
+                ID: Criptografar(decryptedData.ID)
+              });
+            }, 300);
+          }
+        }
+
+        // Atualizar preview da conversa
+        updateConversationWithNewMessage(decryptedData);
+      } catch (error) {
+        // Erro silencioso para não quebrar a UI
+      }
+    };
+
+    // Configurar os listeners - removidos anteriormente pelo cleanup
+    socket.on('ResponseMensagens', handleResponseMensagens);
+    socket.on('NovaMensagem', handleNovaMensagem);
+
+    // Buscar mensagens iniciais - apenas emitir o evento
+    const data = {
+      code: Criptografar('90343263779'),
+      protocolo: Criptografar(selectedConversation.PROTOCOLO_CONVERSA),
+      contador: Criptografar(0)
+    };
+    socket.emit('RequestMensagens', data);
+
+    // Cleanup - IMPORTANTE: remover todos os listeners
+    return () => {
+      socket.off('ResponseMensagens', handleResponseMensagens);
+      socket.off('NovaMensagem', handleNovaMensagem);
+    };
+  }, [socket, selectedConversation, Criptografar, Descriptografar, updateConversationWithNewMessage]);
 
   // Search filter with debounce
   useEffect(() => {
@@ -218,55 +766,47 @@ function PainelConversas() {
     return () => clearTimeout(timeoutId);
   }, [searchTerm, conversations]);
 
-
-
-  // Inicializar WebSocket e buscar conversas com logs detalhados
+  // Initialize WebSocket and fetch conversations
   useEffect(() => {
-    console.log("Verificando condições para inicializar socket:", {
-      userLogin: user?.LOGIN,
-      socketExists: !!socket,
-      socketConnected: socket?.connected
-    });
-
     if (user?.LOGIN) {
       if (!socket) {
-        console.error("Socket não disponível! Tentando inicializar...");
-        // Tentativa de inicializar socket manualmente se não estiver disponível
         socketService.connect();
       } else {
-        console.log("Socket encontrado, verificando conexão...");
-
-        // Se socket existe mas não está conectado, tentar reconectar
+        // If socket exists but not connected, try to reconnect
         if (!socket.connected) {
-          console.log("Socket não conectado, tentando reconectar...");
           socket.connect();
 
-          // Esperar um pouco para a conexão ser estabelecida
+          // Wait a bit for the connection to be established
           setTimeout(() => {
             if (socket.connected) {
-              console.log("Socket reconectado com sucesso! Buscando conversas...");
               fetchConversations(1);
-            } else {
-              console.error("Falha ao reconectar socket após tentativa!");
             }
           }, 1000);
         } else {
-          console.log("Socket já conectado, buscando conversas...");
           fetchConversations(1);
         }
       }
 
-
-
-
+      // Setup handler for new messages
       const handleNovaMensagem = (data) => {
-        console.log("Nova mensagem recebida:", data);
         try {
           const decryptedData = JSON.parse(Descriptografar(data));
 
           // If we have a selected conversation and the message belongs to it, update the messages
           if (selectedConversation && decryptedData.PROTOCOLO_CONVERSA === selectedConversation.PROTOCOLO_CONVERSA) {
             fetchMessages(selectedConversation);
+
+            // Only show notification if not viewing bottom of chat
+            const messagesContainer = document.querySelector(`.${styles.messagesContainer}`);
+            if (messagesContainer) {
+              const isScrolledToBottom =
+                messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 100;
+
+              if (!isScrolledToBottom && decryptedData.SEQUENCIA === '1') { // Only show for received messages
+                setNewMessageNotification(true);
+                setTimeout(() => setNewMessageNotification(false), 5000);
+              }
+            }
           }
 
           // Extract the message content for preview
@@ -310,75 +850,135 @@ function PainelConversas() {
             return organizeConversations(updatedConversations);
           });
         } catch (error) {
-          console.error("Erro ao processar nova mensagem:", error);
+          // console.error("Error processing new message:", error);
         }
       };
 
       socket?.off('NovaMensagem');
       socket?.on('NovaMensagem', handleNovaMensagem);
+
       // Setup listeners for real-time updates
       const handleNovaConversa = (data) => {
-        // console.log("Recebido evento ResponseNovaConversa:", data);
         handleConversationsResponse(data);
       };
 
-      // Remover listener anterior se existir para evitar duplicação
+      // Remove previous listener if exists to avoid duplication
       socket?.off('ResponseNovaConversa', handleNovaConversa);
 
-      // Adicionar novo listener
+      // Add new listener
       socket?.on('ResponseNovaConversa', handleNovaConversa);
 
       return () => {
-        console.log("Limpando listener ResponseNovaConversa");
         socket?.off('ResponseNovaConversa', handleNovaConversa);
+        socket?.off('NovaMensagem', handleNovaMensagem);
       };
-    } else {
-      console.warn("Usuário não autenticado ou socket não disponível!");
     }
-  }, [user, socket]);
+  }, [user, socket, fetchConversations, selectedConversation, Descriptografar]);
 
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  // Focus input when conversation is selected
-  useEffect(() => {
-    if (selectedConversation) {
-      messageInputRef.current?.focus();
+useEffect(() => {
+  if (selectedConversation) {
+    messageInputRef.current?.focus();
+    // Começar como ativo (false) ao selecionar nova conversa
+    setDijuntor(true);
+    
+    // Verificar status específico se disponível
+    const botStatus = botsStatus[selectedConversation.PROTOCOLO_CONVERSA];
+    if (botStatus !== undefined) {
+      setDijuntor(botStatus);
+      // console.log(botsStatus)
     }
-  }, [selectedConversation]);
-
+  }
+}, [selectedConversation, botsStatus]);
 
   useEffect(() => {
-    if (!user?.LOGIN || !socketConnected) return;
-    const pollingInterval = setInterval(() => {
-      if (!isLoading && !pagingLoading) {
-        fetchConversations(1);
-      }
-    }, 900);
+    if (!socket || !selectedConversation) return;
 
-    return () => {
-
-      clearInterval(pollingInterval);
+    // Função de polling otimizada para verificar atualizações
+    const checkForUpdates = () => {
+      // Usar evento específico para atualizações
+      socket.emit('RequestUpdateMensagens', {
+        Code: Criptografar('564536546584674'),
+        protocolo: Criptografar(selectedConversation.PROTOCOLO_CONVERSA),
+      });
     };
-  }, [user, socketConnected, isLoading, pagingLoading, fetchConversations]);
 
-  // Rola para o final quando as mensagens mudam
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    // Handler para respostas de atualização
+    const handleUpdateResponse = (data) => {
+      try {
+        // Validar código da resposta
+        if (Descriptografar(data.Code) !== '2473892748324') return;
+        if (!Descriptografar(data.Ativador)) return;
 
-  // Foca no input quando a conversa é selecionada
-  useEffect(() => {
-    if (selectedConversation) {
-      messageInputRef.current?.focus();
-    }
-  }, [selectedConversation]);
+        const Dados = Descriptografar(data.Dados);
+        if (!Array.isArray(Dados) || Dados.length === 0) return;
+
+        // Atualizar mensagens de forma eficiente
+        setMessages(prevMessages => {
+          // Criar um conjunto de IDs existentes para verificação rápida
+          const existingIds = new Set(prevMessages.map(m => m.ID));
+
+          // Filtrar apenas mensagens novas
+          const newMessages = Dados
+            .filter(msg => !existingIds.has(msg.ID))
+            .map(msg => ({
+              ID: msg.ID,
+              PROTOCOLO_CONVERSA: msg.NUMERO_PROTOCOLO || selectedConversation.PROTOCOLO_CONVERSA,
+              SEQUENCIA: msg.SEQUENCIA,
+              MENSAGEM: msg.MENSAGEM,
+              DATA: msg.DATA || new Date().toISOString().split('T')[0],
+              HORA: msg.HORA,
+              LIDA: msg.LIDA
+            }));
+
+          // Se não há mensagens novas, não causar re-render
+          if (newMessages.length === 0) return prevMessages;
+
+          // Agendar marcação de mensagens como lidas
+          setTimeout(() => {
+            newMessages.forEach(msg => {
+              if (msg.SEQUENCIA === '1' && msg.LIDA === 'false') {
+                socket.emit('updateMensagensLida', {
+                  Code: Criptografar('56345436545434'),
+                  ID: Criptografar(msg.ID)
+                });
+              }
+            });
+          }, 300);
+
+          // Anexar novas mensagens preservando a ordem
+          return [...prevMessages, ...newMessages];
+        });
+
+        // Só rolar para baixo se houver mensagens novas
+        const messagesContainer = document.querySelector(`.${styles.messagesContainer}`);
+        if (messagesContainer) {
+          const isScrolledToBottom =
+            messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 100;
+
+          if (isScrolledToBottom) {
+            // setTimeout(scrollToBottom, 100);
+          }
+        }
+      } catch (error) {
+        // Erro silencioso para não quebrar a UI
+      }
+    };
+
+    // Configurar handler uma única vez
+    socket.on('ResponseUpdateMensagens', handleUpdateResponse);
+
+    // Verificar a cada 5 segundos em vez de 3 para reduzir carga
+    const intervalId = setInterval(checkForUpdates, 5000);
+
+    // Limpar tudo ao desmontar
+    return () => {
+      clearInterval(intervalId);
+      socket.off('ResponseUpdateMensagens', handleUpdateResponse);
+    };
+  }, [socket, selectedConversation, Criptografar, Descriptografar]);
 
   // Filter conversations by status
   useEffect(() => {
-    // Filter conversations by status
     const attending = conversations.filter(conv => conv.TAG === 'Atendimento');
     const waiting = conversations.filter(conv => conv.TAG === 'Espera');
     const finished = conversations.filter(conv => conv.TAG === 'Finalizado');
@@ -388,27 +988,36 @@ function PainelConversas() {
     setFinishedConversations(finished);
   }, [conversations]);
 
-  // Buscar conversas do servidor - CORRIGIDO para match com o mobile
-
+  // Inicializar status dos bots quando carregar conversas
+  useEffect(() => {
+    conversations.forEach(conv => {
+      if (!botsStatus.hasOwnProperty(conv.PROTOCOLO_CONVERSA)) {
+        setBotsStatus(prev => ({
+          ...prev,
+          [conv.PROTOCOLO_CONVERSA]: true // Assumir pausado por padrão
+        }));
+      }
+    });
+  }, [conversations, botsStatus]);
 
   // Handle response from server with conversations data
   const handleConversationsResponse = useCallback((data) => {
     try {
       setPagingLoading(false);
 
-      // Descriptografa a resposta
+      // Decrypt the response
       const result = JSON.parse(Descriptografar(data));
 
       if (result.Code === '655434565435463544') {
-        // Dados iniciais das conversas
+        // Initial conversations data
         if (result.GetInicial && result.GetInicial.length === 0) {
           setHasMorePages(false);
           return;
         }
 
-        // Processamos e atualizamos as conversas
+        // Process and update conversations
         setConversations(prevConversations => {
-          // Mapeamos as conversas recebidas para nosso formato
+          // Map received conversations to our format
           const newConversations = result.GetInicial.map(item => ({
             ...item,
             NOME_CONTATO: item.NOME,
@@ -422,15 +1031,15 @@ function PainelConversas() {
             QUANTIDADE: item.QUANTIDADE || '0'
           }));
 
+          // If it's the first page, just return the new conversations
+          if (currentPage === 1) {
+            return organizeConversations(newConversations);
+          }
 
-          // if (currentPage === 1) {
-          //   return organizeConversations(newConversations);
-          // }
-
-          // Caso contrário, mesclamos com as conversas existentes
+          // Otherwise, merge with existing conversations
           const updatedConversations = [...prevConversations];
 
-          // Atualizamos conversas existentes
+          // Update existing conversations
           newConversations.forEach(newConv => {
             const existingIndex = updatedConversations.findIndex(conv =>
               conv.PROTOCOLO_CONVERSA === newConv.PROTOCOLO_CONVERSA
@@ -458,18 +1067,18 @@ function PainelConversas() {
       }
 
       if (result.Code2 === '655434565435463545') {
-        // Lidamos com atualizações em tempo real
+        // Handle real-time updates
         if (result.GetAtualizar && result.GetAtualizar.length > 0) {
           setConversations(prevConversations => {
             const updatedConversations = [...prevConversations];
 
-            // Processamos as atualizações
+            // Process updates
             result.GetAtualizar.forEach(update => {
               const existingIndex = updatedConversations.findIndex(conv =>
                 conv.PROTOCOLO_CONVERSA === update.PROTOCOLO_CONVERSA
               );
 
-              // Mapeamos para o formato correto
+              // Map to correct format
               const mappedUpdate = {
                 ...update,
                 NOME_CONTATO: update.NOME,
@@ -482,7 +1091,7 @@ function PainelConversas() {
                 NEW_MENSAGEM: update.NEW_MENSAGEM || 'false',
                 QUANTIDADE: update.QUANTIDADE || '0'
               };
-
+console.log("AAAAAAAAAAAAAAAAAAAAAA", mappedUpdate)
               if (existingIndex !== -1) {
                 // Preserve notification state if already set
                 if (updatedConversations[existingIndex].NEW_MENSAGEM === 'true') {
@@ -495,10 +1104,10 @@ function PainelConversas() {
                   mappedUpdate.ULTIMA_MENSAGEM = updatedConversations[existingIndex].ULTIMA_MENSAGEM;
                 }
 
-                // Atualizamos conversa existente
+                // Update existing conversation
                 updatedConversations[existingIndex] = mappedUpdate;
               } else {
-                // Adicionamos nova conversa no início
+                // Add new conversation at the beginning
                 updatedConversations.unshift(mappedUpdate);
               }
             });
@@ -508,163 +1117,18 @@ function PainelConversas() {
         }
       }
     } catch (error) {
-      console.error('Error in handleConversationsResponse:', error);
       setPagingLoading(false);
     }
   }, [Descriptografar, currentPage]);
-  // Buscar mensagens para a conversa selecionada - CORRIGIDO
-  const fetchMessages = useCallback((conversation) => {
-    if (!socket || !conversation) {
-      console.error("Não é possível buscar mensagens: socket ou conversa indisponível");
-      return;
-    }
 
-    try {
-      console.log(`Buscando mensagens para conversa: ${conversation.PROTOCOLO_CONVERSA}`);
-      setLoadingMessages(true);
-
-      // Mantenha o formato exato da requisição mobile
-      const data = {
-        code: Criptografar('90343263779'),
-        protocolo: Criptografar(conversation.PROTOCOLO_CONVERSA),
-        contador: Criptografar(0)
-      };
-
-      // Remover listener anterior para evitar duplicação
-      socket.off('ResponseMensagens');
-
-      // Configurar novo listener para receber as mensagens
-      socket.on('ResponseMensagens', (responseData) => {
-        console.log("Resposta de mensagens recebida:", responseData);
-
-        try {
-          // Adicione a verificação do código como no mobile
-          if (Descriptografar(responseData.Code) !== '9875697857598647565') {
-            console.error("Código de resposta inválido", responseData);
-            setLoadingMessages(false);
-            return;
-          }
-
-          // Descriptografar sem JSON.parse como no mobile
-          const decrypted = Descriptografar(responseData.Dados);
-          console.log("Mensagens descriptografadas:", decrypted);
-          const mensagensOrdenadas = Array.isArray(decrypted) ? [...decrypted].reverse() : [];
-
-          // Atualizar estado com as mensagens recebidas
-          setMessages(mensagensOrdenadas);
-
-          // If we have messages, update the conversation preview with the latest one
-          if (mensagensOrdenadas.length > 0) {
-            const latestMessage = mensagensOrdenadas[mensagensOrdenadas.length - 1];
-
-            // Update the conversation with the latest message for preview
-            setConversations(prevConversations => {
-              return prevConversations.map(conv => {
-                if (conv.PROTOCOLO_CONVERSA === conversation.PROTOCOLO_CONVERSA) {
-                  return {
-                    ...conv,
-                    ULTIMA_MENSAGEM: latestMessage.MENSAGEM
-                  };
-                }
-                return conv;
-              });
-            });
-          }
-
-          setLoadingMessages(false);
-          socket.off('ResponseMensagens');
-        } catch (err) {
-          console.error("Erro ao processar resposta de mensagens:", err);
-          setLoadingMessages(false);
-          socket.off('ResponseMensagens');
-        }
-      });
-
-      // IMPORTANTE: use a mesma capitalização do mobile
-      console.log("Enviando evento 'RequestMensagens'...");
-      socket.emit('RequestMensagens', data);
-
-      // Timeout para retry se necessário
-      const timeout = setTimeout(() => {
-        if (loadingMessages) {
-          console.log("Tentando novamente buscar mensagens...");
-          socket.emit('RequestMensagens', data);
-
-          setTimeout(() => {
-            if (loadingMessages) {
-              setLoadingMessages(false);
-              socket.off('ResponseMensagens');
-            }
-          }, 5000);
-        }
-      }, 5000);
-
-      return () => {
-        clearTimeout(timeout);
-        socket.off('ResponseMensagens');
-      };
-    } catch (error) {
-      console.error('Erro em fetchMessages:', error);
-      setLoadingMessages(false);
-      socket.off('ResponseMensagens');
-    }
-  }, [socket, loadingMessages, Criptografar, Descriptografar]);
-
-  // Enviar uma nova mensagem - CORRIGIDO
-  const sendMessage = useCallback(() => {
-    if (!newMessage.trim() || !selectedConversation || !socket || !user) return;
-
-    try {
-      // Usar o mesmo formato do app mobile
-      const requestData = {
-        Code: '32564436525443565434',
-        Protocolo: selectedConversation.PROTOCOLO_CONVERSA,
-        Mensagem: newMessage,
-        Login: user.LOGIN,
-        Bot_Protocolo: selectedConversation.PROTOCOLO_BOT,
-        Plataforma: selectedConversation.PLATAFORMA
-      };
-
-      const encryptedData = Criptografar(JSON.stringify(requestData));
-
-      // Usar o nome do evento exatamente como no backend
-      socket.emit('EnviarMensagem', encryptedData);
-
-      // Criar um listener temporário para a resposta
-      const handleSendResponse = (data) => {
-        try {
-          const result = JSON.parse(Descriptografar(data));
-          if (result.Code === '32564436525443565434') {
-            setNewMessage('');
-            fetchMessages(selectedConversation);
-          }
-        } catch (error) {
-          console.error('Error in handleSendResponse:', error);
-        }
-
-        // Remover o listener após receber uma resposta
-        socket.off('ResponseEnviarMensagem', handleSendResponse);
-      };
-
-      socket.on('ResponseEnviarMensagem', handleSendResponse);
-
-      // Timeout para remover o listener se não houver resposta
-      setTimeout(() => {
-        socket.off('ResponseEnviarMensagem', handleSendResponse);
-      }, 5000);
-    } catch (error) {
-      console.error('Error in sendMessage:', error);
-    }
-  }, [newMessage, selectedConversation, user, socket, Criptografar, Descriptografar, fetchMessages]);
-
-  // Excluir conversa - CORRIGIDO
+  // Delete conversation
   const deleteConversation = useCallback((conversation) => {
     if (!socket) return;
 
-    // Mostrar diálogo de confirmação
+    // Show confirmation dialog
     if (window.confirm('Tem certeza que deseja excluir esta conversa?')) {
       try {
-        // Usar o mesmo formato do app mobile
+        // Use the same format as the mobile app
         const requestData = {
           Code: '5659723568999234',
           Protocolo: conversation.PROTOCOLO_CONVERSA
@@ -672,88 +1136,51 @@ function PainelConversas() {
 
         const encryptedData = Criptografar(JSON.stringify(requestData));
 
-        // Usar o nome do evento exatamente como no backend
+        // Use the event name exactly as in the backend
         socket.emit('ExcluirConversa', encryptedData);
 
-        // Criar um listener temporário para a resposta
+        // Create a temporary listener for the response
         const handleDeleteResponse = (data) => {
           try {
             const result = JSON.parse(Descriptografar(data));
             if (result.Protocolo) {
-              // Atualizar lista de conversas
+              // Update conversations list
               setConversations(prevConversations =>
                 prevConversations.filter(conv => conv.PROTOCOLO_CONVERSA !== result.Protocolo)
               );
 
-              // Resetar conversa selecionada se foi excluída
+              // Reset selected conversation if it was deleted
               if (selectedConversation?.PROTOCOLO_CONVERSA === result.Protocolo) {
                 setSelectedConversation(null);
                 setMessages([]);
+                setMessageGroups([]);
               }
             }
           } catch (error) {
-            console.error('Error in handleDeleteResponse:', error);
+            // console.error('Error in handleDeleteResponse:', error);
           }
 
-          // Remover o listener após receber uma resposta
+          // Remove the listener after receiving a response
           socket.off('responseExcluirConversa', handleDeleteResponse);
         };
 
         socket.on('responseExcluirConversa', handleDeleteResponse);
 
-        // Timeout para remover o listener se não houver resposta
+        // Timeout to remove the listener if no response
         setTimeout(() => {
           socket.off('responseExcluirConversa', handleDeleteResponse);
         }, 5000);
       } catch (error) {
-        console.error('Error in deleteConversation:', error);
+        // console.error('Error in deleteConversation:', error);
       }
     }
   }, [socket, selectedConversation, Criptografar, Descriptografar]);
 
-  // Marcar mensagens da conversa como lidas - CORRIGIDO
-  const markConversationAsRead = useCallback(() => {
-    if (!selectedConversation || !socket) return;
-
-    const unreadMessages = messages.filter(msg => msg.LIDA === 'false');
-
-    unreadMessages.forEach(msg => {
-      try {
-        // Usar o mesmo formato do app mobile
-        const data = {
-          Code: Criptografar('56345436545434'),
-          ID: Criptografar(msg.ID)
-        };
-
-        // Usar o nome do evento exatamente como no backend
-        socket.emit('updateMensagensLida', data);
-      } catch (error) {
-        console.error('Error in markConversationAsRead:', error);
-      }
-    });
-
-    // Reset the notification counter for the selected conversation
-    if (selectedConversation.NEW_MENSAGEM === 'true') {
-      setConversations(prevConversations => {
-        return prevConversations.map(conv => {
-          if (conv.PROTOCOLO_CONVERSA === selectedConversation.PROTOCOLO_CONVERSA) {
-            return {
-              ...conv,
-              NEW_MENSAGEM: 'false',
-              QUANTIDADE: '0'
-            };
-          }
-          return conv;
-        });
-      });
-    }
-  }, [selectedConversation, messages, socket, Criptografar]);
-
-
-  // Selecionar conversa - CORRIGIDO
+  // Select conversation
   const handleSelectConversation = useCallback((conversation) => {
     setSelectedConversation(conversation);
     fetchMessages(conversation);
+    setNewMessageNotification(false);
 
     // Reset unread count when selecting a conversation
     if (conversation.NEW_MENSAGEM === 'true') {
@@ -771,21 +1198,19 @@ function PainelConversas() {
       });
     }
 
-    // Mark messages as read
-    markConversationAsRead();
-
-    // Fechar sidebar no mobile ao selecionar uma conversa
+    // Close sidebar on mobile when selecting a conversation
     if (window.innerWidth < 768) {
       setSidebarOpen(false);
     }
-  }, [fetchMessages, markConversationAsRead]);
-  // Carregar mais conversas (paginação) - CORRIGIDO
+  }, [fetchMessages]);
+
+  // Load more conversations (pagination)
   const handleLoadMore = useCallback(() => {
-    if (!pagingLoading && hasMorePages) {
-      const nextPage = currentPage + 1;
-      setCurrentPage(nextPage);
-      fetchConversations(nextPage);
-    }
+    // if (!pagingLoading && hasMorePages) {
+    //   const nextPage = currentPage + 1;
+    //   setCurrentPage(nextPage);
+    //   fetchConversations(nextPage);
+    // }
   }, [pagingLoading, hasMorePages, currentPage, fetchConversations]);
 
   // Handle scroll to load more conversations
@@ -797,6 +1222,14 @@ function PainelConversas() {
       }
     }
   }, [handleLoadMore, pagingLoading, hasMorePages]);
+
+  // Handle image loading errors
+  const handleImageError = (conversationId) => {
+    setHasImageError(prev => ({
+      ...prev,
+      [conversationId]: true
+    }));
+  };
 
   // Get conversations based on active tab filter
   const activeConversations = useMemo(() => {
@@ -834,7 +1267,7 @@ function PainelConversas() {
     { id: 4, name: 'Finalizado', data: finishedConversations }
   ], [conversations, attendingConversations, waitingConversations, finishedConversations]);
 
-  // Platform icons renderer
+  // Platform icons renderer with enhanced visibility
   const renderPlatformIcon = (platform) => {
     switch (platform) {
       case '0':
@@ -899,12 +1332,13 @@ function PainelConversas() {
               <div className={styles.sidebarHeader}>
                 <h2>Conversas</h2>
                 <div className={styles.sidebarActions}>
-                  <button
+                  {/* <button
                     className={styles.filterButton}
                     onClick={() => setFilterOpen(!filterOpen)}
+                    title="Filtrar conversas"
                   >
                     <Filter size={18} />
-                  </button>
+                  </button> */}
                   <span className={styles.conversationCount}>{activeConversations.length}</span>
                 </div>
               </div>
@@ -968,7 +1402,6 @@ function PainelConversas() {
               </CSSTransition>
 
               <div className={styles.searchContainer}>
-                <Search size={18} className={styles.searchIcon} />
                 <input
                   type="text"
                   placeholder="Buscar conversas..."
@@ -976,6 +1409,7 @@ function PainelConversas() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className={styles.searchInput}
                 />
+                <Search size={18} className={styles.searchIcon} />
               </div>
 
               <div
@@ -983,7 +1417,7 @@ function PainelConversas() {
                 ref={conversationsListRef}
                 onScroll={handleScroll}
               >
-                {pagingLoading && currentPage === 4 ? (
+                {pagingLoading && currentPage === 1 ? (
                   <div className={styles.loadingConversations}>
                     <div className={styles.conversationSkeleton}></div>
                     <div className={styles.conversationSkeleton}></div>
@@ -999,10 +1433,12 @@ function PainelConversas() {
                   />
                 ) : (
                   <>
-                    {activeConversations.map((conversation, conv, index) => (
+                    {activeConversations.map((conversation) => (
                       <motion.div
-                        key={conversation.ID}
-                        className={`${styles.conversationItem} ${selectedConversation?.ID === conversation.ID ? styles.selected : ''}`}
+                        key={conversation.ID || conversation.PROTOCOLO_CONVERSA}
+                        className={`${styles.conversationItem} 
+                          ${selectedConversation?.PROTOCOLO_CONVERSA === conversation.PROTOCOLO_CONVERSA ? styles.selected : ''}
+                          ${conversation.NEW_MENSAGEM === 'true' ? styles.unread : ''}`}
                         onClick={() => handleSelectConversation(conversation)}
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.99 }}
@@ -1014,14 +1450,14 @@ function PainelConversas() {
                           <div className={styles.contactInfo}>
                             <div className={styles.avatarContainer}>
                               <img
-                                src={`https://animuschatpro.up.railway.app/images?image=${conversation.PROTOCOLO_CONVERSA}.jpg`
-                                  }
+                                src={hasImageError[conversation.PROTOCOLO_CONVERSA]
+                                  ? UserImage
+                                  : `https://animuschatpro.up.railway.app/images?image=${conversation.PROTOCOLO_CONVERSA}.jpg`}
                                 alt="Avatar"
                                 className={styles.avatarImage}
+                                onError={() => handleImageError(conversation.PROTOCOLO_CONVERSA)}
                               />
-                              
-                                {renderPlatformIcon(conversation.PLATAFORMA)}
-                              
+                              {renderPlatformIcon(conversation.PLATAFORMA)}
                             </div>
 
                             <div className={styles.contactDetails}>
@@ -1033,6 +1469,14 @@ function PainelConversas() {
                             </div>
                           </div>
                           <div className={styles.conversationActions}>
+                            {/* Indicador de status do bot */}
+                            <div 
+                              className={`${styles.botStatusIndicator} ${
+                                botsStatus[conversation.PROTOCOLO_CONVERSA] === false ? styles.paused : styles.active
+                              }`}
+                              title={botsStatus[conversation.PROTOCOLO_CONVERSA] === false ? "Bot pausado" : "Bot ativo" }
+                            />
+                            
                             {conversation.NEW_MENSAGEM === 'true' && (
                               <motion.span
                                 className={styles.unreadBadge}
@@ -1049,15 +1493,17 @@ function PainelConversas() {
                                 e.stopPropagation();
                                 deleteConversation(conversation);
                               }}
+                              title="Excluir conversa"
                             >
                               <Trash2 size={16} />
                             </button>
-                            <button
+                            {/* <button
                               className={styles.actionButton}
                               onClick={(e) => e.stopPropagation()}
+                              title="Favoritar conversa"
                             >
                               <Star size={16} className={conversation.FAVORITO === 'true' ? styles.favorite : ''} />
-                            </button>
+                            </button> */}
                           </div>
                         </div>
 
@@ -1067,13 +1513,13 @@ function PainelConversas() {
                             {/* Display the latest message preview */}
                             {conversation.ULTIMA_MENSAGEM && (
                               <p className={styles.messagePreview}>
-                                {conversation.ULTIMA_MENSAGEM.length > 40
-                                  ? conversation.ULTIMA_MENSAGEM.substring(0, 40) + '...'
+                                {conversation.ULTIMA_MENSAGEM.length > 60
+                                  ? conversation.ULTIMA_MENSAGEM.substring(0, 60) + '...'
                                   : conversation.ULTIMA_MENSAGEM}
                               </p>
                             )}
                           </div>
-                          <span className={`${styles.conversationTag} ${styles[conversation.TAG.toLowerCase()]}`}>
+                          <span className={`${styles.conversationTag} ${styles[conversation.TAG.toLowerCase() || 'default']}`}>
                             {conversation.TAG}
                           </span>
                         </div>
@@ -1083,7 +1529,7 @@ function PainelConversas() {
                     {pagingLoading && currentPage > 1 && (
                       <div className={styles.loadingMore}>
                         <div className={styles.loadingSpinner}></div>
-                        <p>Carregando mais...</p>
+                        <p>Carregando mais conversas...</p>
                       </div>
                     )}
                   </>
@@ -1093,12 +1539,13 @@ function PainelConversas() {
           )}
         </AnimatePresence>
 
-        {/* chat container */}
+        {/* Chat container */}
         <div className={styles.chatContainer}>
           {!sidebarOpen && (
             <button
               className={styles.toggleSidebarButton}
               onClick={() => setSidebarOpen(true)}
+              title="Mostrar conversas"
             >
               <ChevronLeft size={20} />
             </button>
@@ -1108,17 +1555,48 @@ function PainelConversas() {
             <>
               <div className={styles.chatHeader}>
                 <div className={styles.chatContactInfo}>
-                  {renderPlatformIcon(selectedConversation.PLATAFORMA)}
+                  <div className={styles.avatarContainer}>
+                    <img
+                      src={hasImageError[selectedConversation.PROTOCOLO_CONVERSA]
+                        ? UserImage
+                        : `https://animuschatpro.up.railway.app/images?image=${selectedConversation.PROTOCOLO_CONVERSA}.jpg`}
+                      alt="Avatar"
+                      className={styles.avatarImage}
+                      onError={() => handleImageError(selectedConversation.PROTOCOLO_CONVERSA)}
+                    />
+                    {renderPlatformIcon(selectedConversation.PLATAFORMA)}
+                  </div>
                   <div>
                     <h3>{selectedConversation.NOME_CONTATO}</h3>
                     <span className={styles.chatStatus}>{selectedConversation.MOTIVO_CONVERSA}</span>
                   </div>
                 </div>
                 <div className={styles.chatActions}>
-                  <span className={`${styles.conversationTag} ${styles[selectedConversation.TAG.toLowerCase()]}`}>
+                  <span className={`${styles.conversationTag} ${styles[selectedConversation.TAG.toLowerCase() || 'default']}`}>
                     {selectedConversation.TAG}
                   </span>
-                  <button className={styles.moreButton}>
+
+                  <button
+                    className={`${styles.pauseBotButton} ${dijuntor ? styles.active : styles.paused}`}
+                    onClick={pausarIndividualBots}
+                    title={dijuntor ? "Bot ativo - Clique para pausar" : "Bot pausado - Clique para ativar"}
+                    disabled={!selectedConversation}
+                  >
+                    {dijuntor ? (
+                      <>
+                        <Pause size={16} />
+                        Pausar Bot
+                       
+                      </>
+                    ) : (
+                      <>
+                       <Play size={16} />
+                        Ativar Bot
+                      </>
+                    )}
+                  </button>
+
+                  <button className={styles.moreButton} title="Mais opções">
                     <MoreVertical size={20} />
                   </button>
                 </div>
@@ -1130,7 +1608,7 @@ function PainelConversas() {
                     <div className={styles.spinner}></div>
                     <p>Carregando mensagens...</p>
                   </div>
-                ) : messages.length === 0 ? (
+                ) : messageGroups.length === 0 ? (
                   <EmptyState
                     title="Nenhuma mensagem"
                     description="Inicie a conversa enviando uma mensagem"
@@ -1138,27 +1616,70 @@ function PainelConversas() {
                   />
                 ) : (
                   <>
-                    {messages.map((message, index) => (
-                      <motion.div
-                        key={message.ID}
-                        className={`${styles.messageBubble} ${message.SEQUENCIA === '0' ? styles.sent : styles.received}`}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.5) }}
-                      >
-                        <div className={styles.messageContent}>{message.MENSAGEM}</div>
-                        <div className={styles.messageTime}>
-                          {formatTime(message.DATA, message.HORA)}
-                          {message.SEQUENCIA === '0' && (
-                            <span className={message.LIDA === 'true' ? styles.read : styles.unread}>
-                              {message.LIDA === 'true' ? 'Lida' : 'Enviada'}
-                            </span>
+                    {messageGroups.map((group, groupIndex) => {
+                      const isSent = group[0].SEQUENCIA === '0';
+                      return (
+                        <div
+                          key={`group-${groupIndex}`}
+                          className={`${styles.messageGroup} ${isSent ? styles.sent : styles.received}`}
+                        >
+                          {!isSent && (
+                            <img
+                              src={hasImageError[selectedConversation.PROTOCOLO_CONVERSA]
+                                ? UserImage
+                                : `https://animuschatpro.up.railway.app/images?image=${selectedConversation.PROTOCOLO_CONVERSA}.jpg`}
+                              alt="Contact"
+                              className={styles.messageAvatar}
+                              onError={() => handleImageError(selectedConversation.PROTOCOLO_CONVERSA)}
+                            />
                           )}
+                          <div className={styles.messageWrapper}>
+                            {group.map((message, messageIndex) => (
+                              <motion.div
+                                key={message.ID}
+                                className={`${styles.messageBubble} ${message.SEQUENCIA === '0' ? styles.sent : styles.received} ${messageIndex === 0 ? styles.firstInGroup : ''
+                                  } ${messageIndex === group.length - 1 ? styles.lastInGroup : ''}`}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3, delay: Math.min(messageIndex * 0.05, 0.3) }}
+                              >
+                                <div className={styles.messageContent}>{message.MENSAGEM}</div>
+                                {messageIndex === group.length - 1 && (
+                                  <div className={styles.messageTime}>
+                                    {formatTime(message.DATA, message.HORA)}
+                                    {message.SEQUENCIA === '0' && (
+                                      <span className={message.LIDA === 'true' ? styles.read : styles.unread}>
+                                        {message.LIDA === 'true' ? (
+                                          <><CheckCheck size={12} /> Lida</>
+                                        ) : (
+                                          <><Check size={12} /> Enviada</>
+                                        )}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </motion.div>
+                            ))}
+                          </div>
                         </div>
-                      </motion.div>
-                    ))}
+                      );
+                    })}
                     <div ref={messagesEndRef} />
                   </>
+                )}
+
+                {/* New message notification */}
+                {newMessageNotification && (
+                  <motion.div
+                    className={styles.newMessageNotification}
+                    onClick={scrollToBottom}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 20, opacity: 0 }}
+                  >
+                    <ChevronDown size={16} />
+                    Nova(s) mensagem(ns)
+                  </motion.div>
                 )}
               </div>
 
@@ -1178,6 +1699,7 @@ function PainelConversas() {
                   disabled={!newMessage.trim()}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  title="Enviar mensagem"
                 >
                   <Send size={18} />
                 </motion.button>

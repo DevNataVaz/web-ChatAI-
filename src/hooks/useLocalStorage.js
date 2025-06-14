@@ -19,7 +19,7 @@ export const useLocalStorage = (key, initialValue) => {
       return initialValue;
     } catch (error) {
       // If error also return initialValue
-      console.error(`Error reading localStorage key "${key}":`, error);
+      // console.error(`Error reading localStorage key "${key}":`, error);
       return initialValue;
     }
   });
@@ -43,7 +43,7 @@ export const useLocalStorage = (key, initialValue) => {
         localStorage.setItem(key, encrypted);
       }
     } catch (error) {
-      console.error(`Error setting localStorage key "${key}":`, error);
+      // console.error(`Error setting localStorage key "${key}":`, error);
     }
   };
   
@@ -59,7 +59,7 @@ export const useLocalStorage = (key, initialValue) => {
             setStoredValue(initialValue);
           }
         } catch (error) {
-          console.error(`Error handling storage change for key "${key}":`, error);
+          // console.error(`Error handling storage change for key "${key}":`, error);
         }
       }
     };

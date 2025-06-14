@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styles from './PagamentoPix.module.css';
 import { socketService } from '../../../../../services/socketService';
-import { safeDescriptografar, Criptografar } from '../../../../../Cripto/index';
+import { Descriptografar, Criptografar } from '../../../../../Cripto/index';
 import { useApp } from '../../../../../context/AppContext';
 import SuccessModal from '../ModalSucesso/SuccessModal';
 import { Check, Copy, ShoppingBag, Shield, AlertTriangle } from 'react-feather';
 
 function PixPayment() {
   const { planoId } = useParams();
-  const { user, planos } = useApp();
+  const { user, planos, refreshUserData } = useApp();
   const navigate = useNavigate();
   const [plano, setPlano] = useState(null);
   const [qrCode, setQrCode] = useState('');
@@ -18,223 +18,512 @@ function PixPayment() {
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [error, setError] = useState(null);
+  const [paymentData, setPaymentData] = useState(null); // Armazenar dados do pagamento
+  const [assinaturaId, setAssinaturaId] = useState(null); // ID da assinatura
+  
+  // Referência para o timeout
+  const timeoutRef = useRef(null);
+  
+  // Referência para controlar se o componente está montado
+  const isMounted = useRef(true);
+  
+  // Referência para contagem de tentativas de verificação
+  const verificationAttempts = useRef(0);
+  
+  // Referência para controlar se uma requisição já foi enviada
+  const requestSent = useRef(false);
 
+  // Logger personalizado para depuração
+  const logDebug = (message, data) => {
+    if (process.env.NODE_ENV !== 'production') {
+      // console.log(`[PixPayment] ${message}`, data);
+    }
+  };
+
+  // Função para buscar ID da assinatura do usuário
+  const fetchAssinaturaId = async () => {
+    try {
+      // Buscar a assinatura diretamente do banco
+      const [assinatura] = await this.db.query('SELECT * FROM assinatura WHERE ID_CLIENTE = ?', [user.ID]);
+      
+      if (assinatura && assinatura.ID) {
+        logDebug('ID da assinatura encontrado:', assinatura.ID);
+        return assinatura.ID;
+      }
+      
+      // Fallback para o ID do usuário apenas se necessário
+      logDebug('ID da assinatura não encontrado, usando ID do usuário como fallback:', user.ID);
+      return user.ID;
+    } catch (err) {
+      // console.error('Erro ao buscar ID da assinatura:', err);
+      return user.ID;
+    }
+  };
+
+  // Handler para a resposta do PIX - usando useCallback para manter a referência consistente
+  const handlePixResponse = useCallback((data) => {
+    // Limpar o timeout assim que receber a resposta
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    
+    // IMPORTANTE: Se o pagamento já foi aprovado, ignorar completamente novos códigos PIX
+    if (status === 'approved') {
+      logDebug('Ignorando nova resposta PIX pois o pagamento já foi aprovado');
+      return;
+    }
+    
+    logDebug('Resposta do PIX recebida:', data);
+    
+    try {
+      // Desbloquear a possibilidade de enviar outra requisição apenas em caso de erro
+      requestSent.current = false;
+      
+      // Tratamento do QR code
+      let result;
+      try {
+        result = Descriptografar(data);
+        
+        if (typeof result === 'string') {
+          try {
+            result = JSON.parse(result);
+          } catch (parseErr) {
+            logDebug('Erro ao fazer parse JSON:', parseErr);
+            // Se falhar, tenta usar a string diretamente
+          }
+        }
+        
+        // Se result for um objeto, serializa para garantir consistência
+        if (typeof result === 'object' && result !== null) {
+          const serialized = JSON.stringify(result);
+          result = JSON.parse(serialized);
+        }
+        
+        logDebug('Resposta do PIX decodificada:', result);
+      } catch (parseErr) {
+        logDebug('Erro ao decodificar resposta:', parseErr);
+        // Mesmo em caso de erro, tenta continuar com a extração do QR code
+        result = data; // Usa o dado original
+      }
+      
+      // MÉTODO SIMPLIFICADO DE EXTRAÇÃO DO CÓDIGO PIX
+      // Primeiro tenta encontrar no objeto de resposta
+      let pixCode = '';
+      
+      // Se já temos um QR code e já não estamos carregando, não precisamos
+      // de outro, a menos que estejamos tentando gerar um novo explicitamente
+      if (qrCode && !loading) {
+        logDebug('QR code já existente, ignorando nova resposta');
+        return;
+      }
+      
+      if (typeof result === 'object' && result !== null) {
+        // Verificar apenas propriedades principais conhecidas
+        if (result.qrCode) {
+          pixCode = result.qrCode;
+        } else if (result.qr_code) {
+          pixCode = result.qr_code;
+        } else if (result.qr_code_base64) {
+          pixCode = result.qr_code_base64;
+        } else if (result.qrCodeText) {
+          pixCode = result.qrCodeText;
+        } else if (result.point_of_interaction?.transaction_data?.qr_code) {
+          pixCode = result.point_of_interaction.transaction_data.qr_code;
+        } else {
+          // Procurar em todas as propriedades somente se as principais não funcionarem
+          for (const key of Object.keys(result)) {
+            if (typeof result[key] === 'string' && 
+                result[key].includes('br.gov.bcb.pix') && 
+                result[key].length > 20) {
+              pixCode = result[key];
+              break;
+            }
+          }
+        }
+      }
+      
+      // Se não encontrou no objeto, tenta extrair da string com regex (apenas uma tentativa)
+      if (!pixCode) {
+        try {
+          const responseStr = typeof data === 'string' ? data : JSON.stringify(data);
+          const pixMatch = responseStr.match(/00020126580014br\.gov\.bcb\.pix[0-9a-zA-Z.-]+/);
+          
+          if (pixMatch && pixMatch[0]) {
+            pixCode = pixMatch[0];
+          }
+        } catch (regexErr) {
+          logDebug('Erro ao tentar extrair código via regex:', regexErr);
+        }
+      }
+      
+      // Se encontrou um código PIX válido
+      if (pixCode && isMounted.current) {
+        logDebug('Código PIX extraído com sucesso:', pixCode);
+        
+        // Verificar se o código é diferente do atual antes de atualizar
+        if (pixCode !== qrCode) {
+          setQrCode(pixCode);
+          setLoading(false);
+          
+          // Use os dados armazenados para verificar o status
+          if (paymentData) {
+            // Pequeno delay para garantir que o backend tenha tempo de registrar o QR code
+            setTimeout(() => {
+              if (isMounted.current && status !== 'approved') {
+                checkPixStatus(pixCode, paymentData);
+              }
+            }, 2000);
+          }
+        } else {
+          logDebug('QR code recebido é idêntico ao atual, ignorando');
+          setLoading(false);
+        }
+      } else if (isMounted.current) {
+        setError('Código PIX não encontrado na resposta');
+        setStatus('error');
+        setLoading(false);
+      }
+    } catch (err) {
+      if (isMounted.current) {
+        setError(`Erro ao processar resposta: ${err.message}`);
+        setStatus('error');
+        setLoading(false);
+      }
+    }
+  }, [loading, paymentData, qrCode, status]);
+
+  // Handler para a resposta de verificação do PIX - usando useCallback para manter a referência consistente
+  const handleVerifyResponse = useCallback((data) => {
+    logDebug('Resposta da verificação do PIX recebida:', data);
+    
+    try {
+      // Tratar caso de data ser null/undefined
+      if (!data) {
+        logDebug('Dados da verificação vazios');
+        return;
+      }
+      
+      // Tratar com segurança a decodificação para evitar erros
+      let result;
+      try {
+        result = Descriptografar(data.Dados || data);
+        
+        // Garantir que o resultado é um objeto
+        if (typeof result === 'string') {
+          try {
+            result = JSON.parse(result);
+          } catch (parseErr) {
+            logDebug('Erro ao fazer parse do resultado da verificação:', parseErr);
+            // Se não conseguir fazer o parse, tente determinar o status a partir da string
+            if (result.includes('approved') || result.includes('APPROVED')) {
+              result = { status: 'approved' };
+            } else if (result.includes('pending') || result.includes('PENDING')) {
+              result = { status: 'pending' };
+            } else {
+              // Caso não seja possível determinar o status, mantenha o atual
+              return;
+            }
+          }
+        }
+      } catch (decryptErr) {
+        // Se falhar ao descriptografar, tente extrair informações da string original
+        logDebug('Erro ao descriptografar resposta da verificação:', decryptErr);
+        const dataStr = typeof data === 'string' ? data : JSON.stringify(data);
+        
+        if (dataStr.includes('approved') || dataStr.includes('APPROVED')) {
+          result = { status: 'approved' };
+        } else if (dataStr.includes('pending') || dataStr.includes('PENDING')) {
+          result = { status: 'pending' };
+        } else {
+          // Se não for possível extrair o status, não atualize o estado
+          return;
+        }
+      }
+      
+      logDebug('Resultado da verificação do PIX processado:', result);
+      
+      const statusValue = result?.status || 'pending';
+      
+      if (isMounted.current) {
+        // Importante: ao confirmar aprovação, impedir novas requisições
+        if (statusValue === 'approved') {
+          // Bloqueamos permanentemente novas requisições quando aprovado
+          requestSent.current = true;
+          setStatus('approved');
+          setModalVisible(true);
+          
+          // Limpar verificações automáticas
+          verificationAttempts.current = 0;
+          
+          // Desconectar o socket para evitar novos eventos
+          try {
+            const socket = socketService.socket;
+            if (socket) {
+              socket.off('ResponsePagamentosPix');
+              socket.off('ResponseVerificaPix');
+            }
+          } catch (socketErr) {
+            logDebug('Erro ao desconectar socket:', socketErr);
+          }
+          
+          // Adicionar um evento para recarregar os dados do usuário no contexto
+          // antes de navegar para o dashboard
+          setTimeout(async () => {
+            if (isMounted.current) {
+              try {
+                // Recarregar dados do usuário após aprovação do pagamento
+                // Isso garantirá que o dashboard exiba os dados atualizados
+                await refreshUserData();
+                
+                // Navegar para o dashboard
+                navigate('/dashboard');
+              } catch (refreshErr) {
+                // console.error('Erro ao atualizar dados do usuário:', refreshErr);
+                // Navegar mesmo com erro, o dashboard deve recarregar os dados
+                navigate('/dashboard');
+              }
+            }
+          }, 100);
+        } else if (statusValue === 'pending' && status !== 'approved' && verificationAttempts.current < 5) {
+          // Só atualizar o status se ainda não estiver aprovado
+          if (status !== 'approved') {
+            setStatus('pending');
+          }
+          
+          // Tentar verificar novamente até 5 vezes (apenas se não estiver aprovado)
+          verificationAttempts.current += 1;
+          setTimeout(() => {
+            if (isMounted.current && status !== 'approved' && qrCode && paymentData) {
+              checkPixStatus(qrCode, paymentData);
+            }
+          }, 10000);
+        }
+      }
+    } catch (err) {
+      // console.error('Erro ao verificar PIX:', err);
+      if (isMounted.current) {
+        setError(`Erro ao verificar pagamento: ${err.message}`);
+      }
+    }
+  }, [navigate, refreshUserData, status]);
+
+  // Efeito para controlar o ciclo de vida do componente
+  useEffect(() => {
+    // Configurar o sinalizador de montagem
+    isMounted.current = true;
+    
+    // Limpar o timeout ao desmontar o componente
+    return () => {
+      isMounted.current = false;
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Efeito principal - com dependências reduzidas ao mínimo necessário
   useEffect(() => {
     if (!user) {
       navigate('/login');
       return;
     }
 
-    // Find selected plan
-    const selectedPlano = planos.find(p => p.ID === parseInt(planoId));
-    if (selectedPlano) {
-      setPlano(selectedPlano);
-      generatePix(selectedPlano);
-    } else {
-      setError('Plano não encontrado');
-      setLoading(false);
+    // Limpar qualquer timeout existente ao refazer a busca
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
     }
 
-    // Setup socket listeners
-    const socket = socketService.connect();
-    
-    socket.on('ResponsePagamentosPix', (data) => {
-      try {
-        console.log('Resposta PIX recebida:', data);
+    // Resetar o estado de requisição enviada
+    requestSent.current = false;
+
+    // Buscar ID da assinatura - CRÍTICO para a atualização correta do plano
+    fetchAssinaturaId().then(id => {
+      if (!isMounted.current) return;
+      
+      setAssinaturaId(id);
+      logDebug('ID da assinatura obtido:', id);
+      
+      // Procurar o plano selecionado
+      const selectedPlano = planos.find(p => p.ID === parseInt(planoId));
+      logDebug('Plano selecionado:', selectedPlano);
+      
+      if (selectedPlano) {
+        setPlano(selectedPlano);
         
-        // PRIMEIRO PROBLEMA: Garantir que estamos recebendo um objeto JavaScript
-        let result;
-        try {
-          // Tenta descriptografar
-          result = safeDescriptografar(data);
-          console.log('Resposta PIX descriptografada (objeto original):', result);
-          
-          // Se o resultado for uma string, tenta converter para objeto
-          if (typeof result === 'string') {
-            console.log('Convertendo string para objeto...');
-            result = JSON.parse(result);
-          }
-          
-          // Força a serialização e deserialização para garantir um objeto limpo
-          const serialized = JSON.stringify(result);
-          result = JSON.parse(serialized);
-          console.log('Resposta PIX normalizada:', result);
-          console.log('Código realmente existe?', 'Code' in result);
-          console.log('Propriedades do objeto:', Object.keys(result));
-        } catch (parseErr) {
-          console.error('Erro ao processar JSON:', parseErr);
-          setError('Erro ao processar resposta do servidor');
-          setStatus('error');
-          setLoading(false);
-          return;
-        }
+        // Armazenar os dados de pagamento - CRUCIAL para a atualização do plano
+        const paymentDataObj = {
+          Code: '546546546546645',
+          transaction_amount: parseFloat(selectedPlano.PRECO_MES.replace(',', '.')),
+          description: `Assinatura ${selectedPlano.PLANO}`,
+          payment_method_id: 'pix',
+          payer: {
+            email: user.EMAIL || user.LOGIN + '@gmail.com',
+          },
+          Login: user.LOGIN,
+          Nome: selectedPlano.PLANO,     // Nome exato do plano
+          Id: id,                        // ID da assinatura (não o ID do plano)
+          ASSUNTO: 'PLANO',              // Tipo de transação
+          Qtd_Mensagens: selectedPlano.MENSAGENS || 0
+        };
         
-        // SOLUÇÃO ALTERNATIVA: Extrair o código PIX diretamente usando expressões regulares
-        // Isso ignora a estrutura do objeto e procura diretamente pelo padrão do código PIX
-        let pixCode = '';
-        
-        if (typeof result === 'object' && result !== null) {
-          // Tenta todas as propriedades possíveis que poderiam conter o código
-          const possibleKeys = ['Dados', 'dados', 'data', 'pixCode', 'code', 'value'];
-          
-          for (const key of Object.keys(result)) {
-            if (typeof result[key] === 'string' && 
-                result[key].includes('br.gov.bcb.pix') && 
-                result[key].length > 20) {
-              console.log('Encontrado código PIX na propriedade:', key);
-              pixCode = result[key];
-              break;
-            }
-          }
-        }
-        
-        // Se encontrou um código PIX válido
-        if (pixCode) {
-          console.log('Código PIX extraído com sucesso:', pixCode);
-          setQrCode(pixCode);
-          setLoading(false);
-          checkPixStatus(pixCode);
-        } else {
-          // Tenta extrair o código diretamente da string de resposta
-          const responseStr = typeof data === 'string' ? data : JSON.stringify(data);
-          const pixMatch = responseStr.match(/00020126580014br\.gov\.bcb\.pix[0-9a-zA-Z.-]+/);
-          
-          if (pixMatch && pixMatch[0]) {
-            console.log('Código PIX extraído da resposta bruta:', pixMatch[0]);
-            setQrCode(pixMatch[0]);
-            setLoading(false);
-            checkPixStatus(pixMatch[0]);
-          } else {
-            console.error('Não foi possível extrair o código PIX de nenhuma fonte');
-            setError('Código PIX não encontrado na resposta');
-            setStatus('error');
-            setLoading(false);
-          }
-        }
-      } catch (err) {
-        console.error('Erro ao processar resposta PIX:', err);
-        
-        // SOLUÇÃO DE EMERGÊNCIA: Tenta extrair o código PIX diretamente da string de erro
-        try {
-          const errorStr = err.toString();
-          const dataStr = typeof data === 'string' ? data : JSON.stringify(data);
-          const combinedStr = errorStr + dataStr;
-          
-          // Procura por padrões de código PIX em qualquer parte da string
-          const pixMatch = combinedStr.match(/00020126580014br\.gov\.bcb\.pix[0-9a-zA-Z.-]+/);
-          
-          if (pixMatch && pixMatch[0]) {
-            console.log('Código PIX extraído da mensagem de erro:', pixMatch[0]);
-            setQrCode(pixMatch[0]);
-            setLoading(false);
-            checkPixStatus(pixMatch[0]);
-            return;
-          }
-        } catch (extractErr) {
-          console.error('Erro ao tentar extrair código da mensagem de erro:', extractErr);
-        }
-        
-        setError(`Erro ao processar resposta: ${err.message}`);
-        setStatus('error');
+        logDebug('Dados de pagamento configurados:', paymentDataObj);
+        setPaymentData(paymentDataObj);
+        generatePix(paymentDataObj);
+      } else {
+        setError('Plano não encontrado');
         setLoading(false);
       }
     });
 
-    socket.on('ResponseVerificaPix', (data) => {
-      try {
-        console.log('Resposta verificação PIX recebida:', data);
-        const result = safeDescriptografar(data.Dados || data);
-        console.log('Resposta verificação PIX descriptografada:', result);
-        
-        setStatus(result.status);
-        
-        if (result.status === 'approved') {
-          setModalVisible(true);
-          setTimeout(() => {
-            navigate('/dashboard');
-          }, 5000);
-        }
-      } catch (err) {
-        console.error('Erro ao verificar PIX:', err);
-        setError(`Erro ao verificar pagamento: ${err.message}`);
+    // Limpar ao desmontar
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
-    });
+    };
+  }, [planoId, user, navigate, planos]); // Manter apenas as dependências essenciais
+
+  // Efeito separado para configurar os ouvintes de socket - independente dos dados
+  useEffect(() => {
+    // Setup socket listeners
+    const socket = socketService.connect();
+    
+    // Garantir que os listeners não sejam duplicados
+    socket.off('ResponsePagamentosPix');
+    socket.off('ResponseVerificaPix');
+    
+    socket.on('ResponsePagamentosPix', handlePixResponse);
+    socket.on('ResponseVerificaPix', handleVerifyResponse);
 
     // Verificar se o socket está conectado
     if (!socket.connected) {
-      console.log('Socket desconectado. Tentando reconectar...');
       socket.connect();
     }
 
     return () => {
-      socket.off('ResponsePagamentosPix');
-      socket.off('ResponseVerificaPix');
+      // Remover listeners ao desmontar
+      socket.off('ResponsePagamentosPix', handlePixResponse);
+      socket.off('ResponseVerificaPix', handleVerifyResponse);
     };
-  }, [user, planoId, navigate, planos]);
+  }, [handlePixResponse, handleVerifyResponse]);
 
-  const generatePix = (plano) => {
+  const generatePix = (data) => {
+    if (!isMounted.current) return;
+    
+    // Evitar múltiplas requisições
+    if (requestSent.current) {
+      logDebug('Requisição já enviada, ignorando chamada duplicada');
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     
     try {
-      const data = {
-        Code: '546546546546645',
-        transaction_amount: parseFloat(plano.PRECO_MES.replace(',', '.')),
-        description: `Assinatura ${plano.PLANO}`,
-        payment_method_id: 'pix',
-        payer: {
-          email: user.EMAIL || user.LOGIN + '@gmail.com',
-        },
-        Login: user.LOGIN,
-        Nome: plano.PLANO,
-        Id: plano.ID,
-        ASSUNTO: 'PLANO',
-        Qtd_Mensagens: plano.MENSAGENS || 0
-      };
-
       const socket = socketService.socket;
       
       if (!socket || !socket.connected) {
-        console.error('Socket não está conectado');
         setError('Erro de conexão com o servidor');
         setLoading(false);
         return;
       }
 
-      console.log('Enviando solicitação PIX:', data);
-      socket.emit('PagamentosPix', Criptografar(JSON.stringify(data)));
+      // Marcar que uma requisição foi enviada
+      requestSent.current = true;
+
+      // Garantir que os dados estão em string antes de criptografar
+      const dataToSend = typeof data === 'string' ? data : JSON.stringify(data);
+      logDebug('Enviando solicitação de PIX:', data);
+      socket.emit('PagamentosPix', Criptografar(dataToSend));
       
-      // Definir um timeout para caso não receba resposta
-      setTimeout(() => {
-        if (loading && !qrCode) {
-          setError('Tempo limite excedido ao gerar código PIX');
-          setStatus('error');
-          setLoading(false);
+      // Definir um timeout mais longo para caso não receba resposta
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      
+      timeoutRef.current = setTimeout(() => {
+        // Verificar se ainda não recebemos o QR code
+        if (isMounted.current && loading && !qrCode) {
+          // Permitir nova tentativa
+          requestSent.current = false;
+          
+          // Verificar primeiro se o socket ainda está conectado
+          if (!socket.connected) {
+            socket.connect();
+            setTimeout(() => {
+              if (isMounted.current && loading && !qrCode) {
+                setError('Erro de conexão com o servidor. Tente novamente.');
+                setStatus('error');
+                setLoading(false);
+              }
+            }, 5000);
+          } else {
+            setError('Tempo limite excedido ao gerar código PIX. Tente novamente.');
+            setStatus('error');
+            setLoading(false);
+          }
         }
-      }, 15000);
+      }, 30000); // 30 segundos
     } catch (err) {
-      console.error('Erro ao gerar PIX:', err);
-      setError(`Erro ao gerar PIX: ${err.message}`);
-      setStatus('error');
-      setLoading(false);
+      logDebug('Erro ao gerar PIX:', err);
+      requestSent.current = false; // Permitir nova tentativa em caso de erro
+      
+      if (isMounted.current) {
+        setError(`Erro ao gerar PIX: ${err.message}`);
+        setStatus('error');
+        setLoading(false);
+      }
     }
   };
 
-  const checkPixStatus = (qrCode) => {
+  const checkPixStatus = (qrCode, configData) => {
+    if (!isMounted.current) return;
+    
+    // IMPORTANTE: Se o pagamento já foi aprovado, não fazer mais verificações
+    if (status === 'approved') {
+      logDebug('Ignorando verificação de PIX pois pagamento já foi aprovado');
+      return;
+    }
+    
     try {
+      // Garantir que estamos usando EXATAMENTE os mesmos dados enviados inicialmente
       const data = {
         Code: '6534453456544653514343132516325',
         Dados: qrCode,
-        Id_Assinatura: user.ID || plano.ID,
-        Nome: plano?.PLANO,
-        Qtd_Mensagens: plano?.MENSAGENS || 0
+        Id_Assinatura: configData.Id, 
+        Nome: configData.Nome,        
+        Qtd_Mensagens: String(configData.Qtd_Mensagens || "0"),
+        ASSUNTO: 'PLANO',
+        Login: configData.Login  
       };
-
-      console.log('Verificando status PIX:', data);
-      socketService.socket.emit('VerificaPix', Criptografar(JSON.stringify(data)));
+      console.log(configData)
+      // Log detalhado para depuração
+      logDebug('Dados para verificação do PIX:', data);
+      
+      // Converter para string antes de criptografar
+      const dataStr = JSON.stringify(data);
+      
+      // Verificar se o socket está conectado antes de emitir
+      const socket = socketService.socket;
+      if (!socket || !socket.connected) {
+        logDebug('Socket não conectado, reconectando...');
+        socketService.connect();
+        
+        // Pequeno delay para dar tempo de reconectar
+        setTimeout(() => {
+          if (isMounted.current && status !== 'approved') {
+            socketService.socket.emit('VerificaPix', Criptografar(dataStr));
+          }
+        }, 100);
+      } else {
+        socket.emit('VerificaPix', Criptografar(dataStr));
+      }
     } catch (err) {
-      console.error('Erro ao verificar PIX:', err);
-      setError(`Erro ao verificar pagamento: ${err.message}`);
+      logDebug('Erro ao verificar PIX:', err);
+      if (isMounted.current) {
+        setError(`Erro ao verificar pagamento: ${err.message}`);
+      }
     }
   };
 
@@ -247,15 +536,20 @@ function PixPayment() {
     navigator.clipboard.writeText(qrCode)
       .then(() => {
         setCopied(true);
-        setTimeout(() => setCopied(false), 3000);
+        setTimeout(() => {
+          if (isMounted.current) {
+            setCopied(false);
+          }
+        }, 3000);
       })
       .catch(err => {
-        console.error('Erro ao copiar:', err);
         setError('Não foi possível copiar o código');
       });
   };
 
   const handleVerification = () => {
+    if (!isMounted.current) return;
+    
     setLoading(true);
     setError(null);
     
@@ -265,9 +559,15 @@ function PixPayment() {
       return;
     }
     
-    checkPixStatus(qrCode);
+    // Resetar contagem de tentativas
+    verificationAttempts.current = 0;
+    
+    // Usar os dados armazenados para verificação manual
+    checkPixStatus(qrCode, paymentData);
     setTimeout(() => {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }, 3000);
   };
 
@@ -317,7 +617,10 @@ function PixPayment() {
             <p>{error || 'Não foi possível gerar o código Pix. Por favor, tente novamente mais tarde.'}</p>
             <button 
               className={styles.retryButton}
-              onClick={() => generatePix(plano)}
+              onClick={() => {
+                requestSent.current = false; // Reset do bloqueio de requisição
+                generatePix(paymentData);
+              }}
             >
               Tentar novamente
             </button>
@@ -410,6 +713,7 @@ function PixPayment() {
         onClose={() => setModalVisible(false)}
         status={status}
         plano={plano}
+        paymentData={paymentData}
       />
     </div>
   );

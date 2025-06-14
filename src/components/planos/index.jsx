@@ -1,8 +1,10 @@
 import React from "react";
 import styles from './planos.module.css'
 import Certo from '../../assets/icons/certo.svg'
+import { useNavigate } from "react-router-dom";
 
 function Planos() {
+    const navigate = useNavigate();
     return (
         <>
             <div className={styles.container} id="planos">
@@ -23,7 +25,7 @@ function Planos() {
                             <p><img src={Certo} alt="" /> Produtos ou Serviços Cadastrador: 10</p>
                             <p><img src={Certo} alt="" /> Automação por plataforma: 2</p>
                         </div>
-                        <button className={styles.comprar}>EXPERIMENTE GRÁTIS</button>
+                        <button onClick={() => navigate('/registro')} className={styles.comprar}>EXPERIMENTE GRÁTIS</button>
                     </div>
 
                     {/* Plano 2 - DESTAQUE */}
@@ -40,7 +42,7 @@ function Planos() {
                             <p><img src={Certo} alt="" /> Sugestões de conteúdo</p>
                             <p><img src={Certo} alt="" /> Otimização de links</p>
                         </div>
-                        <button className={styles.comprar}>EXPERIMENTE GRÁTIS</button>
+                        <button onClick={() => navigate('/registro')} className={styles.comprar}>EXPERIMENTE GRÁTIS</button>
                     </div>
 
                     {/* Plano 3 */}
@@ -58,7 +60,7 @@ function Planos() {
                             <p><img src={Certo} alt="" /> Acesso multiusuário</p>
                             <p><img src={Certo} alt="" /> Integração API</p>
                         </div>
-                        <button className={styles.comprar}>EXPERIMENTE GRÁTIS</button>
+                        <button onClick={() => navigate('/registro')} className={styles.comprar}>EXPERIMENTE GRÁTIS</button>
                     </div>
                     {/* Plano 4 */}
                     <div className={styles.planos} data-aos="zoom-in" data-aos-delay="600">
@@ -77,7 +79,7 @@ function Planos() {
                             <p><img src={Certo} alt="" /> Otimização de palavras-chave</p>
                             <p><img src={Certo} alt="" /> Meta tags automatizadas</p>
                         </div>
-                        <button className={styles.comprar}>EXPERIMENTE GRÁTIS</button>
+                        <button onClick={() => navigate('/registro')}  className={styles.comprar}>EXPERIMENTE GRÁTIS</button>
                     </div>
                 </div>
                 

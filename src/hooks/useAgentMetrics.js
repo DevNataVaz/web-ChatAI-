@@ -32,7 +32,7 @@ export const useAgentMetrics = () => {
         });
         
       } catch (error) {
-        console.error('Error fetching metrics:', error);
+        // console.error('Error fetching metrics:', error);
       } finally {
         setIsLoading(false);
       }

@@ -69,11 +69,11 @@
   border: 1px solid #3a3a50;
   border-radius: 20px;
   width: 330px;
-  height: 620px;
+  min-height: 650px; /* Aumentado para acomodar melhor os benefícios */
+  max-height: 700px; /* Limite máximo para evitar cards muito altos */
   padding: 30px 25px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   text-align: center;
   transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
   position: relative;
@@ -199,6 +199,7 @@
 
 .planoHeader {
   margin-bottom: 20px;
+  flex-shrink: 0; /* Não permite que o header encolha */
 }
 
 .planos h2 {
@@ -240,14 +241,38 @@
   background: linear-gradient(to right, transparent, #3a3a50, transparent);
   margin: 20px 0;
   opacity: 0.6;
+  flex-shrink: 0; /* Não permite que o divisor encolha */
 }
 
 .beneficios {
-  flex-grow: 1;
+  flex: 1; /* Ocupa o espaço disponível */
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px; /* Reduzido para economizar espaço */
   margin-bottom: 25px;
+  min-height: 250px; /* Altura mínima para os benefícios */
+  max-height: 320px; /* Altura máxima para evitar overflow */
+  overflow-y: auto; /* Adiciona scroll se necessário */
+  padding-right: 5px; /* Espaço para a scrollbar */
+}
+
+/* Estilização da scrollbar para os benefícios */
+.beneficios::-webkit-scrollbar {
+  width: 4px;
+}
+
+.beneficios::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.beneficios::-webkit-scrollbar-thumb {
+  background: rgba(140, 69, 255, 0.5);
+  border-radius: 2px;
+}
+
+.beneficios::-webkit-scrollbar-thumb:hover {
+  background: rgba(140, 69, 255, 0.8);
 }
 
 .beneficioItem {
@@ -258,6 +283,7 @@
   font-size: 14px;
   padding: 5px 0;
   transition: all 0.3s ease;
+  flex-shrink: 0; /* Evita que os itens encolham */
 }
 
 .beneficioItem:hover {
@@ -279,7 +305,7 @@
 }
 
 .comprar {
-  margin-top: 20px;
+  margin-top: auto; /* Empurra o botão para o final do card */
   padding: 14px 25px;
   border: none;
   border-radius: 12px;
@@ -292,6 +318,7 @@
   box-shadow: 0 5px 15px rgba(140, 69, 255, 0.3);
   position: relative;
   overflow: hidden;
+  flex-shrink: 0; /* Garante que o botão mantenha seu tamanho */
 }
 
 .comprar::before {
@@ -422,7 +449,8 @@
   
   .planos {
     width: 300px;
-    height: 580px;
+    min-height: 600px;
+    max-height: 650px;
     padding: 25px 15px;
   }
   
@@ -436,6 +464,11 @@
   
   .valor {
     font-size: 28px;
+  }
+  
+  .beneficios {
+    min-height: 220px;
+    max-height: 280px;
   }
 }
 
@@ -465,8 +498,8 @@
   .planos {
     width: 90%;
     max-width: 400px;
-    height: auto;
-    min-height: 500px;
+    min-height: 550px;
+    max-height: none; /* Remove limite de altura em mobile */
   }
   
   .planos.destaque {
@@ -482,6 +515,8 @@
   .beneficios {
     align-items: flex-start;
     padding-left: 20px;
+    min-height: 200px;
+    max-height: 300px;
   }
   
   .comprar {
@@ -509,7 +544,7 @@
   .planos {
     width: 90%;
     padding: 20px 15px;
-    min-height: 450px;
+    min-height: 500px;
   }
   
   .planos h2 {
@@ -522,6 +557,12 @@
   
   .divisor {
     margin: 15px 0;
+  }
+  
+  .beneficios {
+    min-height: 180px;
+    max-height: 250px;
+    gap: 8px;
   }
   
   .beneficioItem {

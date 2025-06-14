@@ -16,6 +16,16 @@
   text-align: center;
 }
 
+
+.highlight2 {
+  background: linear-gradient(135deg, #EC4899 0%, #8B5CF6 50%, #04054d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift2 3s ease-in-out infinite;
+  background-size: 200% 200%;
+}
+
 .mainTitle {
   font-size: 72px;
   font-weight: 700;
@@ -25,6 +35,8 @@
 }
 
 .description {
+  padding-top: 80px;
+  padding-bottom: 70px;
   font-size: 50px;
   font-weight: 400;
   max-width: 1200px;
@@ -116,6 +128,14 @@
   100% {
     transform: scale(1);
     box-shadow: 0 0 0 0 rgba(140, 69, 255, 0);
+  }
+}
+@keyframes gradientShift2 {
+  0%, 100% { 
+    background-position: 100% 50%; 
+  }
+  50% { 
+    background-position: 0% 50%; 
   }
 }
 

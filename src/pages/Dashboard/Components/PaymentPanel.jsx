@@ -184,7 +184,7 @@ export default function PaymentPanel({ user, socket, onClose }) {
         socket.emit('pagamentosCard', cardPaymentData);
       }
     } catch (error) {
-      console.error('Erro ao processar pagamento:', error);
+      // console.error('Erro ao processar pagamento:', error);
       alert('Erro ao processar pagamento');
       setLoading(false);
     }

@@ -27,8 +27,6 @@ export const AppProvider = ({ children }) => {
     instagram: false,
     whatsapp: false
   });
-  const [lastDataUpdate, setLastDataUpdate] = useState(Date.now());
-  const [lastLoginTimestamp, setLastLoginTimestamp] = useState(null);
 
   // Refs to prevent stale closures in socket callbacks
   const userRef = useRef(null);
@@ -55,11 +53,6 @@ export const AppProvider = ({ children }) => {
     try {
       const savedUser = localStorage.getItem('animusia_user');
       if (!savedUser) return null;
-
-       if (typeof savedUser !== 'string' || savedUser.trim() === '') {
-      localStorage.removeItem('animusia_user');
-      return null;
-    }
 
       const decrypted = Descriptografar(savedUser);
       return JSON.parse(decrypted);
@@ -180,7 +173,6 @@ export const AppProvider = ({ children }) => {
         }
       } catch (err) {
         // console.error('Error initializing app:', err);
-        localStorage.removeItem('animusia_user');
         setError(`Initialization error: ${err.message}`);
       } finally {
         setInitializing(false);
@@ -244,22 +236,15 @@ export const AppProvider = ({ children }) => {
       const currentAgentData = agents[0]; // Default to first agent if none selected
       if (currentAgentData) {
         await checkPlatformStatus(currentAgentData.PROTOCOLO);
-      }setLastDataUpdate(Date.now());
+      }
     } catch (err) {
       // console.error('Error loading initial data:', err);
-      setError('Falha ao carregar dados iniciais. Por favor tente novamente.');
+      setError('Failed to load initial data. Please try again.');
       throw err; // Rethrow for retry mechanism
     } finally {
       setIsLoading(false);
     }
   }, [socketConnected]);
-
-  const forceDataUpdate = useCallback(() => {
-  if (user?.LOGIN) {
-    return loadInitialData(user.LOGIN);
-  }
-  return Promise.resolve();
-}, [user, loadInitialData]);
 
   // Load notifications with caching mechanism
   const loadNotifications = useCallback(async (login) => {
@@ -385,6 +370,31 @@ export const AppProvider = ({ children }) => {
       return null;
     }
   }, [socketConnected]);
+
+
+const refreshUserData = async () => {
+  if (!user?.LOGIN || !socketConnected) {
+    return false;
+  }
+
+  try {
+    setIsLoading(true); // FIXED: Using setIsLoading instead of setLoading
+    
+    // Load user data sequentially to avoid race conditions
+    await loadUserData(user.LOGIN);
+    await loadSubscription(user.LOGIN);
+    await loadPlans(user.LOGIN);
+    
+    return true;
+  } catch (error) {
+    console.error('Erro ao atualizar dados do usuário:', error);
+    return false;
+  } finally {
+    setIsLoading(false); // FIXED: Using setIsLoading instead of setLoading
+  }
+};
+
+
 
   // Refresh subscription info
   const refreshSubscriptionInfo = useCallback(() => {
@@ -565,7 +575,6 @@ export const AppProvider = ({ children }) => {
     }
     
     setUser(userData);
-    setLastLoginTimestamp(Date.now());
     
     // Save to localStorage
     try {
@@ -741,6 +750,23 @@ export const AppProvider = ({ children }) => {
     }
   }, [socketConnected, user]);
 
+  const safeEmit = useCallback((event, data) => {
+    if (!socketConnected) {
+      // console.error(`Cannot emit ${event}: Socket not connected`);
+      toast.error('Não é possível se conectar com o servidor');
+      return false;
+    }
+    
+    try {
+      socketService.emit(event, data);
+      return true;
+    } catch (error) {
+      // console.error(`Error emitting ${event}:`, error);
+      toast.error('Erro ao enviar dados para o servidor');
+      return false;
+    }
+  }, [socketConnected]);
+
   // Context value
   const value = {
     // Auth
@@ -781,6 +807,7 @@ export const AppProvider = ({ children }) => {
     setProducts,
     platformStatus,
     setPlatformStatus,
+    refreshUserData,
     
     // Core actions
     login,
@@ -807,9 +834,8 @@ export const AppProvider = ({ children }) => {
     markMessagesAsRead,
     deleteConversation,
     saveApiKey,
-    lastDataUpdate,
-    forceDataUpdate,
-    lastLoginTimestamp
+    socketService,
+    safeEmit
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

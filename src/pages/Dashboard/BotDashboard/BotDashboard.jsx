@@ -7,7 +7,7 @@ import BotDetail from '../Components/BotDetail/BotDetail.jsx';
 import { socketService } from '../../../services/socketService.js';
 import { Criptografar, Descriptografar } from '../../../Cripto/index.jsx';
 import { toast } from 'react-toastify';
-import LoadingScreen from '../../../components/loading/LoadingScreen.jsx'
+import LoadingScreen from '../../../components/loading/LoadingScreen.jsx';
 
 // Bot platform icons
 import { FaWhatsapp, FaInstagram, FaRobot } from 'react-icons/fa';
@@ -81,9 +81,11 @@ export default function BotDashboard() {
           }));
 
           setBots(botsData);
-        } catch (err) {
-          console.error("Erro ao processar dados de bots:", err);
-          toast.error("Erro ao processar dados dos agentes");
+        } catch (error) {
+          toast.error("Erro ao processar dados dos agentes", {
+            autoClose: 3000,
+            toastId: "dados-nao-carregados",
+          });
           setBots([]);
         } finally {
           setIsLoading(false);
@@ -94,9 +96,12 @@ export default function BotDashboard() {
       // Use once para evitar múltiplos handlers
       socketService.once('MeusRobosResponse', handleBotsResponse);
     } catch (error) {
-      console.error("Erro ao buscar bots:", error);
+
       setError("Não foi possível carregar seus agentes.");
-      toast.error("Falha ao carregar seus agentes");
+      toast.error("Falha ao carregar seus agentes", {
+        autoClose: 3000,
+        toastId: "agentes-nao-carregados",
+      });
       setIsLoading(true);
       setRefreshing(true);
     }
@@ -119,7 +124,7 @@ export default function BotDashboard() {
         Identificador: Criptografar(protocol),
       });
     } catch (error) {
-      console.error(`Erro ao verificar status do bot ${protocol}:`, error);
+
     }
   }, []);
 
@@ -137,10 +142,10 @@ export default function BotDashboard() {
           const qrData = Descriptografar(data.QRCODE);
           setQRCodeData(qrData);
           setQrCodeLoading(false);
-          console.log("QR Code recebido e decodificado");
+
         }
       } catch (error) {
-        console.error("Erro ao processar QR Code:", error);
+
         setQrCodeLoading(false);
       }
     };
@@ -164,14 +169,20 @@ export default function BotDashboard() {
               }));
 
               setShowQRModal(false);
-              toast.success(mensagem || "WhatsApp conectado com sucesso!");
+              toast.success(mensagem || "WhatsApp conectado com sucesso!", {
+                autoClose: 3000,
+                toastId: "whatsapp-sucesso",
+              });
             }
           } else if (titulo.includes('Erro')) {
-            toast.error(mensagem || "Erro ao conectar WhatsApp");
+            toast.error(mensagem || "Erro ao conectar WhatsApp", {
+              autoClose: 3000,
+              toastId: "whatsapp-error",
+            });
           }
         }
       } catch (error) {
-        console.error("Erro ao processar resposta do WhatsApp:", error);
+
       }
     };
 
@@ -197,7 +208,7 @@ export default function BotDashboard() {
           }
         }
       } catch (error) {
-        console.error("Erro ao processar atualização de conexão:", error);
+
       }
     };
 
@@ -219,13 +230,13 @@ export default function BotDashboard() {
   }, [user]); // Apenas o user como dependência
 
   // Load initial data and check bot status
-  useEffect(() => {
+ useEffect(() => {
     if (user?.LOGIN) {
       const startTime = Date.now();
 
       fetchBots().finally(() => {
         const elapsed = Date.now() - startTime;
-        const minDelay = 10500; 
+        const minDelay = 3500; 
         const remaining = minDelay - elapsed;
 
         if (remaining > 0) {
@@ -236,13 +247,13 @@ export default function BotDashboard() {
       });
     }
   }, [user, fetchBots]);
-
-  
+  // Check all bots status when bots list changes
   useEffect(() => {
     if (bots.length > 0) {
-      // Use setTimeout para evitar múltiplas chamadas em sequência rápida
+
       const timer = setTimeout(() => {
         bots.forEach(bot => {
+          
           checkBotStatus(bot.protocol);
         });
       }, 3000);
@@ -251,10 +262,11 @@ export default function BotDashboard() {
     }
   }, [bots, checkBotStatus]);
 
-  // AQUI ESTÁ A MUDANÇA IMPORTANTE - Handle starting a bot
-  // Modificado para sempre mostrar o BotDetail, independente do status de conexão
+  
+
+
   const handleStartBot = useCallback((bot) => {
-    // Apenas navega para o detalhe do bot
+
     setSelectedBot(bot);
 
     // Definir o protocolo atual para uso futuro
@@ -263,7 +275,10 @@ export default function BotDashboard() {
 
   // Handle QR Code timeout
   const handleQrTimeout = useCallback(() => {
-    toast.info("QR Code expirado. Gere um novo para conectar.");
+    toast.info("QR Code expirado. Gere um novo para conectar.", {
+      autoClose: 3000,
+      toastId: "bot-timeout-info",
+    })
     setQRCodeData("");
     setQrCodeLoading(false);
   }, []);
@@ -271,7 +286,10 @@ export default function BotDashboard() {
   // Handle creating a new bot
   const handleCreateBot = useCallback(() => {
     if (bots.length >= botLimit) {
-      toast.warning("Você atingiu o limite máximo de automações permitidas pelo seu plano atual.");
+      toast.warning("Você atingiu o limite máximo de automações permitidas pelo seu plano atual.", {
+        autoClose: 3000,
+        toastId: "bot-created-limite",
+      });
       return;
     }
     setShowCreateModal(true);
@@ -280,9 +298,15 @@ export default function BotDashboard() {
   // Handle bot creation success
   const handleBotCreated = useCallback(() => {
     setShowCreateModal(false);
-    toast.success("Agente criado com sucesso!");
+
+    toast.success("Agente criado com sucesso!", {
+      autoClose: 3000,
+      toastId: "bot-created-success",
+    });
+
     fetchBots();
   }, [fetchBots]);
+
 
   // If we're viewing a specific bot's details
   if (selectedBot) {
@@ -317,18 +341,18 @@ export default function BotDashboard() {
   //   );
   // }
 
-  if (isLoading) {
+    if (isLoading) {
     return <LoadingScreen />;
   }
 
-  // Render error state
+  // // Render error state
   // if (error) {
   //   return (
   //     <div className={styles.errorContainer}>
   //       <div className={styles.errorIcon}>⚠️</div>
   //       <h2>Ops! Algo deu errado</h2>
   //       <p>{error}</p>
-  //       <button 
+  //       <button
   //         className={styles.retryButton}
   //         onClick={fetchBots}
   //       >

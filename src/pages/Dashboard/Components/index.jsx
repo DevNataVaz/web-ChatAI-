@@ -183,7 +183,7 @@ export default function Components({ user, onLogout, socket, Criptografar, Descr
       default:
         return (
           <div className="welcome-content">
-           
+          
           </div>
         );
     }

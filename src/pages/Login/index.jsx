@@ -19,10 +19,12 @@ export default function LoginPage() {
     loadInitialData 
   } = useApp();
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated()) {
-      navigate('/dashboard');
+      setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+         window.location.reload();
+      }, 1000);
     }
   }, [isAuthenticated, navigate]);
 
@@ -40,22 +42,17 @@ export default function LoginPage() {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
-  const handleSubmit = async () => {
-   
-    if (!validateForm()) return;
+  const handleSubmit = async (e) => {
+  e.preventDefault(); // Mantenha isso para evitar o comportamento padrão
+  if (!validateForm()) return;
 
-    setIsLoading(true);
-    try {
-      const senhaCriptografada = MD5.hex_md5(formData.senha);
-      // console.log('Encrypted password:', senhaCriptografada);
+  setIsLoading(true);
+  try {
+    const senhaCriptografada = MD5.hex_md5(formData.senha);
+    const loginData = { Code: '4048963779', login: formData.login, senha: senhaCriptografada };
 
-      const loginData = { Code: '4048963779', login: formData.login, senha: senhaCriptografada };
-      // console.log('Sending loginData:', loginData);
-
-      const { socketService } = await import('../../services/socketService');
-      const loginDataString = JSON.stringify(loginData);
-      const rawResponse = await socketService.requestData('Login', 'ResponseLog', loginDataString);
-      // console.log('Raw response received (type ' + typeof rawResponse + '):', rawResponse);
+    const { socketService } = await import('../../services/socketService');
+    const rawResponse = await socketService.requestData('Login', 'ResponseLog', loginData);
 
       // Tenta descriptografar, mas trata casos onde rawResponse já é JSON/objeto
       let responseObj;
@@ -71,38 +68,36 @@ export default function LoginPage() {
       } else {
         responseObj = rawResponse;
       }
-      // console.log('Final parsed response:', responseObj);
+      
 
       // Normaliza Dados sempre como array
       let dados = responseObj.Dados ?? [];
       if (!Array.isArray(dados)) dados = [dados];
 
       if (dados.length > 0) {
-        const userData = dados[0];
-        
-        // Use the login function from AppContext
-        login(userData);
-        
-        // Load initial data (user profile, agents, notifications)
-        if (userData.LOGIN) {
-          await loadInitialData(userData.LOGIN);
-        }
-        
-      toast.success("Login realizado com sucesso!", {
-        autoClose: 3000,
-        toastId: "login-success",
-      });
-        navigate('/dashboard');
-      } else {
-        toast.error('Credenciais inválidas. Verifique seus dados.');
+      const userData = dados[0];
+      
+      // Login no contexto
+      await login(userData);
+      
+      // Garanta que isso seja executado completamente antes de navegar
+      if (userData.LOGIN) {
+        await loadInitialData(userData.LOGIN);
       }
-    } catch (error) {
-      // console.error('Login error:', error);
-      toast.error('Erro ao fazer login. Tente novamente.');
-    } finally {
-      setIsLoading(false);
+      
+      // toast.success("Login realizado com sucesso!", {
+      //   autoClose: 3000,
+      //   toastId: "login-success",
+      // });
+    } else {
+      toast.error('Credenciais inválidas. Verifique seus dados.');
     }
-  };
+  } catch (error) {
+    toast.error('Erro ao fazer login. Tente novamente.');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const navigateToRegister = () => navigate('/registro');
 
@@ -111,7 +106,7 @@ export default function LoginPage() {
       <div className={styles.loginCard}>
         <h1 className={styles.title}>Bem-vindo de volta</h1>
         <p className={styles.subtitle}>Entre com sua conta para continuar</p>
-        <form onSubmit={handleSubmit} className={styles.form}>
+        <form onSubmit={handleSubmit} className={styles.form} method='POST'>
           <div className={styles.formGroup}>
             <label htmlFor="login">Nome de usuário</label>
             <input

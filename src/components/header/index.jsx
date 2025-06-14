@@ -1,5 +1,5 @@
 import React from "react";
-import ChatSimulation from "../chatSimulação";
+import ChatSimulation from "../chatSimulation";
 import styles from './header.module.css'
 import Apk from '../../assets/App.svg'
 import ImageApp from '../../assets/App.png'
@@ -52,7 +52,7 @@ function Header() {
             <div className={styles.container} id="header">
                 <div className={styles.title}>
                     <h1 className={styles.mainTitle}>
-                        <span ref={h1Ref}>Animus ChatAI.</span>
+                        <span ref={h1Ref}>Animus Chat<span className={styles.highlight2}>Pro.</span></span>
                     </h1>
                     <p className={styles.description}>
                         <span className={styles.firstLine}>
@@ -74,7 +74,7 @@ function Header() {
                     <div className={styles.chatSimulation} data-aos="zoom-in" data-aos-delay="1200">
                         <ChatSimulation />
                     </div>
-                </div>
+                </div> 
                 <div className={styles.containerButton}>
                     <button className={styles.btnFree}>EXPERIMENTE GRÁTIS</button>
                 </div>

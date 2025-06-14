@@ -101,7 +101,7 @@ const handleSubmit = async (e) => {
       empresa: formData.empresa,
     };
 
-    console.log("Enviando dados:", data);
+    // console.log("Enviando dados:", data);
 
     const response = await socketService.requestData(
       'EnviarRegistro',
@@ -109,7 +109,7 @@ const handleSubmit = async (e) => {
       data
     );
 
-    console.log("Resposta do servidor:", response);
+    // console.log("Resposta do servidor:", response);
 
     // A resposta deve ter sido descriptografada pelo socketService
     // Verificando o formato correto
@@ -156,7 +156,7 @@ const handleSubmit = async (e) => {
           return;
         }
       } catch (parseError) {
-        console.error("Erro ao analisar dados:", parseError);
+        // console.error("Erro ao analisar dados:", parseError);
       }
     }
 
@@ -175,7 +175,7 @@ const handleSubmit = async (e) => {
 
     // Fallback para quando os dados estão sendo registrados mas a resposta não está no formato esperado
     // Esta parte deve ocorrer apenas em situações excepcionais
-    console.warn("Resposta em formato inesperado, mas o cadastro parece ter sido realizado:", response);
+    // console.warn("Resposta em formato inesperado, mas o cadastro parece ter sido realizado:", response);
     toast.success('Cadastro parece ter sido realizado com sucesso!', {
       position: "top-right",
       autoClose: 3000,
@@ -185,7 +185,7 @@ const handleSubmit = async (e) => {
       navigate('/login');
     }, 1500);
   } catch (error) {
-    console.error('Register error:', error);
+    // console.error('Register error:', error);
     toast.error('Erro ao realizar cadastro: ' + (error.message || 'Tente novamente.'), {
       position: "top-right",
       autoClose: 5000,

@@ -1,0 +1,584 @@
+/* Overlay */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(5px);
+}
+
+/* Modal */
+.modal {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  color: white;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 2rem 1rem 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.headerContent h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.headerContent p {
+  margin: 0;
+  opacity: 0.7;
+  font-size: 0.875rem;
+}
+
+.closeButton {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.75rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Summary */
+.summary {
+  padding: 1.5rem 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.summaryItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.summaryItem:last-child {
+  margin-bottom: 0;
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+.amount {
+  color: #60a5fa;
+  font-weight: 700;
+}
+
+/* Status */
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.status.approved {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+  border-top: 1px solid rgba(34, 197, 94, 0.2);
+  border-bottom: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.status.processing {
+  background: rgba(251, 191, 36, 0.1);
+  color: #fbbf24;
+  border-top: 1px solid rgba(251, 191, 36, 0.2);
+  border-bottom: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+.status.rejected {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-top: 1px solid rgba(239, 68, 68, 0.2);
+  border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.tab:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tab.active {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  border-bottom: 2px solid #60a5fa;
+}
+
+/* PIX Content */
+.pixContent {
+  padding: 2rem;
+}
+
+.pixInitial {
+  text-align: center;
+}
+
+.pixInfo {
+  margin-bottom: 2rem;
+}
+
+.pixInfo svg {
+  color: #60a5fa;
+  margin-bottom: 1rem;
+}
+
+.pixInfo h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.pixInfo p {
+  margin: 0 0 1.5rem 0;
+  opacity: 0.7;
+}
+
+.pixInfo ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pixInfo li {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.8;
+}
+
+.pixInfo li::before {
+  content: "✓";
+  color: #22c55e;
+  font-weight: bold;
+}
+
+.generatePixButton {
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 auto;
+}
+
+.generatePixButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(96, 165, 250, 0.4);
+}
+
+.generatePixButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.pixGenerated {
+  text-align: center;
+}
+
+.pixTimer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: rgba(251, 191, 36, 0.1);
+  color: #fbbf24;
+  padding: 0.75rem;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+  font-weight: 500;
+}
+
+.qrCodeContainer {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* QR Code Placeholder */
+.qrCodePlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  height: 200px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.qrPattern {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin-bottom: 1rem;
+}
+
+.qrCorner {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border: 3px solid #374151;
+}
+
+.qrCorner:nth-child(1) {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+}
+
+.qrCorner:nth-child(2) {
+  top: 0;
+  right: 0;
+  border-left: none;
+  border-bottom: none;
+}
+
+.qrCorner:nth-child(3) {
+  bottom: 0;
+  left: 0;
+  border-right: none;
+  border-top: none;
+}
+
+.qrCenter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  background: #374151;
+  border-radius: 2px;
+}
+
+.qrCodePlaceholder p {
+  margin: 0 0 0.25rem 0;
+  font-weight: 600;
+  color: #374151;
+}
+
+.qrCodePlaceholder small {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.pixInstructions {
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.pixInstructions h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.pixInstructions ol {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.pixInstructions li {
+  margin-bottom: 0.5rem;
+  opacity: 0.8;
+}
+
+.pixCode {
+  text-align: left;
+}
+
+.pixCode label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.codeContainer {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.codeContainer input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
+.copyButton {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copyButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Card Content */
+.cardContent {
+  padding: 2rem;
+}
+
+.cardForm {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.formGroup input,
+.formGroup select {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.75rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.formGroup input:focus,
+.formGroup select:focus {
+  outline: none;
+  border-color: #60a5fa;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.formGroup input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.payButton {
+  width: 100%;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  border: none;
+  padding: 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+}
+
+.payButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(34, 197, 94, 0.4);
+}
+
+.payButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.cardSecurity {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+}
+
+/* Animation */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal {
+    margin: 1rem;
+    max-height: calc(100vh - 2rem);
+  }
+
+  .header {
+    padding: 1.5rem 1.5rem 1rem 1.5rem;
+  }
+
+  .summary {
+    padding: 1rem 1.5rem;
+  }
+
+  .pixContent,
+  .cardContent {
+    padding: 1.5rem;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .qrCodeContainer canvas {
+    width: 150px !important;
+    height: 150px !important;
+  }
+
+  .qrCodePlaceholder {
+    width: 150px;
+    height: 150px;
+  }
+
+  .qrPattern {
+    width: 90px;
+    height: 90px;
+  }
+
+  .qrCorner {
+    width: 22px;
+    height: 22px;
+    border-width: 2px;
+  }
+
+  .qrCenter {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .overlay {
+    padding: 0.5rem;
+  }
+
+  .modal {
+    border-radius: 16px;
+  }
+
+  .header {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .headerContent h2 {
+    font-size: 1.25rem;
+  }
+
+  .summary {
+    padding: 1rem;
+  }
+
+  .pixContent,
+  .cardContent {
+    padding: 1rem;
+  }
+
+  .tabs {
+    flex-direction: column;
+  }
+
+  .tab {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .tab.active {
+    border-bottom: 1px solid #60a5fa;
+    border-left: 3px solid #60a5fa;
+  }
+}

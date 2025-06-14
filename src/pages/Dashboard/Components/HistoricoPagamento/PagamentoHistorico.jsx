@@ -8,26 +8,29 @@ import styles from './PagamentoHistorico.module.css';
 
 // Cores inspiradas no Nubank
 const COLORS = {
-  primary: '#8A05BE',       // Roxo principal
-  primaryLight: '#9928C3',  // Roxo mais claro
-  primaryDark: '#6D0499',   // Roxo mais escuro
-  primaryGradient: ['#8A05BE', '#9928C3', '#AB3FE5'], // Gradiente roxo
-  secondary: '#FFFFFF',     // Branco
-  background: '#F5F5FA',    // Fundo claro
-  card: '#FFFFFF',          // Fundo do cartão
-  text: '#333333',          // Texto primário
-  textSecondary: '#777777', // Texto secundário
-  shadow: '#000000',        // Cor da sombra
-  success: '#00a650',       // Verde de sucesso
-  warning: '#ff7733',       // Laranja de alerta
-  danger: '#f23d4f',        // Vermelho de perigo
-  neutral: '#8E8E8E',       // Cinza neutro
-  successLight: '#e3fff0',  // Fundo verde claro
-  warningLight: '#fceae0',  // Fundo laranja claro
-  dangerLight: '#fce0e3',   // Fundo vermelho claro
-  neutralLight: '#e3e3e3',  // Fundo cinza claro
+  primary: '#8A63FF',
+  primaryLight: '#A478FF', 
+  primaryDark: '#6B4EE6',
+  secondary: '#FFFFFF',
+  background: '#0A0C1B',
+  backgroundSecondary: '#0F1228',
+  card: 'rgba(255, 255, 255, 0.05)',
+  cardHover: 'rgba(255, 255, 255, 0.08)',
+  text: '#FFFFFF',
+  textSecondary: '#A1A8C3',
+  textMuted: '#6B7280',
+  shadow: 'rgba(138, 99, 255, 0.15)',
+  success: '#10D876',
+  warning: '#FFB800',
+  danger: '#FF4757',
+  neutral: '#64748B',
+  successLight: 'rgba(16, 216, 118, 0.15)',
+  warningLight: 'rgba(255, 184, 0, 0.15)',
+  dangerLight: 'rgba(255, 71, 87, 0.15)',
+  neutralLight: 'rgba(100, 116, 139, 0.15)',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  neon: '#00F5FF',
 };
-
 const PagamentoHistorico = () => {
   const [faturasPendentes, setFaturasPendentes] = useState(true);
   const [historico, setHistorico] = useState([]);
@@ -115,30 +118,30 @@ const enviar = useCallback(async () => {
 
   const userLogin = user.login || user.LOGIN;
   if (!userLogin) {
-    console.log('Login não disponível');
+    // console.log('Login não disponível');
     setIsLoading(false);
     return;
   }
 
   // Only proceed if socket is connected
   if (!socketService || !socketService.socket || !socketConnected) {
-    console.log('Socket não está conectado. Tentando reconectar...');
+    // console.log('Socket não está conectado. Tentando reconectar...');
     setSocketError(true);
     
     // Try to reconnect if possible
-    if (socketService && !socketService.socket) {
-      try {
-        socketService.connect();
-      } catch (error) {
-        console.error('Erro ao reconectar:', error);
-      }
-    }
+    // if (socketService && !socketService.socket) {
+    //   try {
+    //     socketService.connect();
+    //   } catch (error) {
+    //     // console.error('Erro ao reconectar:', error);
+    //   }
+    // }
     
     setIsLoading(false);
     return;
   }
 
-  setIsLoading(true);
+  // setIsLoading(true);
 
   try {
     // Clean up any existing listeners
@@ -186,12 +189,12 @@ const enviar = useCallback(async () => {
         setTotal(novoHistorico);
         setSocketError(false);
       } catch (parseError) {
-        console.error('Erro ao processar resposta:', parseError);
+        // console.error('Erro ao processar resposta:', parseError);
         setSocketError(true);
       }
     }
   } catch (error) {
-    console.error('Erro ao enviar solicitação:', error);
+    // console.error('Erro ao enviar solicitação:', error);
     setSocketError(true);
   } finally {
     setIsLoading(false);
@@ -258,7 +261,7 @@ const enviar = useCallback(async () => {
     <div className={styles.container}>
       {/* Header */}
       <header className={styles.header}>
-        <div className={styles.headerContent}>
+        {/* <div className={styles.headerContent}>
 
 
           <h1 className={styles.headerTitle}>Minha Assinatura</h1>
@@ -266,7 +269,7 @@ const enviar = useCallback(async () => {
           <div className={styles.iconContainer}>
             <IoClipboard size={20} color="#FFFFFF" />
           </div>
-        </div>
+        </div> */}
       </header>
 
       {/* Status Card */}

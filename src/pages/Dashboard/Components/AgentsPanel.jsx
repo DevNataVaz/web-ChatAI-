@@ -41,7 +41,7 @@ export default function AgentsPanel({ user, socket, botInstances, onConnect, onC
         await onConnect.connectInstagram(agent.PROTOCOLO);
       }
     } catch (error) {
-      console.error('Erro ao conectar:', error);
+      // console.error('Erro ao conectar:', error);
       alert(`Erro ao conectar ${platform}`);
     } finally {
       setLoading(false);
@@ -61,7 +61,7 @@ export default function AgentsPanel({ user, socket, botInstances, onConnect, onC
         // Refresh agents list
         requestMeusRobos();
       } catch (error) {
-        console.error('Erro ao excluir agente:', error);
+        // console.error('Erro ao excluir agente:', error);
         alert('Erro ao excluir agente');
       } finally {
         setLoading(false);

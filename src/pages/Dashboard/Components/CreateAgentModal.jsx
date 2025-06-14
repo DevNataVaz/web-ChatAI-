@@ -1,39 +1,63 @@
-// CreateAgentModal.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './CreateAgentModal.module.css';
-import { Criptografar } from '../../../Cripto';
+import { Criptografar, Descriptografar } from '../../../Cripto';
 import { useApp } from '../../../context/AppContext';
 import { FaWhatsapp, FaInstagram } from 'react-icons/fa';
-import { FiPlus, FiX, FiChevronLeft, FiChevronRight, FiCheck, FiHelpCircle } from 'react-icons/fi';
+import { FiPlus, FiX, FiChevronLeft, FiChevronRight, FiCheck, FiHelpCircle, FiAlertCircle, FiLink, FiShoppingBag } from 'react-icons/fi';
 import { socketService } from '../../../services/socketService';
 
-export default function CreateAgentModal({ socket, onClose, onSuccess }) {
+export default function CreateAgentModal({ socket, onClose, onSuccess, campaignId }) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const { user } = useApp();
   const [formData, setFormData] = useState({
     empresa: '',
     atendente: '',
-    objetivo: 'Vendas',
+    objetivo: 'Venda_Digital',
     redes: [],
     perguntas: [],
-    gatilho: [],
+    gatilho: '',
     dias: [],
     inicio: '',
-    fim: ''
+    fim: '',
+    produtos: []
   });
+
+  // Set up socket listener for response
+  useEffect(() => {
+    const handleBotCreationResponse = (data) => {
+      if (Descriptografar(data.Code) !== '365445365454436') return;
+      
+      setLoading(false);
+      if (Descriptografar(data.Res) === true) {
+        onSuccess();
+      } else {
+        setError('Erro ao criar o bot. Tente novamente.');
+        // console.error('Erro na resposta do servidor');
+      }
+    };
+
+    socketService.on('RespostaDaCriação', handleBotCreationResponse);
+
+    return () => {
+      socketService.off('RespostaDaCriação', handleBotCreationResponse);
+    };
+  }, [onSuccess]);
 
   const stepTitles = {
     1: 'Informações Básicas',
     2: 'Configurar Objetivo',
-    3: 'Selecionar Plataformas',
-    4: 'Configurar Respostas',
-    5: 'Configurar Horários'
+    3: 'Configurar Gatilho',
+    4: 'Selecionar Plataformas',
+    5: 'Configurar Respostas',
+    6: 'Configurar Horários', 
+    7: 'Adicionar Produtos'
   };
 
   const objectives = [
-    { value: 'Vendas', label: 'Vendas' },
-    { value: 'Agendamento', label: 'Agendamento' },
+    // { value: 'Vendas', label: 'Vendas' },
+    // { value: 'Agendamento', label: 'Agendamento' },
     { value: 'Venda_Digital', label: 'Vendas Digitais' }
   ];
 
@@ -79,10 +103,20 @@ export default function CreateAgentModal({ socket, onClose, onSuccess }) {
   };
 
   const addPergunta = () => {
-    setFormData(prev => ({
-      ...prev,
-      perguntas: [...prev.perguntas, { Pergunta: '', Resposta: '' }]
-    }));
+    if (formData.newPergunta && formData.newResposta) {
+      setFormData(prev => ({
+        ...prev,
+        perguntas: [
+          ...prev.perguntas, 
+          { Pergunta: prev.newPergunta, Resposta: prev.newResposta }
+        ],
+        newPergunta: '',
+        newResposta: ''
+      }));
+    } else {
+      setError('Por favor, preencha a pergunta e resposta antes de adicionar.');
+      setTimeout(() => setError(null), 3000);
+    }
   };
 
   const updatePergunta = (index, field, value) => {
@@ -100,6 +134,107 @@ export default function CreateAgentModal({ socket, onClose, onSuccess }) {
     }));
   };
 
+  // Novo - Funções para gerenciar produtos (para objetivo Venda_Digital)
+  const [newProduct, setNewProduct] = useState({
+    produto: '',
+    preco: '',
+    categoria: '',
+    descricao: '',
+    imagem: null
+  });
+
+  const [showProductForm, setShowProductForm] = useState(false);
+
+  const handleProductChange = (e) => {
+    const { name, value } = e.target;
+    setNewProduct(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const addProduct = () => {
+    // Validação simples dos campos do produto
+    if (!newProduct.produto || !newProduct.preco || !newProduct.categoria || !newProduct.descricao) {
+      setError('Por favor, preencha todos os campos do produto.');
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+
+    // Gerar ID único para o produto
+    const productId = Date.now().toString();
+    
+    setFormData(prev => ({
+      ...prev,
+      produtos: [...prev.produtos, {
+        id: productId,
+        Produto: newProduct.produto,
+        Preco: newProduct.preco,
+        Categoria: newProduct.categoria,
+        Descricao: newProduct.descricao,
+        Imagem: newProduct.imagem
+      }]
+    }));
+
+    // Resetar o formulário de produto
+    setNewProduct({
+      produto: '',
+      preco: '',
+      categoria: '',
+      descricao: '',
+      imagem: null
+    });
+
+    setShowProductForm(false);
+  };
+
+  const removeProduct = (productId) => {
+    setFormData(prev => ({
+      ...prev,
+      produtos: prev.produtos.filter(p => p.id !== productId)
+    }));
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewProduct(prev => ({
+          ...prev,
+          imagem: reader.result
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Formata o preço para o formato de moeda brasileira
+  const formatCurrency = (value) => {
+    if (!value) return '';
+    
+    // Remove todos os caracteres não numéricos
+    const numericValue = value.replace(/\D/g, '');
+    
+    // Converte para número e formata como moeda
+    const number = parseFloat(numericValue) / 100;
+    return number.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    });
+  };
+
+  const handlePriceChange = (e) => {
+    const rawValue = e.target.value;
+    const numericValue = rawValue.replace(/\D/g, '');
+    const formattedValue = formatCurrency(numericValue);
+    
+    setNewProduct(prev => ({
+      ...prev,
+      preco: formattedValue
+    }));
+  };
+
   const validateStep = () => {
     switch (step) {
       case 1:
@@ -107,20 +242,37 @@ export default function CreateAgentModal({ socket, onClose, onSuccess }) {
       case 2:
         return formData.objetivo;
       case 3:
-        return formData.redes.length > 0;
+        return formData.gatilho && formData.gatilho.trim() !== '';
       case 4:
-        return formData.perguntas.length > 0 && formData.perguntas.every(p => p.Pergunta && p.Resposta);
+        return formData.redes.length > 0;
       case 5:
+        return formData.perguntas.length > 0 && formData.perguntas.every(p => p.Pergunta && p.Resposta);
+      case 6:
         return formData.objetivo === 'Agendamento' ? 
           (formData.dias.length > 0 && formData.inicio && formData.fim) : true;
+      case 7:
+        return formData.objetivo === 'Venda_Digital' ? 
+          (formData.produtos.length > 0) : true;
       default:
         return true;
     }
   };
 
+  const getMaxStep = () => {
+    if (formData.objetivo === 'Venda_Digital') {
+      return 7; // Incluindo a etapa de produtos
+    } else if (formData.objetivo === 'Agendamento') {
+      return 6; // Incluindo a etapa de horários
+    } else {
+      return 5; // Para outros objetivos, parar após configurar respostas
+    }
+  };
+
   const handleNext = () => {
     if (validateStep()) {
-      if (step === 5 || (step === 4 && formData.objetivo !== 'Agendamento')) {
+      const maxStep = getMaxStep();
+      
+      if (step === maxStep) {
         handleSubmit();
       } else {
         setStep(step + 1);
@@ -134,50 +286,123 @@ export default function CreateAgentModal({ socket, onClose, onSuccess }) {
 
   const handleSubmit = async () => {
     setLoading(true);
+    setError(null);
+    
+    // Adicione um timeout para evitar carregamento infinito
+    setTimeout(() => {
+      if (loading) {
+        setLoading(false);
+        setError('Tempo limite excedido. Tente novamente.');
+      }
+    }, 15000);
+    
     try {
+      // Use Date.now() for unique protocol
       const protocolo = Date.now().toString();
       
-      let dataToSend;
+      // Prepare perguntas array - importante: NÃO use JSON.stringify aqui
+      const perguntasPreparadas = formData.perguntas.map(p => ({
+        Pergunta: p.Pergunta || '',
+        Resposta: p.Resposta || ''
+      }));
       
+      // Utilize código diferente para os diferentes objetivos
       if (formData.objetivo === 'Agendamento') {
-        dataToSend = Criptografar(JSON.stringify({
-          Code: '3654534655434565434',
-          Empresa: formData.empresa,
-          Atendente: formData.atendente,
-          Protocolo: protocolo,
-          Login: user.LOGIN,
-          Redes: formData.redes.join(','),
-          Objetivo: formData.objetivo,
-          Perguntas: formData.perguntas,
-          Gatilho: {
+        socketService.emit('CriarBot', {
+          Code: Criptografar('3654534655434565434'),
+          Empresa: Criptografar(formData.empresa),
+          Atendente: Criptografar(formData.atendente),
+          Protocolo: Criptografar(protocolo),
+          Login: Criptografar(user.LOGIN),
+          Redes: Criptografar(formData.redes.join(',')),
+          Objetivo: Criptografar(formData.objetivo),
+          Perguntas: Criptografar(perguntasPreparadas),
+          Gatilho: Criptografar(JSON.stringify({
             Dias: formData.dias,
             Inicio: formData.inicio,
             Fim: formData.fim
-          }
-        }));
+          })),
+          Campanha: Criptografar(campaignId) || null
+        });
+        // console.log('Enviando dados de agendamento');
+      } else if (formData.objetivo === 'Venda_Digital') {
+        // Primeiro enviar os dados do bot
+        socketService.emit('CriarBot', {
+          Code: Criptografar('658467658467865671'),
+          Empresa: Criptografar(formData.empresa),
+          Atendente: Criptografar(formData.atendente),
+          Protocolo: Criptografar(protocolo),
+          Login: Criptografar(user.LOGIN),
+          Redes: Criptografar(formData.redes.join(',')),
+          Objetivo: Criptografar(formData.objetivo),
+          Perguntas: Criptografar(perguntasPreparadas),
+          Gatilho: Criptografar(formData.gatilho),
+          Campanha: Criptografar(campaignId) || null
+        });
+        
+        // Depois enviar os produtos um a um
+        formData.produtos.forEach(produto => {
+          socketService.emit('CriarProdutos', {
+            Code: Criptografar('45489644589644'),
+            Produtos: Criptografar(JSON.stringify({
+              nomeFoto: produto.id,
+              Produto: produto.Produto,
+              Preco: produto.Preco,
+              Categoria: produto.Categoria,
+              Descricao: produto.Descricao,
+              Base64: produto.Imagem
+            })),
+            Login: Criptografar(user.LOGIN),
+            Protocolo: Criptografar(protocolo),
+          });
+        });
+        
+        // console.log('Enviando dados de vendas digitais com produtos');
       } else {
-        dataToSend = Criptografar(JSON.stringify({
-          Code: '658467658467865671',
-          Empresa: formData.empresa,
-          Atendente: formData.atendente,
-          Protocolo: protocolo,
-          Login: user.LOGIN,
-          Redes: formData.redes.join(','),
-          Objetivo: formData.objetivo,
-          Perguntas: formData.perguntas,
-          Gatilho: formData.objetivo
-        }));
+        socketService.emit('CriarBot', {
+          Code: Criptografar('658467658467865671'),
+          Empresa: Criptografar(formData.empresa),
+          Atendente: Criptografar(formData.atendente),
+          Protocolo: Criptografar(protocolo),
+          Login: Criptografar(user.LOGIN),
+          Redes: Criptografar(formData.redes.join(',')),
+          Objetivo: Criptografar(formData.objetivo),
+          Perguntas: Criptografar(perguntasPreparadas),
+          Gatilho: Criptografar(formData.gatilho),
+          Campanha: Criptografar(campaignId) || null
+        });
+        // console.log('Enviando dados de vendas');
       }
-
-      socketService.emit('criarBot', dataToSend);
-      setTimeout(() => {
-        setLoading(false);
-        onSuccess();
-      }, 1500);
     } catch (error) {
-      console.error('Erro ao criar agente:', error);
+      // console.error('Erro ao criar agente:', error);
       setLoading(false);
+      setError(`Erro: ${error.message || 'Falha ao criar o bot'}`);
     }
+  };
+
+  // Componente para exibir erros
+  const renderError = () => {
+    if (!error) return null;
+    
+    return (
+      <div className={styles.errorMessage}>
+        <FiAlertCircle size={16} />
+        <span>{error}</span>
+        <button 
+          onClick={() => setError(null)} 
+          className={styles.dismissErrorButton}
+          aria-label="Fechar mensagem de erro"
+        >
+          <FiX size={14} />
+        </button>
+      </div>
+    );
+  };
+
+  // Calcular a porcentagem de progresso com base no objetivo e etapa atual
+  const calculateProgress = () => {
+    const maxStep = getMaxStep();
+    return Math.round((step / maxStep) * 100);
   };
 
   const renderStep = () => {
@@ -263,6 +488,51 @@ export default function CreateAgentModal({ socket, onClose, onSuccess }) {
       case 3:
         return (
           <div className={styles.stepContent}>
+            <div className={styles.formGroup}>
+              <label htmlFor="gatilho">Gatilho de Finalização</label>
+              <div className={styles.gatilhoInputContainer}>
+                <FiLink size={16} className={styles.gatilhoIcon} />
+                <input
+                  id="gatilho"
+                  type="text"
+                  name="gatilho"
+                  value={formData.gatilho}
+                  onChange={handleInputChange}
+                  placeholder="Digite o link de finalização (ex: https://meusite.com/pagamento)"
+                  className={styles.gatilhoInput}
+                />
+              </div>
+              
+              <div className={styles.alertBox}>
+                <FiAlertCircle size={16} className={styles.alertIcon} />
+                <div className={styles.alertContent}>
+                  <p className={styles.alertTitle}>Muita atenção</p>
+                  <p className={styles.alertText}>
+                    O gatilho é enviado sempre que a venda é finalizada. Este link será enviado quando a inteligência entender que existe possibilidade de venda. Coloque algum link para direcionar seu cliente.
+                  </p>
+                </div>
+              </div>
+              
+              <div className={styles.helpText}>
+                <FiHelpCircle size={14} />
+                <span>Use um link completo, incluindo http:// ou https://</span>
+              </div>
+              
+              <div className={styles.exampleSection}>
+                <h4 className={styles.exampleTitle}>Exemplos de gatilhos:</h4>
+                <ul className={styles.exampleList}>
+                  <li className={styles.exampleItem}>Link do seu site com página de pagamento</li>
+                  <li className={styles.exampleItem}>Link do WhatsApp com mensagem pré-definida</li>
+                  <li className={styles.exampleItem}>Link encurtado para formulário de compra</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className={styles.stepContent}>
             <p className={styles.sectionDescription}>Selecione as plataformas onde seu agente irá operar:</p>
             
             <div className={styles.platformsGrid}>
@@ -292,7 +562,7 @@ export default function CreateAgentModal({ socket, onClose, onSuccess }) {
           </div>
         );
 
-      case 4:
+      case 5:
         return (
           <div className={styles.stepContent}>
             <div className={styles.perguntasSection}>
@@ -328,19 +598,7 @@ export default function CreateAgentModal({ socket, onClose, onSuccess }) {
                 
                 <button 
                   className={styles.addButton}
-                  onClick={() => {
-                    if (formData.newPergunta && formData.newResposta) {
-                      setFormData(prev => ({
-                        ...prev,
-                        perguntas: [
-                          ...prev.perguntas, 
-                          { Pergunta: prev.newPergunta, Resposta: prev.newResposta }
-                        ],
-                        newPergunta: '',
-                        newResposta: ''
-                      }));
-                    }
-                  }}
+                  onClick={addPergunta}
                 >
                   <FiPlus size={18} />
                   <span>Adicionar Pergunta</span>
@@ -377,7 +635,7 @@ export default function CreateAgentModal({ socket, onClose, onSuccess }) {
           </div>
         );
 
-      case 5:
+      case 6:
         return (
           <div className={styles.stepContent}>
             <div className={styles.schedulingSection}>
@@ -436,20 +694,190 @@ export default function CreateAgentModal({ socket, onClose, onSuccess }) {
           </div>
         );
 
+      case 7:
+        return (
+          <div className={styles.stepContent}>
+            <div className={styles.produtosSection}>
+              <div className={styles.produtosSectionHeader}>
+                <h4>Cadastro de Produtos</h4>
+                <p className={styles.sectionDescription}>
+                  Adicione os produtos que serão oferecidos pelo seu agente de vendas digital
+                </p>
+              </div>
+              
+              {!showProductForm ? (
+                <button 
+                  className={styles.addProductButton}
+                  onClick={() => setShowProductForm(true)}
+                >
+                  <FiPlus size={18} />
+                  <span>Adicionar Novo Produto</span>
+                </button>
+              ) : (
+                <div className={styles.productForm}>
+                  <h4 className={styles.productFormTitle}>Novo Produto</h4>
+                  
+                  <div className={styles.imageUploadSection}>
+                    <label htmlFor="productImage" className={styles.imageUploadLabel}>
+                      {newProduct.imagem ? (
+                        <div className={styles.previewImageContainer}>
+                          <img
+                            src={newProduct.imagem}
+                            alt="Preview"
+                            className={styles.previewImage}
+                          />
+                          <div className={styles.changeImageOverlay}>
+                            <FiPlus size={24} />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className={styles.uploadPlaceholder}>
+                          <FiPlus size={24} />
+                          <span>Adicionar imagem</span>
+                        </div>
+                      )}
+                    </label>
+                    <input
+                      id="productImage"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      style={{ display: 'none' }}
+                    />
+                  </div>
+                  
+                  <div className={styles.formGroup}>
+                    <label htmlFor="produto">Nome do Produto</label>
+                    <input
+                      id="produto"
+                      type="text"
+                      name="produto"
+                      value={newProduct.produto}
+                      onChange={handleProductChange}
+                      placeholder="Ex: Camiseta Básica"
+                    />
+                  </div>
+                  
+                  <div className={styles.formGroup}>
+                    <label htmlFor="preco">Preço</label>
+                    <input
+                      id="preco"
+                      type="text"
+                      name="preco"
+                      value={newProduct.preco}
+                      onChange={handlePriceChange}
+                      placeholder="Ex: R$ 99,90"
+                    />
+                  </div>
+                  
+                  <div className={styles.formGroup}>
+                    <label htmlFor="categoria">Categoria</label>
+                    <input
+                      id="categoria"
+                      type="text"
+                      name="categoria"
+                      value={newProduct.categoria}
+                      onChange={handleProductChange}
+                      placeholder="Ex: Vestuário"
+                    />
+                  </div>
+                  
+                  <div className={styles.formGroup}>
+                    <label htmlFor="descricao">Descrição</label>
+                    <textarea
+                      id="descricao"
+                      name="descricao"
+                      rows={3}
+                      value={newProduct.descricao}
+                      onChange={handleProductChange}
+                      placeholder="Descreva os detalhes do produto..."
+                    ></textarea>
+                  </div>
+                  
+                  <div className={styles.productFormButtons}>
+                    <button 
+                      className={styles.cancelButton}
+                      onClick={() => setShowProductForm(false)}
+                    >
+                      <FiX size={16} />
+                      <span>Cancelar</span>
+                    </button>
+                    
+                    <button 
+                      className={styles.saveButton}
+                      onClick={addProduct}
+                    >
+                      <FiCheck size={16} />
+                      <span>Salvar Produto</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {formData.produtos.length > 0 && (
+                <div className={styles.produtosList}>
+                  <h4>Produtos cadastrados ({formData.produtos.length})</h4>
+                  
+                  <div className={styles.produtosGrid}>
+                    {formData.produtos.map((produto, index) => (
+                      <div key={produto.id} className={styles.produtoCard}>
+                        {produto.Imagem && (
+                          <div className={styles.produtoImageContainer}>
+                            <img
+                              src={produto.Imagem}
+                              alt={produto.Produto}
+                              className={styles.produtoImage}
+                            />
+                          </div>
+                        )}
+                        
+                        <div className={styles.produtoContent}>
+                          <div className={styles.produtoHeader}>
+                            <h5 className={styles.produtoTitle}>{produto.Produto}</h5>
+                            <button 
+                              className={styles.removeProdutoButton}
+                              onClick={() => removeProduct(produto.id)}
+                              aria-label="Remover produto"
+                            >
+                              <FiX size={16} />
+                            </button>
+                          </div>
+                          
+                          <p className={styles.produtoPreco}>{produto.Preco}</p>
+                          
+                          <div className={styles.produtoCategoria}>
+                            {produto.Categoria}
+                          </div>
+                          
+                          <p className={styles.produtoDescricao}>
+                            {produto.Descricao.length > 100
+                              ? `${produto.Descricao.substring(0, 100)}...`
+                              : produto.Descricao}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
   };
 
   // Calculate the total number of steps based on objective
-  const totalSteps = formData.objetivo === 'Agendamento' ? 5 : 4;
-  const progressPercentage = (step / totalSteps) * 100;
+  const totalSteps = getMaxStep();
+  const progressPercentage = calculateProgress();
 
   return (
     <div className={styles.modalOverlay} onClick={() => !loading && onClose()}>
       <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
-          <h2>Criar Agente AI</h2>
+          <h2>Criar Agente AI {campaignId ? '- Campanha' : ''}</h2>
           {!loading && (
             <button className={styles.closeButton} onClick={onClose} aria-label="Fechar">
               <FiX size={24} />
@@ -468,6 +896,7 @@ export default function CreateAgentModal({ socket, onClose, onSuccess }) {
         </div>
 
         <div className={styles.modalBody}>
+          {renderError()}
           {renderStep()}
         </div>
 
@@ -496,11 +925,11 @@ export default function CreateAgentModal({ socket, onClose, onSuccess }) {
             ) : (
               <>
                 <span>
-                  {(step === 5 || (step === 4 && formData.objetivo !== 'Agendamento')) 
+                  {step === totalSteps
                     ? 'Criar Agente' 
                     : 'Próximo'}
                 </span>
-                {(step === 5 || (step === 4 && formData.objetivo !== 'Agendamento')) 
+                {step === totalSteps
                   ? <FiCheck size={18} />
                   : <FiChevronRight size={18} />}
               </>

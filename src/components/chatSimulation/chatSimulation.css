@@ -1,0 +1,279 @@
+.phone-frame {
+  width: 350px;
+  height: 550px;
+  border-radius: 30px;
+  padding: 20px;
+  display: flex;
+  
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  background-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 150px var(--primaryLight);
+}
+
+.chat-bubble {
+  max-width: 80%;
+  padding: 8px 12px;
+  border-radius: 14px;
+  font-size: 12px;
+  line-height: 1.4;
+  position: relative;
+  word-break: break-word;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.chat-bubble.left {
+  align-self: flex-start;
+  background-color: #fefeff;
+  color: #272727;
+}
+
+.chat-bubble.right {
+  align-self: flex-end;
+  background-color: var(--primary);
+  color: #fff;
+}
+
+.chat-bubble.audio {
+  cursor: pointer;
+  background-color: var(--primary);
+  padding: 8px;
+  min-width: 240px;
+}
+
+.audio-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.audio-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background-color: #e0e0e0;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.audio-controls {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.play-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--primaryDark);
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.play-button:hover {
+  background-color: var(--primaryLight);
+}
+
+.play-button.playing {
+  font-size: 10px;
+}
+
+/* Efeito de pulsar no botão de play */
+.play-button.pulsing::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: var(--primary);
+  animation: pulse-button 1s infinite;
+  z-index: -1;
+}
+
+@keyframes pulse-button {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+.audio-info {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.audio-bar {
+  width: 100%;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress {
+  height: 100%;
+  background-color: #000000;
+  transition: width 0.2s linear;
+}
+
+.audio-time {
+  font-size: 10px;
+  color: #fff;
+  text-align: left;
+}
+
+.typing {
+  width: 40px;
+  display: flex;
+  justify-content: space-between;
+  background-color: #fff;
+  padding: 8px 10px;
+  border-radius: 14px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  background-color: #ccc;
+  border-radius: 50%;
+  animation: blink 1.2s infinite;
+}
+
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0.2; }
+  20% { opacity: 1; }
+}
+
+/* Pulsar efeito radar */
+.pulse {
+  animation: pulse-animation 2.5s infinite;
+}
+
+@keyframes pulse-animation {
+  0% {
+    box-shadow: 0 0 0 0 var(--primary);
+  }
+  70% {
+    box-shadow: 0 0 0 30px rgba(0, 128, 128, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 128, 128, 0);
+  }
+}
+
+/* Media Queries para ChatSimulation */
+@media (max-width: 768px) {
+  .phone-frame {
+    width: 100%;
+    height: 500px;
+    padding: 15px;
+  }
+  
+  .chat-bubble.audio {
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 750px) {
+  .phone-frame {
+    height: 450px;
+  }
+  
+  .chat-bubble {
+    font-size: 11px;
+  }
+  
+  .audio-content {
+    gap: 6px;
+  }
+  
+  .audio-avatar {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .play-button {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 450px) {
+  .phone-frame {
+    height: 400px;
+    padding: 12px;
+    gap: 10px;
+  }
+  
+  .chat-bubble {
+    max-width: 85%;
+    padding: 6px 10px;
+    font-size: 10px;
+  }
+  
+  .chat-bubble.audio {
+    min-width: 180px;
+    padding: 6px;
+  }
+  
+  .audio-avatar {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .play-button {
+    width: 25px;
+    height: 25px;
+    font-size: 10px;
+  }
+  
+  .audio-time {
+    font-size: 8px;
+  }
+  
+  .typing {
+    width: 35px;
+    padding: 6px 8px;
+  }
+  
+  .dot {
+    width: 5px;
+    height: 5px;
+  }
+}

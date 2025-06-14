@@ -1,0 +1,2001 @@
+.detailContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0c1b 0%, #1a1d3a 100%);
+  color: white;
+  overflow-y: auto;
+}
+
+/* Adicione estes estilos ao seu CampanhaDetalhe.module.css */
+
+/* Container principal do status */
+.botStatus {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  min-height: 28px;
+}
+
+/* Status conectado */
+.statusConnected {
+  color: #2E7D32 !important;
+  background: rgba(76, 175, 80, 0.1) !important;
+  border: 1px solid rgba(76, 175, 80, 0.2) !important;
+}
+
+/* Status desconectado */
+.statusDisconnected {
+  color: #757575 !important;
+  background: rgba(117, 117, 117, 0.08) !important;
+  border: 1px solid rgba(117, 117, 117, 0.15) !important;
+}
+
+/* Pontos indicadores de status */
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.connectedDot {
+  background-color: #4CAF50;
+  box-shadow: 0 0 6px rgba(76, 175, 80, 0.6);
+  animation: pulse 2s infinite;
+}
+
+.disconnectedDot {
+  background-color: #9E9E9E;
+}
+
+/* Spinner para verificação de status */
+.statusSpinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #9928C3;
+  border-radius: 50%;
+  animation: statusSpin 1s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes statusSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Estado de loading para status */
+.statusLoading {
+  opacity: 0.7;
+  font-style: italic;
+  background: rgba(153, 40, 195, 0.1) !important;
+  color: #9928C3 !important;
+  border: 1px solid rgba(153, 40, 195, 0.2) !important;
+}
+
+/* Melhorar o visual do ícone do bot quando conectado */
+.botIconCircle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  transition: all 0.3s ease;
+  font-size: 20px;
+}
+
+.botIconCircle.connected {
+  background: linear-gradient(145deg, #4CAF50, #45A049) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3) !important;
+  animation: connectedPulse 3s infinite;
+}
+
+@keyframes connectedPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+  }
+}
+
+/* Botão de refresh */
+.refreshButton {
+  padding: 8px 16px;
+  background: linear-gradient(145deg, #9928C3, #7C1B9B);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(153, 40, 195, 0.2);
+}
+
+.refreshButton:hover {
+  background: linear-gradient(145deg, #B032E8, #9928C3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(153, 40, 195, 0.3);
+}
+
+.refreshButton:active {
+  transform: translateY(0);
+}
+
+/* Melhorar o header da seção */
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 0 4px;
+}
+
+.sectionHeader h2 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* Melhorar os cards dos bots */
+.botCard {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.botCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Animação de entrada para os bots */
+.botsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Força a aplicação dos estilos de status */
+.botCard [data-status="connected"] {
+  color: #2E7D32 !important;
+  background: rgba(76, 175, 80, 0.1) !important;
+  border: 1px solid rgba(76, 175, 80, 0.2) !important;
+}
+
+.botCard [data-status="disconnected"] {
+  color: #757575 !important;
+  background: rgba(117, 117, 117, 0.08) !important;
+  border: 1px solid rgba(117, 117, 117, 0.15) !important;
+}
+
+/* Loading state para o grid inteiro */
+.botsContainer.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Indicador de loading global */
+.globalLoadingIndicator {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(153, 40, 195, 0.9);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.globalLoadingIndicator .statusSpinner {
+  border-color: rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+}
+
+.statusSpinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #9928C3;
+  border-radius: 50%;
+  animation: statusSpin 1s linear infinite;
+  margin-right: 6px;
+}
+
+@keyframes statusSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Estado de loading para status */
+.statusLoading {
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.statusLoading span {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+/* Melhorar o visual dos status conectado/desconectado */
+.statusConnected {
+  color: #4CAF50;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.statusConnected::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background-color: #4CAF50;
+  border-radius: 50%;
+  box-shadow: 0 0 4px rgba(76, 175, 80, 0.5);
+  animation: pulse 2s infinite;
+}
+
+.statusDisconnected {
+  color: #757575;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.statusDisconnected::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background-color: #757575;
+  border-radius: 50%;
+  opacity: 0.6;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Botão de refresh */
+.refreshButton {
+  padding: 8px 16px;
+  background: linear-gradient(145deg, #9928C3, #7C1B9B);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(153, 40, 195, 0.2);
+}
+
+.refreshButton:hover {
+  background: linear-gradient(145deg, #B032E8, #9928C3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(153, 40, 195, 0.3);
+}
+
+.refreshButton:active {
+  transform: translateY(0);
+}
+
+/* Melhorar o header da seção */
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 0 4px;
+}
+
+.sectionHeader h2 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* Melhorar os cards dos bots */
+.botCard {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.botCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.botIconCircle.connected {
+  background: linear-gradient(145deg, #4CAF50, #45A049) !important;
+  color: white;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+/* Animação de entrada para os bots */
+.botsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loading state para o grid inteiro */
+.botsContainer.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Indicador de loading global */
+.globalLoadingIndicator {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(153, 40, 195, 0.9);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.globalLoadingIndicator .statusSpinner {
+  border-color: rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+}
+
+.duplicateProgress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(8px);
+}
+
+.progressContent {
+  background: linear-gradient(145deg, #1a1d3a, #0f1127);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 30px 40px;
+  text-align: center;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.5),
+    0 8px 20px rgba(138, 5, 190, 0.2);
+  animation: fadeInScale 0.3s ease-out;
+}
+
+.progressContent p {
+  margin: 15px 0 0 0;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.progressSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top: 3px solid #9928C3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Melhorias no modal de confirmação */
+.warningBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 15px;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 10px;
+  color: #FFC107;
+  font-size: 13px;
+  margin-top: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.warningBox svg {
+  color: #FFC107;
+  flex-shrink: 0;
+}
+
+/* Melhorias nos botões do card */
+.botCard .duplicateButton {
+  opacity: 0;
+  transform: scale(0.8) translateY(-5px);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.botCard:hover .duplicateButton {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.duplicateButton:hover:not(:disabled) {
+  background: linear-gradient(45deg, #B745D1, #E055F0);
+  transform: scale(1.1) translateY(0);
+  box-shadow: 0 8px 25px rgba(138, 5, 190, 0.5);
+}
+
+.duplicateButton:active {
+  transform: scale(0.95) translateY(0);
+}
+
+/* Melhorias na animação do card */
+.botCard {
+  position: relative;
+  overflow: hidden;
+}
+
+.botCard::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: left 0.5s ease;
+  pointer-events: none;
+}
+
+.botCard:hover::after {
+  left: 100%;
+}
+
+/* Melhorias no preview do modal */
+.previewItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.previewItem:last-child {
+  border-bottom: none;
+}
+
+.previewItem:hover {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 6px;
+  padding: 10px 8px;
+}
+
+.previewLabel {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+}
+
+.previewValue {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: white;
+  font-weight: 500;
+}
+
+.previewValue svg {
+  font-size: 14px;
+}
+
+/* Estados do botão de confirmação */
+.confirmButton:disabled {
+  background: linear-gradient(45deg, #666666, #777777);
+  cursor: not-allowed;
+  transform: none;
+  opacity: 0.7;
+}
+
+.confirmButton:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Animações mais suaves para o modal */
+.confirmModal {
+  animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Melhorias no botão de adicionar */
+.addButton {
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.addButton:hover:not(:disabled) {
+  background: linear-gradient(45deg, #B745D1, #E055F0);
+  transform: scale(1.15) rotate(180deg);
+  box-shadow: 
+    0 15px 40px rgba(138, 5, 190, 0.6),
+    0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+.addButton:active:not(:disabled) {
+  transform: scale(1.05) rotate(180deg);
+}
+
+/* Responsividade para novos elementos */
+@media (max-width: 768px) {
+  .progressContent {
+    padding: 20px 30px;
+    margin: 20px;
+  }
+  
+  .progressContent p {
+    font-size: 14px;
+  }
+  
+  .progressSpinner {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .warningBox {
+    font-size: 12px;
+    padding: 10px 12px;
+  }
+  
+  .previewItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 8px 0;
+  }
+  
+  .previewValue {
+    font-size: 12px;
+  }
+  
+  .previewLabel {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .progressContent {
+    padding: 15px 20px;
+    margin: 15px;
+  }
+  
+  .progressContent p {
+    font-size: 13px;
+  }
+  
+  .progressSpinner {
+    width: 25px;
+    height: 25px;
+    border-width: 2px;
+  }
+  
+  .duplicateButton {
+    width: 28px;
+    height: 28px;
+    top: 8px;
+    right: 8px;
+  }
+  
+  .duplicateButton svg {
+    font-size: 14px;
+  }
+}
+
+/* Melhorias na acessibilidade */
+.duplicateButton:focus {
+  outline: 2px solid #9928C3;
+  outline-offset: 2px;
+}
+
+.confirmButton:focus,
+.cancelButton:focus {
+  outline: 2px solid #9928C3;
+  outline-offset: 2px;
+}
+
+/* Estados de hover melhorados */
+.cancelButton:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+/* Animação do ícone de duplicação */
+.duplicateButton svg {
+  transition: transform 0.2s ease;
+}
+
+.duplicateButton:hover:not(:disabled) svg {
+  transform: rotate(15deg);
+}
+
+/* Melhorias no feedback visual */
+.botCard:active {
+  transform: translateY(-4px) scale(1.01);
+}
+
+.botCardContent:active {
+  transform: scale(0.98);
+}
+
+/* Otimizações de performance */
+.botCard,
+.duplicateButton,
+.confirmModal,
+.progressContent {
+  will-change: transform, opacity;
+}
+
+/* Efeitos de brilho nos botões importantes */
+.confirmButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.confirmButton:hover::before {
+  left: 100%;
+}
+
+/* Estado de loading aprimorado */
+.buttonSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Melhorias no contraste para temas escuros */
+@media (prefers-color-scheme: dark) {
+  .warningBox {
+    background: rgba(255, 193, 7, 0.15);
+    border-color: rgba(255, 193, 7, 0.4);
+  }
+  
+  .previewItem:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.headerGradient {
+  background: linear-gradient(135deg, #0a0c1b 0%, #1e1f3f 100%);
+  padding: 20px 15px 25px;
+  position: relative;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  min-height: auto;
+}
+
+.headerContent {
+  max-width: 1300px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: white;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.backButton svg {
+  margin-right: 6px;
+}
+
+.backButton:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.headerContent h1 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  margin-bottom: 6px;
+  background: linear-gradient(45deg, #ffffff, #e0e0e0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.campaignDescription {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 15px 0;
+  line-height: 1.4;
+}
+
+.campaignMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 6px 10px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.metaItem svg {
+  margin-right: 4px;
+}
+
+.statusBadge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statusActive {
+  background: linear-gradient(45deg, #00C853, #4CAF50);
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 200, 83, 0.3);
+}
+
+.statusPaused {
+  background: linear-gradient(45deg, #FFA000, #FF9800);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 160, 0, 0.3);
+}
+
+.statusInactive {
+  background: linear-gradient(45deg, #FF3B30, #F44336);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 59, 48, 0.3);
+}
+
+.actionsContainer {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(45deg, #ffffff, #f8f9fa);
+  color: #8A05BE;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+  min-width: 80px;
+}
+
+.actionButton svg {
+  margin-right: 6px;
+}
+
+.actionButton:hover {
+  background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+}
+
+.botLimitBadge {
+  position: absolute;
+  top: 10px;
+  right: 0;
+  background: linear-gradient(45deg, #8A05BE, #9928C3);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(138, 5, 190, 0.3);
+}
+
+.content {
+  flex: 1;
+  padding: 20px 15px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.sectionHeader {
+  margin-bottom: 20px;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.confirmModal {
+  background: linear-gradient(145deg, #1a1d3a, #0f1127);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.5),
+    0 8px 20px rgba(138, 5, 190, 0.1);
+  max-width: 400px;
+  width: 90%;
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.confirmHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 25px 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.confirmHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(45deg, #ffffff, #e0e0e0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.confirmBody {
+  padding: 25px;
+  text-align: center;
+}
+
+.confirmIcon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #8A05BE, #9928C3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  color: white;
+  box-shadow: 0 8px 25px rgba(138, 5, 190, 0.3);
+}
+
+.confirmText {
+  font-size: 16px;
+  font-weight: 500;
+  color: white;
+  margin: 0 0 10px 0;
+  line-height: 1.4;
+}
+
+.confirmSubtext {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 20px 0;
+  line-height: 1.4;
+}
+
+.duplicatePreview {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 10px;
+}
+
+.previewItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.previewItem:last-child {
+  margin-bottom: 0;
+}
+
+.previewLabel {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+.previewValue {
+  font-size: 12px;
+  color: white;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 12px;
+  padding: 0 25px 25px;
+}
+
+.cancelButton {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancelButton:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.confirmButton {
+  flex: 1;
+  background: linear-gradient(45deg, #8A05BE, #9928C3);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 4px 15px rgba(138, 5, 190, 0.3);
+}
+
+.confirmButton:hover {
+  background: linear-gradient(45deg, #9928C3, #B745D1);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(138, 5, 190, 0.4);
+}
+
+.confirmButton:disabled {
+  background: linear-gradient(45deg, #666666, #777777);
+  cursor: not-allowed;
+  transform: none;
+  opacity: 0.7;
+}
+
+.confirmButton:disabled:hover {
+  transform: none;
+  box-shadow: 0 4px 15px rgba(138, 5, 190, 0.3);
+}
+
+/* Responsividade para o modal */
+@media (max-width: 768px) {
+  .confirmModal {
+    max-width: 350px;
+    margin: 20px;
+  }
+  
+  .confirmHeader {
+    padding: 15px 20px 12px;
+  }
+  
+  .confirmHeader h3 {
+    font-size: 16px;
+  }
+  
+  .confirmBody {
+    padding: 20px;
+  }
+  
+  .confirmIcon {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 15px;
+  }
+  
+  .confirmText {
+    font-size: 15px;
+  }
+  
+  .confirmSubtext {
+    font-size: 13px;
+  }
+  
+  .confirmActions {
+    padding: 0 20px 20px;
+    gap: 10px;
+  }
+  
+  .cancelButton,
+  .confirmButton {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .confirmModal {
+    max-width: 320px;
+  }
+  
+  .confirmActions {
+    flex-direction: column;
+  }
+  
+  .cancelButton,
+  .confirmButton {
+    width: 100%;
+  }
+}
+
+.sectionHeader h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+  background: linear-gradient(45deg, #ffffff, #e0e0e0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.botsContainer {
+  margin-top: 15px;
+}
+
+.botsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.botCard {
+  background: linear-gradient(145deg, #1a1d3a, #0f1127);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.3),
+    0 1px 8px rgba(0, 0, 0, 0.2);
+}
+
+.botCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #8A05BE, #9928C3, #00C853);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.botCard:hover::before {
+  opacity: 1;
+}
+
+.botCard:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 8px 20px rgba(138, 5, 190, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Novo - Botão de duplicar */
+.duplicateButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #8A05BE, #9928C3);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(138, 5, 190, 0.3);
+  z-index: 2;
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.botCard:hover .duplicateButton {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.duplicateButton:hover {
+  background: linear-gradient(45deg, #9928C3, #B745D1);
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(138, 5, 190, 0.4);
+}
+
+.duplicateButton:disabled {
+  background: linear-gradient(45deg, #666666, #777777);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.duplicateButton:disabled:hover {
+  transform: scale(1);
+  box-shadow: 0 4px 15px rgba(138, 5, 190, 0.3);
+}
+
+/* Novo - Conteúdo clicável do card */
+.botCardContent {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  height: 100%;
+}
+
+.botIconContainer {
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.botIconCircle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  position: relative;
+  transition: all 0.3s ease;
+  background: linear-gradient(145deg, #2a2d4a, #1e2039);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+.botIconCircle svg {
+  color: #9928C3;
+  transition: all 0.3s ease;
+}
+
+.botIconCircle.connected {
+  background: linear-gradient(145deg, #00C853, #4CAF50);
+  box-shadow: 
+    0 0 0 3px rgba(0, 200, 83, 0.2),
+    0 6px 20px rgba(0, 200, 83, 0.3);
+  animation: pulse 2s infinite;
+}
+
+.botIconCircle.connected svg {
+  color: white;
+}
+
+.botIconCircle::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #8A05BE, #9928C3, #00C853);
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.botCard:hover .botIconCircle::after {
+  opacity: 0.6;
+}
+
+.botCard:hover .botIconCircle {
+  transform: rotate(5deg) scale(1.1);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 
+      0 0 0 0 rgba(0, 200, 83, 0.4),
+      0 6px 20px rgba(0, 200, 83, 0.3);
+  }
+  70% {
+    box-shadow: 
+      0 0 0 12px rgba(0, 200, 83, 0),
+      0 6px 20px rgba(0, 200, 83, 0.3);
+  }
+  100% {
+    box-shadow: 
+      0 0 0 0 rgba(0, 200, 83, 0),
+      0 6px 20px rgba(0, 200, 83, 0.3);
+  }
+}
+
+
+.botName {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+  text-align: center;
+  color: white;
+  background: linear-gradient(45deg, #ffffff, #e0e0e0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.botPlatform {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 8px;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.botPlatform svg {
+  margin-right: 4px;
+  font-size: 12px;
+}
+
+.statusConnected {
+  background: linear-gradient(45deg, #00C853, #4CAF50);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(0, 200, 83, 0.3);
+}
+
+.statusDisconnected {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #2a2d4a, #1e2039);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9928C3;
+  margin-bottom: 25px;
+  border: 2px solid rgba(153, 40, 195, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.emptyState p {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 6px 0;
+  line-height: 1.5;
+}
+
+.emptyState p:first-of-type {
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.errorContainer {
+  padding: 20px;
+  background: linear-gradient(145deg, rgba(255, 59, 48, 0.1), rgba(255, 59, 48, 0.05));
+  border: 2px solid rgba(255, 59, 48, 0.3);
+  border-radius: 12px;
+  margin: 15px 0;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.errorContainer p {
+  color: #FF6B6B;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.retryButton {
+  background: linear-gradient(45deg, #FF3B30, #F44336);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 59, 48, 0.3);
+}
+
+.retryButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 59, 48, 0.4);
+}
+
+.addButton {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #8A05BE, #9928C3);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  box-shadow: 
+    0 8px 25px rgba(138, 5, 190, 0.4),
+    0 4px 15px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 100;
+  font-size: 24px;
+}
+
+.addButton:hover {
+  background: linear-gradient(45deg, #9928C3, #B745D1);
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 
+    0 12px 35px rgba(138, 5, 190, 0.5),
+    0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.addButton:disabled {
+  background: linear-gradient(45deg, #666666, #777777);
+  cursor: not-allowed;
+  transform: none;
+  opacity: 0.6;
+}
+
+.addButton:disabled:hover {
+  transform: none;
+  box-shadow: 
+    0 8px 25px rgba(138, 5, 190, 0.4),
+    0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Spinner para loading */
+.buttonSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive styles para telas grandes (Desktop 1920x1080+) */
+@media (min-width: 1920px) {
+  .headerGradient {
+    padding: 30px 20px 35px;
+  }
+  
+  .headerContent h1 {
+    font-size: 28px;
+    margin-bottom: 10px;
+  }
+  
+  .campaignDescription {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+  
+  .metaItem {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+  
+  .actionButton {
+    padding: 10px 14px;
+    font-size: 14px;
+    min-width: 100px;
+  }
+  
+  .botLimitBadge {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+  
+  .content {
+    padding: 30px 20px;
+  }
+  
+  .sectionHeader h2 {
+    font-size: 28px;
+  }
+  
+  .botsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+  }
+  
+  .botCardContent {
+    padding: 25px;
+  }
+  
+  .botIconCircle {
+    width: 80px;
+    height: 80px;
+    font-size: 32px;
+  }
+  
+  .botName {
+    font-size: 18px;
+  }
+  
+  .botPlatform {
+    font-size: 14px;
+  }
+  
+  .addButton {
+    width: 70px;
+    height: 70px;
+    bottom: 30px;
+    right: 30px;
+    font-size: 28px;
+  }
+  
+  .duplicateButton {
+    width: 36px;
+    height: 36px;
+    top: 12px;
+    right: 12px;
+  }
+}
+
+/* Responsive styles para telas médias (Notebooks 1366x768, 1440x900) */
+@media (max-width: 1600px) and (min-width: 1200px) {
+  .headerGradient {
+    padding: 18px 15px 22px;
+  }
+  
+  .headerContent h1 {
+    font-size: 18px;
+  }
+  
+  .campaignDescription {
+    font-size: 11px;
+  }
+  
+  .metaItem {
+    font-size: 10px;
+    padding: 5px 8px;
+  }
+  
+  .actionButton {
+    padding: 7px 9px;
+    font-size: 11px;
+    min-width: 70px;
+  }
+  
+  .botLimitBadge {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+  
+  .sectionHeader h2 {
+    font-size: 20px;
+  }
+  
+  .botsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 15px;
+  }
+  
+  .botCardContent {
+    padding: 15px;
+  }
+  
+  .botIconCircle {
+    width: 55px;
+    height: 55px;
+    font-size: 22px;
+  }
+  
+  .botName {
+    font-size: 14px;
+  }
+  
+  .botPlatform {
+    font-size: 11px;
+  }
+  
+  .duplicateButton {
+    width: 28px;
+    height: 28px;
+    top: 8px;
+    right: 8px;
+  }
+}
+
+/* Responsive styles para tablets */
+@media (max-width: 1199px) and (min-width: 769px) {
+  .headerGradient {
+    padding: 16px 12px 20px;
+  }
+  
+  .headerContent h1 {
+    font-size: 17px;
+  }
+  
+  .campaignMeta {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  
+  .actionsContainer {
+    gap: 8px;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .actionButton {
+    flex: 1;
+    min-width: 60px;
+    max-width: 90px;
+  }
+  
+  .botsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 15px;
+  }
+  
+  .content {
+    padding: 18px 12px;
+  }
+  
+  .duplicateButton {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive styles para smartphones */
+@media (max-width: 768px) {
+  .headerGradient {
+    padding: 15px 10px 18px;
+  }
+  
+  .headerContent h1 {
+    font-size: 16px;
+    margin-bottom: 5px;
+  }
+  
+  .campaignDescription {
+    font-size: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .campaignMeta {
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  
+  .metaItem {
+    font-size: 9px;
+    padding: 4px 6px;
+  }
+  
+  .actionsContainer {
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .actionButton {
+    width: 100%;
+    justify-content: center;
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+  
+  .botLimitBadge {
+    position: static;
+    align-self: flex-end;
+    margin-top: 8px;
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+  
+  .content {
+    padding: 15px 10px;
+  }
+  
+  .sectionHeader h2 {
+    font-size: 18px;
+  }
+  
+  .botsGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .botCardContent {
+    padding: 15px;
+    margin-bottom: 0;
+  }
+  
+  .botIconCircle {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+  
+  .botName {
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  
+  .botPlatform {
+    font-size: 10px;
+    margin-bottom: 8px;
+  }
+  
+  .addButton {
+    width: 50px;
+    height: 50px;
+    bottom: 15px;
+    right: 15px;
+    font-size: 20px;
+  }
+  
+  .emptyState {
+    padding: 40px 15px;
+  }
+  
+  .emptyIcon {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+  }
+  
+  .emptyState p {
+    font-size: 14px;
+  }
+  
+  .emptyState p:first-of-type {
+    font-size: 16px;
+  }
+  
+  .duplicateButton {
+    opacity: 1;
+    transform: scale(1);
+    width: 30px;
+    height: 30px;
+  }
+}
+
+/* Responsive styles para smartphones pequenos */
+@media (max-width: 480px) {
+  .headerGradient {
+    padding: 12px 8px 15px;
+  }
+  
+  .headerContent h1 {
+    font-size: 14px;
+  }
+  
+  .campaignDescription {
+    font-size: 9px;
+  }
+  
+  .metaItem {
+    font-size: 8px;
+    padding: 3px 5px;
+  }
+  
+  .actionButton {
+    font-size: 10px;
+    padding: 6px 10px;
+  }
+  
+  .content {
+    padding: 12px 8px;
+  }
+  
+  .sectionHeader h2 {
+    font-size: 16px;
+  }
+  
+  .botCardContent {
+    padding: 12px;
+  }
+  
+  .botIconCircle {
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
+  }
+  
+  .botName {
+    font-size: 12px;
+  }
+  
+  .botPlatform {
+    font-size: 9px;
+  }
+  
+  .statusConnected,
+  .statusDisconnected,
+  .statusBadge {
+    font-size: 8px;
+    padding: 4px 8px;
+  }
+  
+  .duplicateButton {
+    width: 26px;
+    height: 26px;
+    top: 6px;
+    right: 6px;
+  }
+}

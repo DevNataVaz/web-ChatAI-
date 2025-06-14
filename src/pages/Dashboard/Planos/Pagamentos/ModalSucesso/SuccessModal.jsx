@@ -1,22 +1,35 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './SuccessModal.module.css';
 import { CheckCircle, AlertTriangle, Clock } from 'react-feather';
 
 function SuccessModal({ visible, onClose, status, plano, paymentData = {} }) {
   const navigate = useNavigate();
+  
+  // Efeito para aplicar overflow hidden no body quando o modal estiver visível
+  useEffect(() => {
+    if (visible) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [visible]);
 
   if (!visible) return null;
 
   const getStatusIcon = () => {
     switch (status) {
       case 'approved':
-        return <CheckCircle size={48} color="#00a650" />;
+        return <CheckCircle size={48} color="#00a650" className={styles.approved} />;
       case 'rejected':
         return <AlertTriangle size={48} color="#f23d4f" />;
       case 'in_process':
       case 'pending':
-        return <Clock size={48} color="#ff7733" />;
+        return <Clock size={48} color="#ff7733" className={styles.pending} />;
       default:
         return <AlertTriangle size={48} color="#8A05BE" />;
     }
@@ -52,9 +65,13 @@ function SuccessModal({ visible, onClose, status, plano, paymentData = {} }) {
 
   const getStatusDescription = () => {
     switch (status) {
+      case 'approved':
+        return 'Agradecemos a sua compra! Você será redirecionado em instantes.';
       case 'pending':
       case 'in_process':
         return 'Não se preocupe, em poucos minutos vamos reconhecer seu pagamento.';
+      case 'rejected':
+        return 'Verifique seus dados e tente novamente com outro método de pagamento.';
       default:
         return '';
     }
@@ -75,10 +92,13 @@ function SuccessModal({ visible, onClose, status, plano, paymentData = {} }) {
     } else {
       navigate('/dashboard');
     }
+    onClose();
   };
 
   return (
-    <div className={styles.modalOverlay}>
+    <div className={styles.modalOverlay} onClick={e => {
+      if (e.target === e.currentTarget) onClose();
+    }}>
       <div className={styles.modalContent}>
         <div 
           className={styles.modalHeader}
@@ -99,15 +119,15 @@ function SuccessModal({ visible, onClose, status, plano, paymentData = {} }) {
           <div className={styles.paymentDetails}>
             <div className={styles.detailsItem}>
               <div className={styles.detailsIcon}>
-                <img 
-                  src="/assets/mercadopago.png" 
-                  alt="Mercado Pago" 
-                  className={styles.mpLogo}
-                />
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L6.5 11H17.5L12 2Z" fill="#8A05BE" />
+                  <path d="M17.5 22L23 13H12L17.5 22Z" fill="#8A05BE" />
+                  <path d="M6.5 22L1 13H12L6.5 22Z" fill="#8A05BE" />
+                </svg>
               </div>
               <div className={styles.detailsInfo}>
-                <h3>R$ {plano.PRECO_MES}</h3>
-                <p>Pago pelo Mercado Pago</p>
+                <h3>Valor</h3>
+                <p>R$ {plano.PRECO_MES}</p>
               </div>
             </div>
           </div>
@@ -140,8 +160,8 @@ function SuccessModal({ visible, onClose, status, plano, paymentData = {} }) {
                 </svg>
               </div>
               <div className={styles.detailsInfo}>
-                <h3>Plano {plano.PLANO}</h3>
-                <p>{paymentData.DATA ? `${paymentData.DATA} às ${paymentData.HORA} h.` : new Date().toLocaleDateString()}</p>
+                <h3>Plano</h3>
+                <p>{plano.PLANO} ({plano.MENSAGENS} mensagens)</p>
               </div>
             </div>
           </div>

@@ -1,0 +1,582 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #121212;
+  color: white;
+}
+
+.headerGradient {
+  background: linear-gradient(135deg, #8A05BE 0%, #9928C3 100%);
+  padding: 30px 20px 40px;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.headerContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  padding: 8px 12px;
+  font-size: 14px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.backButton svg {
+  margin-right: 6px;
+}
+
+.backButton:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.botHeader {
+  display: flex;
+  align-items: center;
+}
+
+.botIconCircle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px;
+  color: white;
+}
+
+.whatsappIcon {
+  background-color: #25D366;
+}
+
+.instagramIcon {
+  background: linear-gradient(135deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D, #F56040, #F77737, #FCAF45, #FFDC80);
+}
+
+.botInfo {
+  flex: 1;
+}
+
+.botName {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.botName h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  margin-right: 10px;
+}
+
+.editNameButton {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.editNameButton:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.editNameContainer {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.editNameInput {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  margin-right: 10px;
+  width: 250px;
+}
+
+.editNameInput:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
+}
+
+.editActions {
+  display: flex;
+  gap: 5px;
+}
+
+.editActionButton {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.saveButton:hover {
+  background: rgba(0, 200, 83, 0.6);
+}
+
+.cancelButton:hover {
+  background: rgba(255, 59, 48, 0.6);
+}
+
+.botType {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.botType svg {
+  margin-right: 5px;
+}
+
+.connectionStatus {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 20px;
+}
+
+.connected {
+  background-color: rgba(0, 200, 83, 0.3);
+  color: #00C853;
+}
+
+.disconnected {
+  background-color: rgba(255, 59, 48, 0.3);
+  color: #FF3B30;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.connected .statusDot {
+  background-color: #00C853;
+  box-shadow: 0 0 0 2px rgba(0, 200, 83, 0.3);
+}
+
+.disconnected .statusDot {
+  background-color: #FF3B30;
+  box-shadow: 0 0 0 2px rgba(255, 59, 48, 0.3);
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #2a2a2a;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+  min-width: 120px;
+}
+
+.actionButton:hover {
+  background-color: #3a3a3a;
+  transform: translateY(-2px);
+}
+
+.startButton {
+  background-color: #8A05BE;
+}
+
+.startButton:hover {
+  background-color: #9928C3;
+}
+
+.stopButton {
+  background-color: #FF3B30;
+}
+
+.stopButton:hover {
+  background-color: #FF4940;
+}
+
+.actionButton:disabled {
+  background-color: #444444;
+  color: #aaaaaa;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.buttonSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+.detailsSection {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
+}
+
+.detailCard {
+  background-color: #2a2a2a;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.detailTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: white;
+  border-bottom: 1px solid #3a3a3a;
+  padding-bottom: 10px;
+}
+
+.detailRow {
+  display: flex;
+  margin-bottom: 15px;
+}
+
+.detailRow:last-child {
+  margin-bottom: 0;
+}
+
+.detailLabel {
+  font-weight: 500;
+  color: #aaaaaa;
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.detailValue {
+  flex: 1;
+  color: white;
+}
+
+.copyableValue {
+  display: flex;
+  align-items: center;
+}
+
+.botId {
+  font-family: 'Courier New', monospace;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-right: 8px;
+}
+
+.copyButton {
+  background: none;
+  border: none;
+  color: #aaaaaa;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: color 0.2s;
+}
+
+.copyButton:hover {
+  color: white;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.activeBadge {
+  background-color: rgba(0, 200, 83, 0.2);
+  color: #00C853;
+}
+
+.inactiveBadge {
+  background-color: rgba(255, 59, 48, 0.2);
+  color: #FF3B30;
+}
+
+.productsSection {
+  background-color: #2a2a2a;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.productsSectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #3a3a3a;
+  padding-bottom: 10px;
+}
+
+.addProductButton {
+  display: flex;
+  align-items: center;
+  background-color: #8A05BE;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  gap: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.addProductButton:hover {
+  background-color: #9928C3;
+}
+
+.productsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.productCard {
+  background-color: #333333;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s;
+  height: 180px;
+}
+
+.productCard:hover {
+  transform: translateY(-4px);
+}
+
+.productImage {
+  height: 120px;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.productImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.productImagePlaceholder {
+  height: 120px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #444444;
+  color: #aaaaaa;
+}
+
+.productInfo {
+  padding: 10px;
+}
+
+.productName {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 5px 0;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.productPrice {
+  font-size: 12px;
+  color: #aaaaaa;
+  margin: 0;
+}
+
+.viewMoreCard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(138, 5, 190, 0.2);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.viewMoreCard:hover {
+  background-color: rgba(138, 5, 190, 0.3);
+}
+
+.viewMoreContent {
+  text-align: center;
+  color: #9928C3;
+}
+
+.viewMoreContent span {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.viewMoreContent p {
+  margin: 5px 0 0 0;
+  font-size: 14px;
+}
+
+.emptyProducts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  color: #aaaaaa;
+}
+
+.emptyProducts svg {
+  margin-bottom: 15px;
+}
+
+.emptyProducts p {
+  margin: 0 0 20px 0;
+}
+
+.addFirstProductButton {
+  background-color: #8A05BE;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.addFirstProductButton:hover {
+  background-color: #9928C3;
+}
+
+.errorContainer {
+  padding: 20px;
+  background-color: rgba(255, 59, 48, 0.1);
+  border: 1px solid rgba(255, 59, 48, 0.3);
+  border-radius: 8px;
+  margin: 0 0 20px 0;
+  text-align: center;
+}
+
+.errorContainer p {
+  color: #FF3B30;
+  margin-bottom: 15px;
+}
+
+.retryButton {
+  background-color: #FF3B30;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive styles */
+@media (max-width: 992px) {
+  .detailsSection {
+    grid-template-columns: 1fr;
+  }
+  
+  .productsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .botHeader {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .botIconCircle {
+    margin: 0 0 15px 0;
+  }
+  
+  .botName {
+    justify-content: center;
+  }
+  
+  .connectionStatus {
+    margin-top: 15px;
+  }
+  
+  .actionButtons {
+    flex-direction: column;
+  }
+  
+  .detailLabel {
+    width: 90px;
+  }
+}

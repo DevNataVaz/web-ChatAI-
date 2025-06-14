@@ -14,7 +14,7 @@ import { useNavigate } from 'react-router-dom';
 
 
 
-const socket = io(`${Variaveis.TESTE}`, {
+const socket = io(`${Variaveis.ENDERECO}`, {
   transports: ['websocket'],
   withCredentials: true,
   extraHeaders: {
@@ -24,11 +24,11 @@ const socket = io(`${Variaveis.TESTE}`, {
 
 
 socket.on('connect', () => {
-  console.log('coneectou', socket.id);
+  // console.log('coneectou', socket.id);
 });
 
 socket.on('connect_error', (err) => {
-  console.error('Erro na conexão com o WebSocket:', err);
+  // console.error('Erro na conexão com o WebSocket:', err);
 });
 
 
@@ -133,17 +133,17 @@ export default function AuthModal({ onClose }) {
       };
 
 
-    console.log('Dados de envio antes da criptografia:', data);
+    // console.log('Dados de envio antes da criptografia:', data);
 
 
     // const eventName = cadastro ? 'EnviarRegistro' : 'Login';
     const eventName = 'EnviarRegistro';
 
-    console.log(`Enviando evento: ${eventName}`);
+    // console.log(`Enviando evento: ${eventName}`);
 
 
     const dataToSend = criptografar(JSON.stringify(data));
-    console.log('Dados criptografados enviados:', dataToSend);
+    // console.log('Dados criptografados enviados:', dataToSend);
 
     socket.emit(eventName, dataToSend);
 
@@ -180,7 +180,7 @@ export default function AuthModal({ onClose }) {
           throw new Error('Resposta inválida');
         }
 
-        console.log('Cadastro:', dadosFinal);
+        // console.log('Cadastro:', dadosFinal);
 
         if (dadosFinal.Response) {
           toast.success('Cadastro realizado com sucesso!');
@@ -192,7 +192,7 @@ export default function AuthModal({ onClose }) {
         }
 
       } catch (e) {
-        console.error('Erro ao descriptografar registro:', e.message);
+        // console.error('Erro ao descriptografar registro:', e.message);
         toast.error('Erro ao processar a resposta do servidor.');
       }
     });

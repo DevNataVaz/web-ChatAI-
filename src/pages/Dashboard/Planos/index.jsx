@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import styles from './planos.module.css';
 import Certo from '../../../assets/icons/certo.svg';
 import { useApp } from "../../../context/AppContext";
-import { Descriptografar } from "../../../Cripto"; // Ensure this path is correct
+import { Descriptografar } from "../../../Cripto";
 
 function Planos() {
     const navigate = useNavigate();
@@ -12,99 +12,9 @@ function Planos() {
     const [planoAtual, setPlanoAtual] = useState(null);
     const [assinaturaId, setAssinaturaId] = useState(null);
     const [error, setError] = useState(null);
+    const [planosBanco, setPlanosBanco] = useState([]);
     
-    // Função para obter usuário do localStorage
-    const getUserFromLocalStorage = () => {
-        try {
-            const savedUser = localStorage.getItem('animusia_user');
-            if (!savedUser) return null;
-            
-            const decryptedUser = Descriptografar(savedUser);
-            return JSON.parse(decryptedUser);
-        } catch (err) {
-            console.error("Erro ao recuperar usuário do localStorage:", err);
-            return null;
-        }
-    };
-
-    useEffect(() => {
-        if (initializing) return;
-        
-        // Tenta obter usuário do localStorage se não estiver no contexto
-        const localUser = user?.LOGIN ? user : getUserFromLocalStorage();
-        
-        // Carregar planos se tiver usuário (do contexto ou localStorage)
-        if (localUser?.LOGIN) {
-            setLoading(true);
-            setError(null);
-            
-            loadPlans(localUser.LOGIN)
-                .then(response => {
-                    if (response?.Id_Assinatura) {
-                        setAssinaturaId(response.Id_Assinatura);
-                    }
-                    if (response?.Plano_atual) {
-                        setPlanoAtual(response.Plano_atual);
-                    }
-                })
-                .catch(error => {
-                    console.error("Erro ao carregar planos:", error);
-                    setError("Não foi possível carregar os planos. Por favor, tente novamente mais tarde.");
-                })
-                .finally(() => setLoading(false));
-        }
-    }, [user, loadPlans, initializing]);
-
-    const handleEscolherPlano = (planoId) => {
-        // Verificar se usuário está autenticado (contexto ou localStorage)
-        const localUser = user || getUserFromLocalStorage();
-        
-        if (!localUser) {
-            // Redirecionar para login se não houver usuário
-            navigate('/login');
-            return;
-        }
-        
-        // Verificar se já tem esse plano
-        if (planoId === planoAtual) {
-            alert("Você já possui este plano!");
-            return;
-        }
-        
-        // Redirecionar para pagamento se estiver logado
-        navigate(`/pagamento/${planoId}`);
-    };
-
-    // Formatação de preço
-    const formatarPreco = (preco) => {
-        if (typeof preco === 'number') {
-            return preco.toFixed(2).replace('.', ',');
-        }
-        // Se já for string, garantir formato correto
-        return typeof preco === 'string' ? preco.replace('.', ',') : '0,00';
-    };
-
-    // Mapear benefícios com base nas propriedades do plano
-    const mapearBeneficios = (plano) => {
-        const beneficios = [];
-        
-        if (plano.ATENDENTES) beneficios.push(`Atendentes Simultâneos: ${plano.ATENDENTES}`);
-        if (plano.LIMITE_MENSAGENS) beneficios.push(`Limite Mensagens: ${plano.LIMITE_MENSAGENS}`);
-        if (plano.PRODUTOS) beneficios.push(`Produtos ou Serviços Cadastrados: ${plano.PRODUTOS}`);
-        if (plano.AUTOMACAO) beneficios.push(`Automação por plataforma: ${plano.AUTOMACAO}`);
-        
-        // Adicionar recursos extras baseados em flags booleanas
-        if (plano.SUGESTAO_CONTEUDO) beneficios.push("Sugestões de conteúdo");
-        if (plano.OTIMIZACAO_LINKS) beneficios.push("Otimização de links");
-        if (plano.ACESSO_MULTIUSUARIO) beneficios.push("Acesso multiusuário");
-        if (plano.INTEGRACAO_API) beneficios.push("Integração API");
-        if (plano.OTIMIZACAO_KEYWORDS) beneficios.push("Otimização de palavras-chave");
-        if (plano.META_TAGS) beneficios.push("Meta tags automatizadas");
-        
-        return beneficios;
-    };
-
-    // Planos estáticos como fallback
+    // Planos estáticos - sempre exibidos na interface
     const planosEstaticos = [
         {
             ID: 1,
@@ -184,9 +94,149 @@ function Planos() {
             META_TAGS: true
         }
     ];
+    
+    // Função para obter usuário do localStorage
+    const getUserFromLocalStorage = () => {
+        try {
+            const savedUser = localStorage.getItem('animusia_user');
+            if (!savedUser) return null;
+            
+            const decryptedUser = Descriptografar(savedUser);
+            return JSON.parse(decryptedUser);
+        } catch (err) {
+            return null;
+        }
+    };
+    
+    // Função para mapear plano do banco com plano estático
+    const mapearPlanoComBanco = (nomePlano) => {
+        const planoEstatico = planosEstaticos.find(p => 
+            p.PLANO === nomePlano
+        );
+        return planoEstatico?.ID || null;
+    };
+    
+    // Função para obter ID do plano baseado no nome (do usuário ou banco)
+    const obterIdPlanoPorNome = (nomePlano) => {
+        if (!nomePlano) return null;
+        
+        // Primeiro, procura nos planos do banco se disponível
+        if (Array.isArray(planosBanco) && planosBanco.length > 0) {
+            const planoBanco = planosBanco.find(p => 
+                p.PLANO?.toLowerCase() === nomePlano.toLowerCase()
+            );
+            if (planoBanco?.ID) return planoBanco.ID;
+        }
+        
+        // Se não encontrar no banco, mapeia com plano estático
+        return mapearPlanoComBanco(nomePlano);
+    };
 
-    // Verificação defensiva para garantir que planos seja tratado como array
-    const planosParaExibir = Array.isArray(planos) && planos.length > 0 ? planos : planosEstaticos;
+    useEffect(() => {
+        if (initializing) return;
+        
+        const localUser = user?.LOGIN ? user : getUserFromLocalStorage();
+        
+        if (localUser?.LOGIN) {
+            setLoading(true);
+            setError(null);
+            
+            loadPlans(localUser.LOGIN)
+                .then(response => {
+                    // Armazena os planos do banco para referência
+                    if (Array.isArray(response)) {
+                        setPlanosBanco(response);
+                    } else if (response?.planos && Array.isArray(response.planos)) {
+                        setPlanosBanco(response.planos);
+                    }
+                    
+                    // Define assinatura e plano atual
+                    if (response?.Id_Assinatura) {
+                        setAssinaturaId(response.Id_Assinatura);
+                    }
+                    if (response?.Plano_atual) {
+                        setPlanoAtual(response.Plano_atual);
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro ao carregar planos:", error);
+                    setError("Não foi possível carregar os planos. Por favor, tente novamente mais tarde.");
+                })
+                .finally(() => setLoading(false));
+        }
+    }, [user, loadPlans, initializing]);
+
+    const handleEscolherPlano = (planoEstatico) => {
+        const localUser = user || getUserFromLocalStorage();
+        
+        if (!localUser) {
+            navigate('/login');
+            return;
+        }
+        
+        // Obter o ID correto do plano
+        let planoIdParaEnviar = planoEstatico.ID;
+        
+        // Verificar se existe correspondência no banco e usar esse ID se disponível
+        if (Array.isArray(planosBanco) && planosBanco.length > 0) {
+            const planoBanco = planosBanco.find(p => 
+                p.PLANO?.toLowerCase() === planoEstatico.PLANO.toLowerCase()
+            );
+            if (planoBanco?.ID) {
+                planoIdParaEnviar = planoBanco.ID;
+            }
+        }
+        
+        // Verificar se já tem esse plano
+        const planoAtualId = obterIdPlanoPorNome(user?.PLANO || planoAtual);
+        if (planoIdParaEnviar === planoAtualId) {
+            alert("Você já possui este plano!");
+            return;
+        }
+        
+        // Debug para verificar o ID que está sendo enviado
+        console.log('Plano selecionado:', planoEstatico.PLANO);
+        console.log('ID para enviar:', planoIdParaEnviar);
+        
+        // Redirecionar para pagamento
+        navigate(`/pagamento/${planoIdParaEnviar}`);
+    };
+
+    // Formatação de preço
+    const formatarPreco = (preco) => {
+        if (typeof preco === 'number') {
+            return preco.toFixed(2).replace('.', ',');
+        }
+        return typeof preco === 'string' ? preco.replace('.', ',') : '0,00';
+    };
+
+    // Mapear benefícios com base nas propriedades do plano
+    const mapearBeneficios = (plano) => {
+        const beneficios = [];
+        
+        if (plano.ATENDENTES) beneficios.push(`Atendentes Simultâneos: ${plano.ATENDENTES}`);
+        if (plano.LIMITE_MENSAGENS) beneficios.push(`Limite Mensagens: ${plano.LIMITE_MENSAGENS}`);
+        if (plano.PRODUTOS) beneficios.push(`Produtos ou Serviços Cadastrados: ${plano.PRODUTOS}`);
+        if (plano.AUTOMACAO) beneficios.push(`Automação por plataforma: ${plano.AUTOMACAO}`);
+        
+        // Recursos extras baseados em flags booleanas
+        if (plano.SUGESTAO_CONTEUDO) beneficios.push("Sugestões de conteúdo");
+        if (plano.OTIMIZACAO_LINKS) beneficios.push("Otimização de links");
+        if (plano.ACESSO_MULTIUSUARIO) beneficios.push("Acesso multiusuário");
+        if (plano.INTEGRACAO_API) beneficios.push("Integração API");
+        if (plano.OTIMIZACAO_KEYWORDS) beneficios.push("Otimização de palavras-chave");
+        if (plano.META_TAGS) beneficios.push("Meta tags automatizadas");
+        
+        return beneficios;
+    };
+    
+    // Verificar se é o plano atual do usuário
+    const ehPlanoAtual = (planoEstatico) => {
+        if (!user?.PLANO && !planoAtual) return false;
+        
+        const nomePlanoUsuario = user?.PLANO || planoAtual;
+        return planoEstatico.PLANO === nomePlanoUsuario;
+    };
 
     return (
         <div className={styles.container} id="planos">
@@ -209,14 +259,9 @@ function Planos() {
                 </div>
             ) : (
                 <div className={styles.containerPlanos}> 
-                    {planosParaExibir.map((plano, index) => {
-                        // Determinar se é o plano atual do usuário - MODIFICADO: agora verifica da tabela user, coluna PLANO
-                        const ehPlanoAtual = user?.PLANO && (plano.PLANO === user.PLANO);
-                        
-                        // Gerar benefícios dinamicamente com base nas propriedades do plano
-                        const beneficios = plano.beneficios || mapearBeneficios(plano);
-                        
-                        // Verificar se é o plano Started para mostrar o trial
+                    {planosEstaticos.map((plano, index) => {
+                        const isPlanoAtual = ehPlanoAtual(plano);
+                        const beneficios = mapearBeneficios(plano);
                         const ehPlanoStarted = plano.PLANO === "Started" || plano.trial;
                         
                         return (
@@ -224,11 +269,10 @@ function Planos() {
                                 key={plano.ID}
                                 className={`${styles.planos} 
                                            ${plano.destaque ? styles.destaque : ''} 
-                                           ${ehPlanoAtual ? styles.planoAtual : ''}
+                                           ${isPlanoAtual ? styles.planoAtual : ''}
                                            ${ehPlanoStarted ? styles.planoStarted : ''}`}
-                                
                             >
-                                {ehPlanoAtual && (
+                                {isPlanoAtual && (
                                     <div className={styles.planoAtualContainer}>
                                         <div className={styles.planoAtualLabel}>
                                             <span>Seu plano atual</span>
@@ -239,7 +283,7 @@ function Planos() {
                                 
                                 {ehPlanoStarted && (
                                     <div className={styles.trialRibbon}>
-                                        <span>7 dias grátis</span>
+                                        <span>30 dias grátis</span>
                                     </div>
                                 )}
                                 
@@ -267,11 +311,11 @@ function Planos() {
                                 
                                 <button 
                                     className={`${styles.comprar} 
-                                              ${ehPlanoAtual ? styles.desabilitado : ''}`}
-                                    onClick={() => handleEscolherPlano(plano.ID)}
-                                    disabled={ehPlanoAtual}
+                                              ${isPlanoAtual ? styles.desabilitado : ''}`}
+                                    onClick={() => handleEscolherPlano(plano)}
+                                    disabled={isPlanoAtual}
                                 >
-                                    {ehPlanoAtual ? 'SEU PLANO ATUAL' : 'ESCOLHER PLANO'}
+                                    {isPlanoAtual ? 'SEU PLANO ATUAL' : 'ESCOLHER PLANO'}
                                 </button>
                             </div>
                         );

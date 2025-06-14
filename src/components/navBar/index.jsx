@@ -13,6 +13,7 @@ function NavBar() {
 
     function scrollToSection(id) {
         const element = document.getElementById(id);
+    
         if (element) {
             element.scrollIntoView({ behavior: 'smooth' });
         }
@@ -22,6 +23,7 @@ function NavBar() {
 
 
     return (
+       
 
         <div className={styles.container}>
             <div className={styles.containerLogo} data-aos="fade-right" data-aos-delay="900">
@@ -35,8 +37,6 @@ function NavBar() {
                     <li className={styles.navItem} onClick={() => scrollToSection("feedbacks")}>Feedbacks</li>
                     <li className={styles.navItem} onClick={() => scrollToSection("contato")}>Contato</li>
                 </ul>
-
-
             </div>
             <div className={styles.containerbuttons}>
                 <div className={styles.containerbuttonLogin}>
